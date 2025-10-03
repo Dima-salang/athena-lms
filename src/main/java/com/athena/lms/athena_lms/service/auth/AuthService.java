@@ -14,16 +14,18 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @Service
 public class AuthService {
     private final UserRepository userRepository;
+    private final JWTService jwtService;
     
-    public AuthService(UserRepository userRepository) {
+    public AuthService(UserRepository userRepository, JWTService jwtService) {
         this.userRepository = userRepository;
+        this.jwtService = jwtService;
     }
 
-    public User login(String username, String password) {
+    public String login(String username, String password) {
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         User user = userRepository.findByUsername(username);
         if (user != null && passwordEncoder.matches(password, user.getPassword())) {
-            return user;
+            return jwtService.generateToken(user);
         }
         return null;
     }
