@@ -1,38 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import { getTeacherTests, createTest, type Test } from '../services/api';
+import { useNavigate } from 'react-router-dom';
 
-const TestDashboard: React.FC = () => {
+const DashboardPage: React.FC = () => {
     const [tests, setTests] = useState<Test[]>([]);
     const [teacherId, setTeacherId] = useState<number>(1);
     const [newTestName, setNewTestName] = useState('');
     const [newTestDescription, setNewTestDescription] = useState('');
     const [error, setError] = useState<string | null>(null);
+    const navigate = useNavigate();
 
     const fetchTests = async () => {
         try {
             const teacherTests = await getTeacherTests(teacherId);
-            console.log('Tests fetched successfully', teacherTests);
             if (Array.isArray(teacherTests)) {
                 setTests(teacherTests);
-                console.log('Tests set successfully', tests);
             } else {
                 setTests([]);
-                console.log('Tests set to empty array');
             }
             setError(null);
         } catch (err) {
             setError('Failed to fetch tests. Please check the teacher ID and try again.');
             setTests([]);
-            console.log('Failed to fetch tests', err);
         }
     };
 
     const handleCreateTest = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            // NOTE: The backend expects nested objects for section, teacher, and subject.
-            // For now, we are sending dummy data. This should be replaced with a proper
-            // selection mechanism in a real application.
             const newTest: Omit<Test, 'id'> = {
                 testName: newTestName,
                 testDescription: newTestDescription,
@@ -45,7 +40,6 @@ const TestDashboard: React.FC = () => {
                 questions: [],
             };
             await createTest(newTest);
-            console.log('Test created successfully', newTest);
             setNewTestName('');
             setNewTestDescription('');
             fetchTests(); // Refresh the list of tests
@@ -54,12 +48,22 @@ const TestDashboard: React.FC = () => {
         }
     };
 
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        navigate('/login');
+    };
+
     useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            navigate('/login');
+        }
         fetchTests();
-    }, [teacherId]);
+    }, [teacherId, navigate]);
 
     return (
         <div>
+            <button onClick={handleLogout} style={{ float: 'right' }}>Logout</button>
             <h1>Test Dashboard</h1>
             <div>
                 <label>
@@ -115,4 +119,4 @@ const TestDashboard: React.FC = () => {
     );
 };
 
-export default TestDashboard;
+export default DashboardPage;

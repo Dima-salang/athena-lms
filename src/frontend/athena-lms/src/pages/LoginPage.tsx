@@ -1,21 +1,25 @@
 import React, { useState } from 'react';
-import { login } from '../services/authApi'; // I will create this file next
+import { login } from '../services/authApi';
+import { useNavigate } from 'react-router-dom';
 
-const LoginForm: React.FC = () => {
+const LoginPage: React.FC = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
-    const [success, setSuccess] = useState<string | null>(null);
+    const navigate = useNavigate();
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
-        setSuccess(null);
 
         try {
-            const { token } = await login({ username, password });
-            localStorage.setItem('token', token);
-            setSuccess('Login successful!');
+            const data = await login({ username, password });
+            if (data && data.token) {
+                localStorage.setItem('token', data.token);
+                navigate('/dashboard');
+            } else {
+                setError('Login failed: No token received');
+            }
         } catch (err) {
             setError('Failed to login. Please check your credentials.');
         }
@@ -25,7 +29,6 @@ const LoginForm: React.FC = () => {
         <div>
             <h2>Login</h2>
             {error && <p style={{ color: 'red' }}>{error}</p>}
-            {success && <p style={{ color: 'green' }}>{success}</p>}
             <form onSubmit={handleLogin}>
                 <div>
                     <label>Username:</label>
@@ -41,4 +44,4 @@ const LoginForm: React.FC = () => {
     );
 };
 
-export default LoginForm;
+export default LoginPage;

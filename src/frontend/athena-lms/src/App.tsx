@@ -1,17 +1,25 @@
 import './App.css';
-import LoginForm from './components/LoginForm';
-import RegistrationForm from './components/RegistrationForm';
-import TestDashboard from './components/TestDashboard';
+import { Outlet, Link } from 'react-router-dom';
 
 function App() {
 
   return (
     <>
-      <LoginForm />
+      <nav>
+        <ul>
+          <li>
+            <Link to="/login">Login</Link>
+          </li>
+          <li>
+            <Link to="/register">Register</Link>
+          </li>
+          <li>
+            <Link to="/dashboard">Dashboard</Link>
+          </li>
+        </ul>
+      </nav>
       <hr />
-      <RegistrationForm />
-      <hr />
-      <TestDashboard />
+      <Outlet />
     </>
   )
 }

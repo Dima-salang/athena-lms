@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { registerStudent, registerTeacher } from '../services/authApi';
 import type { Student, Teacher } from '../services/api';
+import { Link } from 'react-router-dom';
 
-const RegistrationForm: React.FC = () => {
+const RegistrationPage: React.FC = () => {
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [username, setUsername] = useState('');
@@ -88,8 +89,11 @@ const RegistrationForm: React.FC = () => {
                 )}
                 <button type="submit">Register</button>
             </form>
+            <p>
+                Already have an account? <Link to="/login">Login here</Link>
+            </p>
         </div>
     );
 };
 
-export default RegistrationForm;
+export default RegistrationPage;
