@@ -5,16 +5,28 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import java.security.Key;
+import jakarta.annotation.PostConstruct;
 
 import java.util.Date;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 import com.athena.lms.athena_lms.model.User;
 import com.athena.lms.athena_lms.model.Student;
 
+@Service
 public class JWTService {
-    private final String secretKey = "secretKey";
+    @Value("${jwt.secret}")
+    private String secretKey;
     
-    private final Key key = Keys.hmacShaKeyFor(secretKey.getBytes());
+    private Key key;
+
+    @PostConstruct
+    public void init() {
+        this.key = Keys.hmacShaKeyFor(secretKey.getBytes());
+    }
+
     private final long EXPIRATION_TIME = 1000 * 60 * 60 * 10; // 10 hours
 
     public String generateToken(User user) {
