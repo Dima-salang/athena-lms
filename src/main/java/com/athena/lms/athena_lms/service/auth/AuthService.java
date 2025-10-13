@@ -1,5 +1,6 @@
 package com.athena.lms.athena_lms.service.auth;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.athena.lms.athena_lms.model.Student;
@@ -7,22 +8,19 @@ import com.athena.lms.athena_lms.model.Teacher;
 import com.athena.lms.athena_lms.model.User;
 import com.athena.lms.athena_lms.repository.UserRepository;
 
-// bcrypt password encoder
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-
 @Service
 public class AuthService {
     private final UserRepository userRepository;
     private final JWTService jwtService;
+    private final PasswordEncoder passwordEncoder;
     
-    public AuthService(UserRepository userRepository, JWTService jwtService) {
+    public AuthService(UserRepository userRepository, JWTService jwtService, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.jwtService = jwtService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public String login(String username, String password) {
-        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         User user = userRepository.findByUsername(username);
         if (user != null && passwordEncoder.matches(password, user.getPassword())) {
             return jwtService.generateToken(user);
@@ -41,6 +39,6 @@ public class AuthService {
     }
 
     private void encodePassword(User user) {
-        user.setPassword(new BCryptPasswordEncoder().encode(user.getPassword()));
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
     }
 }
