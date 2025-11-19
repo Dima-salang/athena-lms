@@ -1,6 +1,5 @@
 package com.athena.lms.athena_lms.service.auth;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -15,14 +14,14 @@ import com.athena.lms.athena_lms.repository.UserRepository;
 public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final SectionRepository sectionRepository;
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder,
+            SectionRepository sectionRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.sectionRepository = sectionRepository;
     }
-
-    @Autowired
-    private SectionRepository sectionRepository;
 
     public User registerStudent(Student student) {
         student.setRole("STUDENT");

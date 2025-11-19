@@ -34,7 +34,14 @@ public class TestManagementService {
         this.sectionRepository = sectionRepository;
     }
 
-    public void createTest(Test test) {
+    public void createTest(Test test, String username) {
+        // Handle Teacher
+        User user = userRepository.findByUsername(username);
+        if (user == null || !(user instanceof com.athena.lms.athena_lms.model.Teacher)) {
+            throw new RuntimeException("Current user is not a teacher");
+        }
+        test.setTeacher((com.athena.lms.athena_lms.model.Teacher) user);
+
         // Handle Subject
         if (test.getSubject() != null) {
             String subjectName = test.getSubject().getName();

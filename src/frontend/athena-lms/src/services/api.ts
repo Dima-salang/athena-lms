@@ -10,7 +10,7 @@ export interface User {
     password?: string; // Add password for registration
 }
 
-export interface Teacher extends User {}
+export interface Teacher extends User { }
 
 export interface Student extends User {
     lrn: number;
@@ -61,7 +61,6 @@ export interface Test {
     testDueDate: string;   // LocalDateTime is serialized as string
     testDuration: number;  // Duration is serialized as seconds (long)
     section: Section;
-    teacher: Teacher;
     subject: Subject;
     questions: Question[];
 }
@@ -71,7 +70,7 @@ export const getTeacherTests = async (teacherId: number): Promise<Test[]> => {
     return response.data;
 };
 
-export const createTest = async (test: Omit<Test, 'id'>): Promise<void> => {
+export const createTest = async (test: Omit<Test, 'id' | 'teacher'>): Promise<void> => {
     await axios.post(`${API_BASE_URL}/tests`, test);
 };
 
