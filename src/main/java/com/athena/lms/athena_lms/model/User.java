@@ -14,16 +14,18 @@ import jakarta.persistence.Table;
 @Inheritance(strategy = InheritanceType.JOINED)
 public class User {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy= GenerationType.IDENTITY)
     private Long id;
     private String firstName;
     private String lastName;
 
-    @Column(unique=true, nullable=false)
+    @Column(unique = true, nullable = false)
     private String username;
 
-    @Column(nullable=false)
+    @Column(nullable = false)
     private String password;
+
+    private String role;
 
     // getters and setters
     public Long getId() {
@@ -66,5 +68,12 @@ public class User {
         this.password = password;
     }
 
-    
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
 }

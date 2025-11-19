@@ -14,11 +14,17 @@ const LoginPage: React.FC = () => {
 
         try {
             const data = await login({ username, password });
-            if (data && data.token) {
-                localStorage.setItem('token', data.token);
+            if (data) {
+                // Session based auth, no token to store
+                // You might want to store the role if needed for UI logic
+                if (data.role) {
+                    localStorage.setItem('role', data.role);
+                }
+                // print
+                console.log(data);
                 navigate('/dashboard');
             } else {
-                setError('Login failed: No token received');
+                setError('Login failed');
             }
         } catch (err) {
             setError('Failed to login. Please check your credentials.');

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getTeacherTests, createTest, type Test } from '../services/api';
 import { useNavigate } from 'react-router-dom';
+import { logout } from '../services/authApi';
 
 const DashboardPage: React.FC = () => {
     const [tests, setTests] = useState<Test[]>([]);
@@ -49,17 +50,10 @@ const DashboardPage: React.FC = () => {
     };
 
     const handleLogout = () => {
-        localStorage.removeItem('token');
+        logout();
         navigate('/login');
-    };
+    }
 
-    useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            navigate('/login');
-        }
-        fetchTests();
-    }, [teacherId, navigate]);
 
     return (
         <div>

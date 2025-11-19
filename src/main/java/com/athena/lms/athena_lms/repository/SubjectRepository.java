@@ -5,4 +5,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.athena.lms.athena_lms.model.Subject;
 
 public interface SubjectRepository extends JpaRepository<Subject, Long> {
+    Subject findByName(String name);
 }

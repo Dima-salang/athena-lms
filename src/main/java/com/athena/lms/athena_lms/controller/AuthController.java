@@ -16,16 +16,6 @@ public class AuthController {
         this.authService = authService;
     }
     
-    @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody User user) {
-        String token = authService.login(user.getUsername(), user.getPassword());
-        if (token != null) {
-            return ResponseEntity.ok(token);
-        } else {
-            return ResponseEntity.badRequest().body("Invalid credentials");
-        }
-    }
-
     @PostMapping("/register/student")
     public ResponseEntity<User> registerStudent(@RequestBody Student student) {
         try {
