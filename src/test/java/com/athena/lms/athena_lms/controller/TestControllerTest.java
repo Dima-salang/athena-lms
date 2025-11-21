@@ -1,6 +1,7 @@
 package com.athena.lms.athena_lms.controller;
 
 import com.athena.lms.athena_lms.model.Teacher;
+import com.athena.lms.athena_lms.model.questions.QuestionType;
 import com.athena.lms.athena_lms.repository.TestRepository;
 import com.athena.lms.athena_lms.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -97,7 +98,7 @@ public class TestControllerTest {
         question.setQuestionNumber("1");
         question.setFullPoints(1);
         question.setCorrectPoints(1);
-        question.setQuestionType("MULTIPLE_CHOICE");
+        question.setQuestionType(QuestionType.MULTIPLE_CHOICE);
         question.setOptions(java.util.Arrays.asList("3", "4", "5"));
         question.setCorrectAnswer("4");
 
@@ -128,14 +129,14 @@ public class TestControllerTest {
         com.athena.lms.athena_lms.model.questions.MultipleChoiceQuestion q1 = new com.athena.lms.athena_lms.model.questions.MultipleChoiceQuestion();
         q1.setQuestionText("Q1");
         q1.setQuestionNumber("1");
-        q1.setQuestionType("MULTIPLE_CHOICE");
+        q1.setQuestionType(QuestionType.MULTIPLE_CHOICE);
         q1.setOptions(java.util.Arrays.asList("A", "B"));
         q1.setCorrectAnswer("A");
 
         com.athena.lms.athena_lms.model.questions.TrueFalseQuestion q2 = new com.athena.lms.athena_lms.model.questions.TrueFalseQuestion();
         q2.setQuestionText("Q2");
         q2.setQuestionNumber("2");
-        q2.setQuestionType("TRUE_FALSE");
+        q2.setQuestionType(QuestionType.TRUE_FALSE);
         q2.setTrueFalseAnswer("True");
 
         java.util.List<com.athena.lms.athena_lms.model.questions.Question> questions = java.util.Arrays.asList(q1, q2);

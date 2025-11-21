@@ -4,14 +4,14 @@ import jakarta.persistence.Entity;
 
 @Entity
 public class TrueFalseQuestion extends Question {
-    private String trueFalseAnswer;
+    private String correctAnswer;
     
     // getters and setters
-    public String getTrueFalseAnswer() {
-        return trueFalseAnswer;
+    public String getCorrectAnswer() {
+        return correctAnswer;
     }
 
-    public void setTrueFalseAnswer(String trueFalseAnswer) {
-        this.trueFalseAnswer = trueFalseAnswer;
+    public void setCorrectAnswer(String correctAnswer) {
+        this.correctAnswer = correctAnswer;
     }
 }
