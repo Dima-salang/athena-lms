@@ -9,7 +9,9 @@ import com.athena.lms.athena_lms.model.options.Option;
 import com.athena.lms.athena_lms.model.Subject;
 import com.athena.lms.athena_lms.model.Section;
 import com.athena.lms.athena_lms.model.Teacher;
+import com.athena.lms.athena_lms.model.questions.MultipleChoiceQuestion;
 import com.athena.lms.athena_lms.model.questions.Question;
+import com.athena.lms.athena_lms.model.questions.QuestionType;
 import com.athena.lms.athena_lms.model.tests.Test;
 import com.athena.lms.athena_lms.repository.QuestionRepository;
 import com.athena.lms.athena_lms.repository.SubjectRepository;
@@ -84,10 +86,36 @@ public class TestManagementService {
         if (questions != null) {
             for (Question question : questions) {
                 question.setTest(test);
+                if (question.getQuestionType() == QuestionType.MULTIPLE_CHOICE) {
+                    MultipleChoiceQuestion multipleChoiceQuestion = (MultipleChoiceQuestion) question;
+                    List<Option> options = multipleChoiceQuestion.getOptions();
+                    for (Option option : options) {
+                        option.setQuestion(question);
+                        option.setTest(test);
+                    }
+                    optionRepository.saveAll(options);
+                }
             }
         }
 
         return testRepository.save(test);
+    }
+
+
+    // update test
+
+    // TO-DO: update test
+    public Test updateTest(Long id, Test test) {
+        Test existingTest = testRepository.findById(id).orElseThrow(null);
+        if (existingTest == null) {
+            throw new RuntimeException("Test not found");
+        }
+
+
+        existingTest.setSubject(test.getSubject());
+        existingTest.setSection(test.getSection());
+        existingTest.setQuestions(test.getQuestions());
+        return testRepository.save(existingTest);
     }
 
     public Test getTestById(Long id) {

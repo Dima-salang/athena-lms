@@ -25,8 +25,16 @@ public class testController {
     }
 
 
+    // update test
+    @PatchMapping("/tests/{id}")
+    public ResponseEntity<Test> updateTest(@PathVariable Long id, @RequestBody Test test) {
+        Test updatedTest = testManagementService.updateTest(id, test);
+        return ResponseEntity.ok(updatedTest);
+    }
+
+
     @PostMapping("/questions")
-    public ResponseEntity<List<Question>> bulkCreateQuestions(@RequestBody List<Question> questions,
+    public ResponseEntity<List<Question>> createQuestions(@RequestBody List<Question> questions,
             @RequestParam Long testId,
             @RequestParam List<Option> options) {
         return ResponseEntity.ok(testManagementService.createQuestions(questions, testId, options));

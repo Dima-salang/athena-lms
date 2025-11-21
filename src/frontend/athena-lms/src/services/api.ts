@@ -53,6 +53,13 @@ export interface TrueFalseQuestion extends Question {
     trueFalseAnswer: string;
 }
 
+export interface Option {
+    id: number;
+    question: Question;
+    test: Test;
+    optionText: string;
+}
+
 export interface Test {
     id: number;
     testName: string;
@@ -75,13 +82,15 @@ export const createTest = async (test: Omit<Test, 'teacher'> | Omit<Test, 'id' |
     return response.data;
 };
 
-export const createQuestion = async (question: Omit<Question, 'id'>): Promise<Question> => {
-    const response = await axios.post(`${API_BASE_URL}/tests/questions`, question, { params: { testId: question.test.id } });
-    return response.data;
-};
 
-export const bulkCreateQuestions = async (questions: Omit<Question, 'id'>[]): Promise<Question[]> => {
-    const response = await axios.post(`${API_BASE_URL}/tests/questions/bulk`, questions, { params: { testId: questions[0].test.id } });
+/* TO-DO:
+consolidate the createQuestion and bulkCreateQuestions into createQuestions api
+use the options when creating the questions
+*/
+
+
+export const createQuestions = async (questions: Omit<Question, 'id'>[], options: Omit<Option, 'id'>[]): Promise<Question[]> => {
+    const response = await axios.post(`${API_BASE_URL}/tests/questions`, questions, { params: { testId: questions[0].test.id, options } });
     return response.data;
 };
 
