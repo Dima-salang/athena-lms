@@ -78,43 +78,15 @@ const DashboardPage: React.FC = () => {
                 <div>
                     <div className="card">
                         <h2 style={{ fontSize: '1.25rem', marginBottom: '1rem' }}>Create New Test</h2>
-                        <form onSubmit={handleCreateTest}>
-                            <div className="input-group">
-                                <label>Test Name</label>
-                                <input
-                                    type="text"
-                                    value={newTestName}
-                                    onChange={(e) => setNewTestName(e.target.value)}
-                                    required
-                                    placeholder="e.g. Midterm Exam"
-                                />
-                            </div>
-                            <div className="input-group">
-                                <label>Description</label>
-                                <textarea
-                                    value={newTestDescription}
-                                    onChange={(e) => setNewTestDescription(e.target.value)}
-                                    required
-                                    placeholder="Brief description of the test..."
-                                    style={{
-                                        width: '100%',
-                                        padding: '0.75rem',
-                                        border: '1px solid var(--border-color)',
-                                        borderRadius: 'var(--radius-md)',
-                                        minHeight: '100px',
-                                        fontFamily: 'inherit',
-                                        fontSize: '1rem'
-                                    }}
-                                />
-                            </div>
-                            <button
-                                type="submit"
-                                className="btn btn-primary btn-block"
-                                disabled={isLoading}
-                            >
-                                {isLoading ? 'Creating...' : 'Create Test'}
-                            </button>
-                        </form>
+                        <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
+                            Create a new test, add questions, and assign it to your students.
+                        </p>
+                        <button
+                            onClick={() => navigate('/create-test')}
+                            className="btn btn-primary btn-block"
+                        >
+                            Create New Test
+                        </button>
                     </div>
                 </div>
 
@@ -127,7 +99,7 @@ const DashboardPage: React.FC = () => {
                     ) : (
                         <div style={{ display: 'grid', gap: '1rem' }}>
                             {tests.map((test) => (
-                                <div key={test.id} className="card" style={{ padding: '1.5rem' }}>
+                                <div key={test.id} className="card" style={{ padding: '1.5rem' }} onClick={() => navigate(`/test/${test.id}`)}>
                                     <div className="flex justify-between items-center">
                                         <h3 style={{ margin: 0, fontSize: '1.25rem' }}>{test.testName}</h3>
                                         <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', backgroundColor: 'var(--background-color)', padding: '0.25rem 0.5rem', borderRadius: '4px' }}>

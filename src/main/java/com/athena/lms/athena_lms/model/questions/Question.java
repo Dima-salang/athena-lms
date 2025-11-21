@@ -1,8 +1,11 @@
 package com.athena.lms.athena_lms.model.questions;
 
 import com.athena.lms.athena_lms.model.tests.Test;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.EnumType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -20,11 +23,14 @@ public class Question {
 
     @ManyToOne
     @JoinColumn(name = "test_id")
+    @JsonIgnore
     private Test test;
 
     private String questionNumber;
     private String questionText;
-    private String questionType;
+
+    @Enumerated(EnumType.STRING)
+    private QuestionType questionType;
     private double fullPoints;
     private double correctPoints;
 
@@ -61,11 +67,11 @@ public class Question {
         this.questionText = questionText;
     }
 
-    public String getQuestionType() {
+    public QuestionType getQuestionType() {
         return questionType;
     }
 
-    public void setQuestionType(String questionType) {
+    public void setQuestionType(QuestionType questionType) {
         this.questionType = questionType;
     }
 
@@ -85,5 +91,3 @@ public class Question {
         this.correctPoints = correctPoints;
     }
 }
-
-    

@@ -70,16 +70,24 @@ export const getTeacherTests = async (teacherId: number): Promise<Test[]> => {
     return response.data;
 };
 
-export const createTest = async (test: Omit<Test, 'id' | 'teacher'>): Promise<void> => {
-    await axios.post(`${API_BASE_URL}/tests`, test);
+export const createTest = async (test: Omit<Test, 'teacher'> | Omit<Test, 'id' | 'teacher'>): Promise<Test> => {
+    const response = await axios.post(`${API_BASE_URL}/tests`, test);
+    return response.data;
 };
 
-export const createQuestion = async (question: Omit<Question, 'id'>): Promise<void> => {
-    await axios.post(`${API_BASE_URL}/tests/questions`, question);
+export const createQuestion = async (question: Omit<Question, 'id'>): Promise<Question> => {
+    const response = await axios.post(`${API_BASE_URL}/tests/questions`, question, { params: { testId: question.test.id } });
+    return response.data;
 };
 
-export const bulkCreateQuestions = async (questions: Omit<Question, 'id'>[]): Promise<void> => {
-    await axios.post(`${API_BASE_URL}/tests/questions/bulk`, questions);
+export const bulkCreateQuestions = async (questions: Omit<Question, 'id'>[]): Promise<Question[]> => {
+    const response = await axios.post(`${API_BASE_URL}/tests/questions/bulk`, questions, { params: { testId: questions[0].test.id } });
+    return response.data;
+};
+
+export const getTestById = async (id: number): Promise<Test> => {
+    const response = await axios.get(`${API_BASE_URL}/tests/${id}`);
+    return response.data;
 };
 
 

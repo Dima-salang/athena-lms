@@ -19,18 +19,20 @@ public class testController {
     }
 
     @PostMapping
-    public void createTest(@RequestBody Test test, Principal principal) {
-        testManagementService.createTest(test, principal.getName());
+    public ResponseEntity<Test> createTest(@RequestBody Test test, Principal principal) {
+        Test createdTest = testManagementService.createTest(test, principal.getName());
+        return ResponseEntity.ok(createdTest);
     }
 
     @PostMapping("/questions")
-    public void createQuestion(@RequestBody Question question) {
-        testManagementService.createQuestion(question);
+    public ResponseEntity<Question> createQuestion(@RequestBody Question question, @RequestParam Long testId) {
+        return ResponseEntity.ok(testManagementService.createQuestion(question, testId));
     }
 
     @PostMapping("/questions/bulk")
-    public void bulkCreateQuestions(@RequestBody List<Question> questions) {
-        testManagementService.bulkCreateQuestions(questions);
+    public ResponseEntity<List<Question>> bulkCreateQuestions(@RequestBody List<Question> questions,
+            @RequestParam Long testId) {
+        return ResponseEntity.ok(testManagementService.bulkCreateQuestions(questions, testId));
     }
 
     // get specific tests for the teacher
@@ -40,6 +42,16 @@ public class testController {
             return ResponseEntity.ok(testManagementService.getTeacherTests(teacherId));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(null);
+        }
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Test> getTestById(@PathVariable Long id) {
+        Test test = testManagementService.getTestById(id);
+        if (test != null) {
+            return ResponseEntity.ok(test);
+        } else {
+            return ResponseEntity.notFound().build();
         }
     }
 }

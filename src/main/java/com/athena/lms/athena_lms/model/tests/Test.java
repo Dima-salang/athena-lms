@@ -41,7 +41,7 @@ public class Test {
     private Subject subject;
 
     // questions
-    @OneToMany(mappedBy = "test")
+    @OneToMany(mappedBy = "test", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Question> questions;
 
     // getters and setters
@@ -125,5 +125,4 @@ public class Test {
         this.questions = questions;
     }
 
-    
 }

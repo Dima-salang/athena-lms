@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import com.athena.lms.athena_lms.model.User;
 import com.athena.lms.athena_lms.model.Subject;
 import com.athena.lms.athena_lms.model.Section;
+import com.athena.lms.athena_lms.model.Teacher;
 import com.athena.lms.athena_lms.model.questions.Question;
 import com.athena.lms.athena_lms.model.tests.Test;
 import com.athena.lms.athena_lms.repository.QuestionRepository;
@@ -34,13 +35,13 @@ public class TestManagementService {
         this.sectionRepository = sectionRepository;
     }
 
-    public void createTest(Test test, String username) {
+    public Test createTest(Test test, String username) {
         // Handle Teacher
         User user = userRepository.findByUsername(username);
-        if (user == null || !(user instanceof com.athena.lms.athena_lms.model.Teacher)) {
+        if (user == null || !(user instanceof Teacher)) {
             throw new RuntimeException("Current user is not a teacher");
         }
-        test.setTeacher((com.athena.lms.athena_lms.model.Teacher) user);
+        test.setTeacher((Teacher) user);
 
         // Handle Subject
         if (test.getSubject() != null) {
@@ -73,7 +74,15 @@ public class TestManagementService {
             }
         }
 
-        testRepository.save(test);
+        List<Question> questions = test.getQuestions();
+        // Handle Questions (Bidirectional relationship)
+        if (questions != null) {
+            for (Question question : questions) {
+                question.setTest(test);
+            }
+        }
+
+        return testRepository.save(test);
     }
 
     public Test getTestById(Long id) {
@@ -101,12 +110,30 @@ public class TestManagementService {
         testRepository.save(test);
     }
 
-    public void createQuestion(Question question) {
-        questionRepository.save(question);
+    public Question createQuestion(Question question, Long testId) {
+        // save the question on the test list
+        Test test = testRepository.findById(testId).orElse(null);
+        if (test == null) {
+            throw new RuntimeException("Test not found");
+        }
+        question.setTest(test);
+        test.getQuestions().add(question);
+        testRepository.save(test);
+        return question;
     }
 
-    public void bulkCreateQuestions(List<Question> questions) {
-        questionRepository.saveAll(questions);
+    public List<Question> bulkCreateQuestions(List<Question> questions, Long testId) {
+        // save the questions on the test list
+        Test test = testRepository.findById(testId).orElse(null);
+        if (test == null) {
+            throw new RuntimeException("Test not found");
+        }
+        for (Question question : questions) {
+            question.setTest(test);
+        }
+        test.getQuestions().addAll(questions);
+        testRepository.save(test);
+        return questions;
     }
 
     public void updateQuestion(Question question) {
