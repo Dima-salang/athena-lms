@@ -31,6 +31,7 @@ public class Question {
 
     @Enumerated(EnumType.STRING)
     private QuestionType questionType;
+
     private double fullPoints;
     private double correctPoints;
 

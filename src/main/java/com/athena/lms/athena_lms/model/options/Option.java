@@ -32,7 +32,6 @@ public class Option {
     @JsonBackReference
     private Test test;
 
-
     // getter and setter
     public String getOptionText() {
         return optionText;

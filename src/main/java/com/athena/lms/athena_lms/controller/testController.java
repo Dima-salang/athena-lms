@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import com.athena.lms.athena_lms.service.tests.TestManagementService;
 import com.athena.lms.athena_lms.model.tests.Test;
 import com.athena.lms.athena_lms.model.questions.Question;
-
+import com.athena.lms.athena_lms.model.options.Option;
 import java.security.Principal;
 
 @RestController
@@ -24,15 +24,12 @@ public class testController {
         return ResponseEntity.ok(createdTest);
     }
 
-    @PostMapping("/questions")
-    public ResponseEntity<Question> createQuestion(@RequestBody Question question, @RequestParam Long testId) {
-        return ResponseEntity.ok(testManagementService.createQuestion(question, testId));
-    }
 
-    @PostMapping("/questions/bulk")
+    @PostMapping("/questions")
     public ResponseEntity<List<Question>> bulkCreateQuestions(@RequestBody List<Question> questions,
-            @RequestParam Long testId) {
-        return ResponseEntity.ok(testManagementService.bulkCreateQuestions(questions, testId));
+            @RequestParam Long testId,
+            @RequestParam List<Option> options) {
+        return ResponseEntity.ok(testManagementService.createQuestions(questions, testId, options));
     }
 
     // get specific tests for the teacher

@@ -19,6 +19,7 @@ import com.athena.lms.athena_lms.model.Section;
 import com.athena.lms.athena_lms.model.Student;
 import com.athena.lms.athena_lms.model.Subject;
 import com.athena.lms.athena_lms.model.Teacher;
+import com.athena.lms.athena_lms.model.options.Option;
 import com.athena.lms.athena_lms.model.questions.MultipleChoiceQuestion;
 import com.athena.lms.athena_lms.model.questions.Question;
 import com.athena.lms.athena_lms.model.tests.Test;
@@ -121,14 +122,24 @@ public class TestManagementServiceTest {
         // questionRepository.save is called inside
         when(questionRepository.save(any(Question.class))).thenAnswer(i -> i.getArguments()[0]);
 
+
+        List<Question> questions = new ArrayList<>();
         MultipleChoiceQuestion q = new MultipleChoiceQuestion();
         q.setQuestionText("Q1");
+        List<Option> options = new ArrayList<>();
+        Option option1 = new Option();
+        option1.setOptionText("A");
+        Option option2 = new Option();
+        option2.setOptionText("B");
+        options.add(option1);
+        options.add(option2);
+        questions.add(q);
 
-        Question created = testManagementService.createQuestion(q, 1L);
+        List<Question> created = testManagementService.createQuestions(questions, 1L, options);
 
         assertNotNull(created);
-        assertEquals(testEntity, created.getTest());
-        assertTrue(testEntity.getQuestions().contains(created));
+        assertEquals(testEntity, created.get(0).getTest());
+        assertTrue(testEntity.getQuestions().contains(created.get(0)));
         verify(testRepository).save(testEntity);
     }
 
@@ -137,9 +148,12 @@ public class TestManagementServiceTest {
         when(testRepository.findById(99L)).thenReturn(Optional.empty());
 
         MultipleChoiceQuestion q = new MultipleChoiceQuestion();
+        List<Question> questions = new ArrayList<>();
+        questions.add(q);
+        List<Option> options = new ArrayList<>();
 
         assertThrows(RuntimeException.class, () -> {
-            testManagementService.createQuestion(q, 99L);
+            testManagementService.createQuestions(questions, 99L, options);
         });
     }
 
@@ -151,8 +165,13 @@ public class TestManagementServiceTest {
         MultipleChoiceQuestion q1 = new MultipleChoiceQuestion();
         MultipleChoiceQuestion q2 = new MultipleChoiceQuestion();
         List<Question> questions = Arrays.asList(q1, q2);
+        List<Option> options = new ArrayList<>();
+        Option option1 = new Option();
+        Option option2 = new Option();
+        options.add(option1);
+        options.add(option2);
 
-        List<Question> created = testManagementService.bulkCreateQuestions(questions, 1L);
+        List<Question> created = testManagementService.createQuestions(questions, 1L, options);
 
         assertEquals(2, created.size());
         assertEquals(testEntity, q1.getTest());
