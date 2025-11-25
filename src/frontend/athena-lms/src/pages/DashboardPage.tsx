@@ -1,15 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { getTeacherTests, createTest, type Test } from '../services/api';
+import { getTeacherTests, type Test } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import { logout } from '../services/authApi';
 
 const DashboardPage: React.FC = () => {
     const [tests, setTests] = useState<Test[]>([]);
-    const [teacherId, setTeacherId] = useState<number>(1);
-    const [newTestName, setNewTestName] = useState('');
-    const [newTestDescription, setNewTestDescription] = useState('');
+    const [teacherId] = useState<number>(1);
     const [error, setError] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
 
     const fetchTests = async () => {
@@ -30,31 +27,6 @@ const DashboardPage: React.FC = () => {
     useEffect(() => {
         fetchTests();
     }, [teacherId]);
-
-    const handleCreateTest = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsLoading(true);
-        try {
-            const newTest: Omit<Test, 'id'> = {
-                testName: newTestName,
-                testDescription: newTestDescription,
-                testIssueDate: new Date().toISOString(),
-                testDueDate: new Date().toISOString(),
-                testDuration: 3600, // 1 hour in seconds
-                section: { id: 1, name: 'Dummy Section' },
-                subject: { id: 1, name: 'Dummy Subject', description: 'Dummy Subject Description' },
-                questions: [],
-            };
-            await createTest(newTest);
-            setNewTestName('');
-            setNewTestDescription('');
-            fetchTests(); // Refresh the list of tests
-        } catch (err) {
-            setError('Failed to create test.');
-        } finally {
-            setIsLoading(false);
-        }
-    };
 
     const handleLogout = () => {
         logout();

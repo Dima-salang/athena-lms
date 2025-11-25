@@ -30,6 +30,7 @@ export interface Subject {
 
 export interface Question {
     id: number;
+    tempId?: number;
     test: Test;
     questionNumber: string;
     questionText: string;
@@ -44,7 +45,7 @@ export interface EssayQuestion extends Question {
 }
 
 export interface MultipleChoiceQuestion extends Question {
-    options: string[];
+    options: Partial<Option>[];
     questionAnswer: string;
     correctAnswer: string;
 }
@@ -55,6 +56,7 @@ export interface TrueFalseQuestion extends Question {
 
 export interface Option {
     id: number;
+    tempId?: number;
     question: Question;
     test: Test;
     optionText: string;

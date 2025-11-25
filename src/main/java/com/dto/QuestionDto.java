@@ -1,43 +1,29 @@
-package com.athena.lms.athena_lms.model.questions;
+package com.dto;
 
-import com.athena.lms.athena_lms.model.tests.Test;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.util.List;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Inheritance;
-import jakarta.persistence.InheritanceType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-
-@Entity
-@Inheritance(strategy = InheritanceType.JOINED)
-public class Question {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "questionType", visible = true)
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = MultipleChoiceQuestionDto.class, name = "MULTIPLE_CHOICE"),
+        @JsonSubTypes.Type(value = TrueFalseQuestionDto.class, name = "TRUE_FALSE"),
+        @JsonSubTypes.Type(value = IdentificationQuestionDto.class, name = "IDENTIFICATION"),
+        @JsonSubTypes.Type(value = EssayQuestionDto.class, name = "ESSAY")
+})
+public class QuestionDto {
     private Long id;
-
-    private Long tempId; // for storing the temp id for autosaving
-
-    @ManyToOne
-    @JoinColumn(name = "test_id")
-    @JsonIgnore
-    private Test test;
-
+    private Long tempId;
     private String questionNumber;
     private String questionText;
-
-    @Enumerated(EnumType.STRING)
-    private QuestionType questionType;
-
+    private String questionType;
+    private List<OptionDto> options;
+    private Long testId;
     private double fullPoints;
     private double correctPoints;
 
     // getters and setters
+
     public Long getId() {
         return id;
     }
@@ -52,14 +38,6 @@ public class Question {
 
     public void setTempId(Long tempId) {
         this.tempId = tempId;
-    }
-
-    public Test getTest() {
-        return test;
-    }
-
-    public void setTest(Test test) {
-        this.test = test;
     }
 
     public String getQuestionNumber() {
@@ -78,12 +56,28 @@ public class Question {
         this.questionText = questionText;
     }
 
-    public QuestionType getQuestionType() {
+    public String getQuestionType() {
         return questionType;
     }
 
-    public void setQuestionType(QuestionType questionType) {
+    public void setQuestionType(String questionType) {
         this.questionType = questionType;
+    }
+
+    public List<OptionDto> getOptions() {
+        return options;
+    }
+
+    public void setOptions(List<OptionDto> options) {
+        this.options = options;
+    }
+
+    public Long getTestId() {
+        return testId;
+    }
+
+    public void setTestId(Long testId) {
+        this.testId = testId;
     }
 
     public double getFullPoints() {

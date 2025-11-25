@@ -25,7 +25,7 @@ const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onUpdate, onD
         if (localQuestion.questionType === 'MULTIPLE_CHOICE') {
             const mcQuestion = localQuestion as MultipleChoiceQuestion;
             const newOptions = [...mcQuestion.options];
-            newOptions[index] = value;
+            newOptions[index] = { ...newOptions[index], optionText: value };
             const updated = { ...mcQuestion, options: newOptions };
             setLocalQuestion(updated);
             onUpdate(updated);
@@ -35,7 +35,7 @@ const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onUpdate, onD
     const addOption = () => {
         if (localQuestion.questionType === 'MULTIPLE_CHOICE') {
             const mcQuestion = localQuestion as MultipleChoiceQuestion;
-            const updated = { ...mcQuestion, options: [...mcQuestion.options, ''] };
+            const updated = { ...mcQuestion, options: [...mcQuestion.options, { optionText: '', tempId: -Date.now() }] };
             setLocalQuestion(updated);
             onUpdate(updated);
         }
@@ -110,16 +110,16 @@ const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onUpdate, onD
                 <div>
                     <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Options</label>
                     {(localQuestion as MultipleChoiceQuestion).options?.map((option, index) => (
-                        <div key={index} className="flex gap-2 mb-2 items-center">
+                        <div key={option.id || option.tempId || index} className="flex gap-2 mb-2 items-center">
                             <input
                                 type="radio"
                                 name={`correct-${localQuestion.id}`}
-                                checked={(localQuestion as MultipleChoiceQuestion).correctAnswer === option}
-                                onChange={() => handleChange('correctAnswer', option)}
+                                checked={(localQuestion as MultipleChoiceQuestion).correctAnswer === option.optionText}
+                                onChange={() => handleChange('correctAnswer', option.optionText)}
                             />
                             <input
                                 type="text"
-                                value={option}
+                                value={option.optionText || ''}
                                 onChange={(e) => handleOptionChange(index, e.target.value)}
                                 placeholder={`Option ${index + 1}`}
                                 style={{ flex: 1, padding: '0.5rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}

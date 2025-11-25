@@ -71,10 +71,10 @@ const TestDetailPage: React.FC = () => {
                                     <ul style={{ listStyleType: 'disc', paddingLeft: '1.5rem' }}>
                                         {(q as MultipleChoiceQuestion).options?.map((opt, i) => (
                                             <li key={i} style={{
-                                                color: (q as MultipleChoiceQuestion).correctAnswer === opt ? 'var(--success-color)' : 'inherit',
-                                                fontWeight: (q as MultipleChoiceQuestion).correctAnswer === opt ? 'bold' : 'normal'
+                                                color: (q as MultipleChoiceQuestion).correctAnswer === opt.optionText ? 'var(--success-color)' : 'inherit',
+                                                fontWeight: (q as MultipleChoiceQuestion).correctAnswer === opt.optionText ? 'bold' : 'normal'
                                             }}>
-                                                {opt} {(q as MultipleChoiceQuestion).correctAnswer === opt && '(Correct)'}
+                                                {opt.optionText} {(q as MultipleChoiceQuestion).correctAnswer === opt.optionText && '(Correct)'}
                                             </li>
                                         ))}
                                     </ul>

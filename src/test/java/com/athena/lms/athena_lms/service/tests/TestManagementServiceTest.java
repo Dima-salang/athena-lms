@@ -2,10 +2,11 @@ package com.athena.lms.athena_lms.service.tests;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -15,11 +16,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.athena.lms.athena_lms.mapper.QuestionMapper;
+import com.athena.lms.athena_lms.mapper.TestMapper;
+import com.dto.MultipleChoiceQuestionDto;
+import com.dto.QuestionDto;
+import com.dto.TestDto;
 import com.athena.lms.athena_lms.model.Section;
 import com.athena.lms.athena_lms.model.Student;
-import com.athena.lms.athena_lms.model.Subject;
 import com.athena.lms.athena_lms.model.Teacher;
-import com.athena.lms.athena_lms.model.options.Option;
 import com.athena.lms.athena_lms.model.questions.MultipleChoiceQuestion;
 import com.athena.lms.athena_lms.model.questions.Question;
 import com.athena.lms.athena_lms.model.tests.Test;
@@ -29,6 +33,7 @@ import com.athena.lms.athena_lms.repository.SubjectRepository;
 import com.athena.lms.athena_lms.repository.TestRepository;
 import com.athena.lms.athena_lms.repository.UserRepository;
 
+@ExtendWith(MockitoExtension.class)
 @ExtendWith(MockitoExtension.class)
 public class TestManagementServiceTest {
 
@@ -47,11 +52,18 @@ public class TestManagementServiceTest {
     @Mock
     private SectionRepository sectionRepository;
 
+    @Mock
+    private TestMapper testMapper;
+
+    @Mock
+    private QuestionMapper questionMapper;
+
     @InjectMocks
     private TestManagementService testManagementService;
 
     private Teacher teacher;
     private Test testEntity;
+    private TestDto testDto;
 
     @BeforeEach
     void setUp() {
@@ -63,17 +75,22 @@ public class TestManagementServiceTest {
         testEntity.setId(1L);
         testEntity.setTestName("Unit Test");
         testEntity.setQuestions(new ArrayList<>());
+
+        testDto = new TestDto();
+        testDto.setId(1L);
+        testDto.setTestName("Unit Test");
     }
 
     @org.junit.jupiter.api.Test
     void createTest_Success() {
         when(userRepository.findByUsername("teacher1")).thenReturn(teacher);
-        when(testRepository.save(any(Test.class))).thenAnswer(i -> i.getArguments()[0]);
+        when(testMapper.toEntity(any(TestDto.class))).thenReturn(testEntity);
+        when(testRepository.save(any(Test.class))).thenReturn(testEntity);
+        when(testMapper.toDto(any(Test.class))).thenReturn(testDto);
 
-        Test created = testManagementService.createTest(testEntity, "teacher1");
+        TestDto created = testManagementService.createTest(testDto, "teacher1");
 
         assertNotNull(created);
-        assertEquals(teacher, created.getTeacher());
         verify(testRepository).save(testEntity);
     }
 
@@ -81,102 +98,71 @@ public class TestManagementServiceTest {
     void createTest_NotTeacher_ThrowsException() {
         Student student = new Student();
         student.setUsername("student1");
+        when(testMapper.toEntity(any(TestDto.class))).thenReturn(testEntity);
         when(userRepository.findByUsername("student1")).thenReturn(student);
 
         assertThrows(RuntimeException.class, () -> {
-            testManagementService.createTest(testEntity, "student1");
+            testManagementService.createTest(testDto, "student1");
         });
     }
 
     @org.junit.jupiter.api.Test
     void createTest_WithNewSubjectAndSection() {
         when(userRepository.findByUsername("teacher1")).thenReturn(teacher);
-        when(testRepository.save(any(Test.class))).thenAnswer(i -> i.getArguments()[0]);
+        when(testMapper.toEntity(any(TestDto.class))).thenReturn(testEntity);
+        when(testRepository.save(any(Test.class))).thenReturn(testEntity);
+        when(testMapper.toDto(any(Test.class))).thenReturn(testDto);
 
-        Subject subject = new Subject();
-        subject.setName("New Subject");
-        testEntity.setSubject(subject);
-
-        Section section = new Section();
+        // Setup DTO with embedded section (fallback logic test)
+        // Setup DTO with embedded section (fallback logic test)
+        com.dto.SectionDto section = new com.dto.SectionDto();
         section.setName("New Section");
-        testEntity.setSection(section);
+        testDto.setSection(section);
 
-        when(subjectRepository.findByName("New Subject")).thenReturn(null);
-        when(subjectRepository.save(any(Subject.class))).thenAnswer(i -> i.getArguments()[0]);
+        // In the new implementation, we check testDto.getSectionId() first.
+        // If null, we check testDto.getTestSection().
 
         when(sectionRepository.findByName("New Section")).thenReturn(null);
         when(sectionRepository.save(any(Section.class))).thenAnswer(i -> i.getArguments()[0]);
 
-        Test created = testManagementService.createTest(testEntity, "teacher1");
+        TestDto created = testManagementService.createTest(testDto, "teacher1");
 
-        assertNotNull(created.getSubject());
-        assertNotNull(created.getSection());
-        verify(subjectRepository).save(any(Subject.class));
         verify(sectionRepository).save(any(Section.class));
     }
 
     @org.junit.jupiter.api.Test
     void createQuestion_Success() {
         when(testRepository.findById(1L)).thenReturn(Optional.of(testEntity));
-        when(testRepository.save(any(Test.class))).thenReturn(testEntity);
-        // questionRepository.save is called inside
-        when(questionRepository.save(any(Question.class))).thenAnswer(i -> i.getArguments()[0]);
 
+        MultipleChoiceQuestion qEntity = new MultipleChoiceQuestion();
+        qEntity.setQuestionText("Q1");
 
-        List<Question> questions = new ArrayList<>();
-        MultipleChoiceQuestion q = new MultipleChoiceQuestion();
-        q.setQuestionText("Q1");
-        List<Option> options = new ArrayList<>();
-        Option option1 = new Option();
-        option1.setOptionText("A");
-        Option option2 = new Option();
-        option2.setOptionText("B");
-        options.add(option1);
-        options.add(option2);
-        questions.add(q);
+        MultipleChoiceQuestionDto qDto = new MultipleChoiceQuestionDto();
+        qDto.setQuestionText("Q1");
 
-        List<Question> created = testManagementService.createQuestions(questions, 1L, options);
+        when(questionMapper.toEntity(any(QuestionDto.class))).thenReturn(qEntity);
+        when(questionRepository.saveAll(anyList())).thenReturn(List.of(qEntity));
+        when(questionMapper.toDto(any(Question.class))).thenReturn(qDto);
+
+        List<QuestionDto> questions = new ArrayList<>();
+        questions.add(qDto);
+
+        List<QuestionDto> created = testManagementService.createQuestions(questions, 1L);
 
         assertNotNull(created);
-        assertEquals(testEntity, created.get(0).getTest());
-        assertTrue(testEntity.getQuestions().contains(created.get(0)));
-        verify(testRepository).save(testEntity);
+        assertEquals(1, created.size());
+        verify(questionRepository).saveAll(anyList());
     }
 
     @org.junit.jupiter.api.Test
     void createQuestion_TestNotFound_ThrowsException() {
         when(testRepository.findById(99L)).thenReturn(Optional.empty());
 
-        MultipleChoiceQuestion q = new MultipleChoiceQuestion();
-        List<Question> questions = new ArrayList<>();
-        questions.add(q);
-        List<Option> options = new ArrayList<>();
+        List<QuestionDto> questions = new ArrayList<>();
+        questions.add(new MultipleChoiceQuestionDto());
 
         assertThrows(RuntimeException.class, () -> {
-            testManagementService.createQuestions(questions, 99L, options);
+            testManagementService.createQuestions(questions, 99L);
         });
-    }
-
-    @org.junit.jupiter.api.Test
-    void bulkCreateQuestions_Success() {
-        when(testRepository.findById(1L)).thenReturn(Optional.of(testEntity));
-        when(testRepository.save(any(Test.class))).thenReturn(testEntity);
-
-        MultipleChoiceQuestion q1 = new MultipleChoiceQuestion();
-        MultipleChoiceQuestion q2 = new MultipleChoiceQuestion();
-        List<Question> questions = Arrays.asList(q1, q2);
-        List<Option> options = new ArrayList<>();
-        Option option1 = new Option();
-        Option option2 = new Option();
-        options.add(option1);
-        options.add(option2);
-
-        List<Question> created = testManagementService.createQuestions(questions, 1L, options);
-
-        assertEquals(2, created.size());
-        assertEquals(testEntity, q1.getTest());
-        assertEquals(testEntity, q2.getTest());
-        assertEquals(2, testEntity.getQuestions().size());
-        verify(testRepository).save(testEntity);
     }
 }

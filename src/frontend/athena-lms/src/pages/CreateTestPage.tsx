@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createTest, type Test, type Question, type MultipleChoiceQuestion } from '../services/api';
 import QuestionEditor from '../components/QuestionEditor';
 import { useNavigate } from 'react-router-dom';
@@ -11,35 +11,32 @@ const CreateTestPage: React.FC = () => {
     const [questions, setQuestions] = useState<Question[]>([]);
     const [testId, setTestId] = useState<number | null>(null);
     const [isSaving, setIsSaving] = useState(false);
+    const [isDirty, setIsDirty] = useState(false);
     const [lastSavedTime, setLastSavedTime] = useState<Date | null>(null);
-    const autosaveTimerRef = useRef<number | null>(null);
     const navigate = useNavigate();
 
     // Autosave logic
+    // Autosave logic with debounce
     useEffect(() => {
-        if (testId && questions.length > 0) {
-            if (autosaveTimerRef.current) {
-                clearTimeout(autosaveTimerRef.current);
-            }
-            autosaveTimerRef.current = window.setTimeout(() => {
+        if (testId && isDirty) {
+            const timer = setTimeout(() => {
                 handleAutosave();
-            }, 3 * 60 * 1000); // 3 minutes
+            }, 3000); // 2 seconds debounce
+
+            return () => clearTimeout(timer);
         }
-        return () => {
-            if (autosaveTimerRef.current) {
-                clearTimeout(autosaveTimerRef.current);
-            }
-        };
-    }, [questions, testId, testName, testDescription, subjectName, sectionName]);
+    }, [questions, testId, testName, testDescription, subjectName, sectionName, isDirty]);
 
     const handleAutosave = async () => {
-        if (!testId) return;
+        if (!testId || !isDirty) return;
         setIsSaving(true);
         try {
-            // Prepare questions: strip temp IDs (negative)
+            // Snapshot of questions being saved
+            // We send the tempId so the backend can persist it and return it for matching
             const questionsToSave = questions.map(q => {
-                const { id, ...rest } = q;
-                return id < 0 ? rest : q;
+                // Ensure tempId is set if missing (for older questions potentially)
+                const tempId = q.tempId || (q.id < 0 ? q.id : undefined);
+                return { ...q, tempId };
             });
 
             const testToSave: Omit<Test, 'teacher'> = {
@@ -56,11 +53,55 @@ const CreateTestPage: React.FC = () => {
 
             const savedTest = await createTest(testToSave);
 
-            // Update local state with saved questions (which now have real IDs)
+            // Update local state: match by tempId
             if (savedTest.questions) {
-                setQuestions(savedTest.questions);
+                setQuestions(prevQuestions => {
+                    const newQuestions = [...prevQuestions];
+
+                    // Create maps for fast lookup
+                    const savedQuestionsMap = new Map<number, Question>();
+                    savedTest.questions.forEach(q => {
+                        if (q.tempId) savedQuestionsMap.set(q.tempId, q);
+                    });
+
+                    return newQuestions.map(localQ => {
+                        // Match by tempId
+                        if (localQ.tempId && savedQuestionsMap.has(localQ.tempId)) {
+                            const savedQ = savedQuestionsMap.get(localQ.tempId)!;
+
+                            // Update options if applicable
+                            let updatedOptions: any[] | undefined = undefined;
+                            if (localQ.questionType === 'MULTIPLE_CHOICE') {
+                                const mcQuestion = localQ as MultipleChoiceQuestion;
+                                const savedMcQuestion = savedQ as MultipleChoiceQuestion;
+
+                                if (mcQuestion.options && savedMcQuestion.options) {
+                                    const savedOptionsMap = new Map<number, any>();
+                                    savedMcQuestion.options.forEach((o: any) => {
+                                        if (o.tempId) savedOptionsMap.set(o.tempId, o);
+                                    });
+
+                                    updatedOptions = mcQuestion.options.map(localO => {
+                                        if (localO.tempId && savedOptionsMap.has(localO.tempId)) {
+                                            return { ...localO, id: savedOptionsMap.get(localO.tempId).id };
+                                        }
+                                        return localO;
+                                    });
+                                }
+                            }
+
+                            const newQ = { ...localQ, id: savedQ.id };
+                            if (updatedOptions) {
+                                (newQ as MultipleChoiceQuestion).options = updatedOptions;
+                            }
+                            return newQ;
+                        }
+                        return localQ;
+                    });
+                });
             }
             setLastSavedTime(new Date());
+            setIsDirty(false);
         } catch (error) {
             console.error("Autosave failed", error);
         } finally {
@@ -92,27 +133,37 @@ const CreateTestPage: React.FC = () => {
     };
 
     const addQuestion = () => {
+        const tempId = -Date.now();
         const newQuestion: MultipleChoiceQuestion = {
-            id: -Date.now(), // Use negative timestamp for temporary ID to avoid collision
+            id: tempId,
+            tempId: tempId,
             test: { id: testId! } as Test,
             questionNumber: (questions.length + 1).toString(),
             questionText: '',
             questionType: 'MULTIPLE_CHOICE',
             fullPoints: 1,
             correctPoints: 1,
-            options: ['', '', '', ''],
+            options: [
+                { optionText: '', tempId: tempId - 1 },
+                { optionText: '', tempId: tempId - 2 },
+                { optionText: '', tempId: tempId - 3 },
+                { optionText: '', tempId: tempId - 4 }
+            ],
             questionAnswer: '',
             correctAnswer: ''
         };
         setQuestions([...questions, newQuestion]);
+        setIsDirty(true);
     };
 
     const updateQuestion = (updatedQuestion: Question) => {
         setQuestions(questions.map(q => q.id === updatedQuestion.id ? updatedQuestion : q));
+        setIsDirty(true);
     };
 
     const deleteQuestion = (id: number) => {
         setQuestions(questions.filter(q => q.id !== id));
+        setIsDirty(true);
     };
 
     const saveQuestion = async () => {

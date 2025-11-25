@@ -20,6 +20,8 @@ public class Option {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private Long tempId; // for storing the temp id for autosaving
+
     // question it belongs to
     @ManyToOne
     @JoinColumn(name = "question_id", nullable = false)
@@ -64,6 +66,5 @@ public class Option {
     public void setTest(Test test) {
         this.test = test;
     }
-
 
 }

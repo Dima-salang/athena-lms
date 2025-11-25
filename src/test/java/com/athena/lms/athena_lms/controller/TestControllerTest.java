@@ -1,9 +1,12 @@
 package com.athena.lms.athena_lms.controller;
 
 import com.athena.lms.athena_lms.model.Teacher;
-import com.athena.lms.athena_lms.model.questions.QuestionType;
 import com.athena.lms.athena_lms.repository.TestRepository;
 import com.athena.lms.athena_lms.repository.UserRepository;
+import com.dto.MultipleChoiceQuestionDto;
+import com.dto.QuestionDto;
+import com.dto.TestDto;
+import com.dto.TrueFalseQuestionDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -52,21 +55,23 @@ public class TestControllerTest {
     @Test
     @WithMockUser(username = "teacher1", roles = "TEACHER")
     public void testCreateTest_AssignsTeacherAutomatically() throws Exception {
-        com.athena.lms.athena_lms.model.tests.Test test = new com.athena.lms.athena_lms.model.tests.Test();
-        test.setTestName("Math Test");
-        test.setTestDescription("Midterm Exam");
+        TestDto testDto = new TestDto();
+        testDto.setTestName("Math Test");
+        testDto.setTestDescription("Midterm Exam");
 
-        com.athena.lms.athena_lms.model.Subject subject = new com.athena.lms.athena_lms.model.Subject();
-        subject.setName("Math");
-        test.setSubject(subject);
+        // We can set IDs or embedded objects depending on DTO structure.
+        // For this test, we might rely on the service creating them if names are
+        // provided,
+        // but TestDto currently has IDs and embedded Section.
 
-        com.athena.lms.athena_lms.model.Section section = new com.athena.lms.athena_lms.model.Section();
+        // Let's use embedded section for the test case as per service logic
+        com.dto.SectionDto section = new com.dto.SectionDto();
         section.setName("Section A");
-        test.setSection(section);
+        testDto.setSection(section);
 
         mockMvc.perform(post("/api/tests")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(test)))
+                .content(objectMapper.writeValueAsString(testDto)))
                 .andExpect(status().isOk());
 
         // Verify the test was saved and teacher was assigned
@@ -93,18 +98,21 @@ public class TestControllerTest {
         test.setTeacher(teacher);
         test = testRepository.save(test);
 
-        com.athena.lms.athena_lms.model.questions.MultipleChoiceQuestion question = new com.athena.lms.athena_lms.model.questions.MultipleChoiceQuestion();
-        question.setQuestionText("What is 2+2?");
-        question.setQuestionNumber("1");
-        question.setFullPoints(1);
-        question.setCorrectPoints(1);
-        question.setQuestionType(QuestionType.MULTIPLE_CHOICE);
-        question.setCorrectAnswer("4");
+        MultipleChoiceQuestionDto questionDto = new MultipleChoiceQuestionDto();
+        questionDto.setQuestionText("What is 2+2?");
+        questionDto.setQuestionNumber("1");
+        questionDto.setFullPoints(1);
+        questionDto.setCorrectPoints(1);
+        questionDto.setQuestionType("MULTIPLE_CHOICE"); // String in DTO usually, or enum if mapped
+        questionDto.setCorrectAnswer("4");
+
+        // Controller expects a List
+        java.util.List<QuestionDto> questions = java.util.Collections.singletonList(questionDto);
 
         mockMvc.perform(post("/api/tests/questions")
                 .param("testId", test.getId().toString())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(question)))
+                .content(objectMapper.writeValueAsString(questions)))
                 .andExpect(status().isOk());
 
         // Verify
@@ -125,21 +133,22 @@ public class TestControllerTest {
         test.setTeacher(teacher);
         test = testRepository.save(test);
 
-        com.athena.lms.athena_lms.model.questions.MultipleChoiceQuestion q1 = new com.athena.lms.athena_lms.model.questions.MultipleChoiceQuestion();
+        MultipleChoiceQuestionDto q1 = new MultipleChoiceQuestionDto();
         q1.setQuestionText("Q1");
         q1.setQuestionNumber("1");
-        q1.setQuestionType(QuestionType.MULTIPLE_CHOICE);
+        q1.setQuestionType("MULTIPLE_CHOICE");
         q1.setCorrectAnswer("A");
 
-        com.athena.lms.athena_lms.model.questions.TrueFalseQuestion q2 = new com.athena.lms.athena_lms.model.questions.TrueFalseQuestion();
+        TrueFalseQuestionDto q2 = new TrueFalseQuestionDto();
         q2.setQuestionText("Q2");
         q2.setQuestionNumber("2");
-        q2.setQuestionType(QuestionType.TRUE_FALSE);
+        q2.setQuestionType("TRUE_FALSE");
         q2.setCorrectAnswer("True");
 
-        java.util.List<com.athena.lms.athena_lms.model.questions.Question> questions = java.util.Arrays.asList(q1, q2);
+        java.util.List<QuestionDto> questions = java.util.Arrays.asList(q1, q2);
 
-        mockMvc.perform(post("/api/tests/questions/bulk")
+        // Endpoint is /api/tests/questions for bulk too
+        mockMvc.perform(post("/api/tests/questions")
                 .param("testId", test.getId().toString())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(questions)))
@@ -154,8 +163,8 @@ public class TestControllerTest {
     @Test
     @WithMockUser(username = "student1", roles = "STUDENT")
     public void testCreateTest_StudentForbidden() throws Exception {
-        com.athena.lms.athena_lms.model.tests.Test test = new com.athena.lms.athena_lms.model.tests.Test();
-        test.setTestName("Student Test");
+        TestDto testDto = new TestDto();
+        testDto.setTestName("Student Test");
 
         com.athena.lms.athena_lms.model.Student student = new com.athena.lms.athena_lms.model.Student();
         student.setUsername("student1");
@@ -167,7 +176,7 @@ public class TestControllerTest {
         try {
             mockMvc.perform(post("/api/tests")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(test)))
+                    .content(objectMapper.writeValueAsString(testDto)))
                     .andExpect(status().isInternalServerError());
         } catch (Exception e) {
         }
@@ -175,12 +184,12 @@ public class TestControllerTest {
 
     @Test
     public void testCreateTest_Unauthenticated() throws Exception {
-        com.athena.lms.athena_lms.model.tests.Test test = new com.athena.lms.athena_lms.model.tests.Test();
-        test.setTestName("No Auth Test");
+        TestDto testDto = new TestDto();
+        testDto.setTestName("No Auth Test");
 
         mockMvc.perform(post("/api/tests")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(test)))
+                .content(objectMapper.writeValueAsString(testDto)))
                 .andExpect(status().isUnauthorized());
     }
 }
