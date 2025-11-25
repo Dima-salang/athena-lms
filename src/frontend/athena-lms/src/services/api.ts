@@ -81,6 +81,7 @@ export const getTeacherTests = async (teacherId: number): Promise<Test[]> => {
 
 export const createTest = async (test: Omit<Test, 'teacher'> | Omit<Test, 'id' | 'teacher'>): Promise<Test> => {
     const response = await axios.post(`${API_BASE_URL}/tests`, test);
+    console.log(response.data);
     return response.data;
 };
 
