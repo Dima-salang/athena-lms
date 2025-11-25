@@ -4,10 +4,10 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.athena.lms.athena_lms.dto.QuestionDto;
+import com.athena.lms.athena_lms.dto.TestDto;
 import com.athena.lms.athena_lms.mapper.QuestionMapper;
 import com.athena.lms.athena_lms.mapper.TestMapper;
-import com.dto.QuestionDto;
-import com.dto.TestDto;
 import com.athena.lms.athena_lms.model.User;
 import com.athena.lms.athena_lms.model.options.Option;
 import com.athena.lms.athena_lms.model.Subject;
@@ -200,16 +200,16 @@ public class TestManagementService {
                         question.setCorrectPoints(questionDto.getCorrectPoints());
                         // Update specific fields based on type
                         if (question instanceof MultipleChoiceQuestion
-                                && questionDto instanceof com.dto.MultipleChoiceQuestionDto) {
+                                && questionDto instanceof com.athena.lms.athena_lms.dto.MultipleChoiceQuestionDto) {
                             ((MultipleChoiceQuestion) question).setCorrectAnswer(
-                                    ((com.dto.MultipleChoiceQuestionDto) questionDto).getCorrectAnswer());
+                                    ((com.athena.lms.athena_lms.dto.MultipleChoiceQuestionDto) questionDto).getCorrectAnswer());
                             // Options update is tricky. Replace all?
                             // Let's clear and re-add or update.
                             // Simpler to clear and re-add for now to avoid complex diffing.
                             // But we need to handle Option entities.
                             // Let's leave options update for a moment or do a simple replace.
                             final Question finalQuestion = question;
-                            List<Option> newOptions = ((com.dto.MultipleChoiceQuestionDto) questionDto).getOptions()
+                            List<Option> newOptions = ((com.athena.lms.athena_lms.dto.MultipleChoiceQuestionDto) questionDto).getOptions()
                                     .stream()
                                     .map(o -> {
                                         Option opt = new Option();

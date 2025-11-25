@@ -1,4 +1,4 @@
-package com.dto;
+package com.athena.lms.athena_lms.dto;
 
 import java.util.List;
 import com.fasterxml.jackson.annotation.JsonSubTypes;

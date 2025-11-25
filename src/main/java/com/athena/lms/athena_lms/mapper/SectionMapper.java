@@ -1,7 +1,8 @@
 package com.athena.lms.athena_lms.mapper;
 
+import com.athena.lms.athena_lms.dto.SectionDto;
 import com.athena.lms.athena_lms.model.Section;
-import com.dto.SectionDto;
+
 import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")

@@ -97,9 +97,29 @@ export const createQuestions = async (questions: Omit<Question, 'id'>[], options
     return response.data;
 };
 
+
 export const getTestById = async (id: number): Promise<Test> => {
     const response = await axios.get(`${API_BASE_URL}/tests/${id}`);
     return response.data;
+};
+
+// Admin API
+export const getSections = async (): Promise<Section[]> => {
+    const response = await axios.get(`${API_BASE_URL}/admin/sections`);
+    return response.data;
+};
+
+export const getSubjects = async (): Promise<Subject[]> => {
+    const response = await axios.get(`${API_BASE_URL}/admin/subjects`);
+    return response.data;
+};
+
+export const createSection = async (section: Omit<Section, 'id'>): Promise<void> => {
+    await axios.post(`${API_BASE_URL}/admin/sections`, section);
+};
+
+export const createSubject = async (subject: Omit<Subject, 'id'>): Promise<void> => {
+    await axios.post(`${API_BASE_URL}/admin/subjects`, subject);
 };
 
 

@@ -1,7 +1,8 @@
 package com.athena.lms.athena_lms.mapper;
 
+import com.athena.lms.athena_lms.dto.OptionDto;
 import com.athena.lms.athena_lms.model.options.Option;
-import com.dto.OptionDto;
+
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

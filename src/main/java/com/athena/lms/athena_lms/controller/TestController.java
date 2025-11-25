@@ -3,9 +3,11 @@ package com.athena.lms.athena_lms.controller;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
+
+import com.athena.lms.athena_lms.dto.QuestionDto;
+import com.athena.lms.athena_lms.dto.TestDto;
 import com.athena.lms.athena_lms.service.tests.TestManagementService;
-import com.dto.TestDto;
-import com.dto.QuestionDto;
+
 import java.security.Principal;
 
 @RestController

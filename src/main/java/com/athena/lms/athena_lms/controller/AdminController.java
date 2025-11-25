@@ -9,11 +9,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import com.athena.lms.athena_lms.service.admin.AdminService;
+import com.athena.lms.athena_lms.model.Section;
+import com.athena.lms.athena_lms.model.Subject;
 import com.athena.lms.athena_lms.model.User;
 import com.athena.lms.athena_lms.model.tests.Test;
 import com.athena.lms.athena_lms.model.options.Option;
-import com.athena.lms.athena_lms.model.Section;
-import com.athena.lms.athena_lms.model.Subject;
+import com.athena.lms.athena_lms.dto.SectionDto;
+import com.athena.lms.athena_lms.dto.SubjectDto;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -23,7 +25,6 @@ public class AdminController {
 
     public AdminController(AdminService adminService) {
         this.adminService = adminService;
-
     }
 
     @GetMapping("/users")
@@ -42,12 +43,12 @@ public class AdminController {
     }
 
     @GetMapping("/sections")
-    public List<Section> getAllSections() {
+    public List<SectionDto> getAllSections() {
         return adminService.getSections();
     }
 
     @GetMapping("/subjects")
-    public List<Subject> getAllSubjects() {
+    public List<SubjectDto> getAllSubjects() {
         return adminService.getSubjects();
     }
 
@@ -65,6 +66,5 @@ public class AdminController {
     public void createOrUpdateSubject(@RequestBody Subject subject) {
         adminService.createOrUpdateSubject(subject);
     }
-
 
 }

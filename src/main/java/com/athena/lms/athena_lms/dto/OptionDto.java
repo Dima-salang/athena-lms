@@ -1,4 +1,4 @@
-package com.dto;
+package com.athena.lms.athena_lms.dto;
 
 public class OptionDto {
     private Long id;

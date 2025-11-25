@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { createTest, type Test, type Question, type MultipleChoiceQuestion } from '../services/api';
+import { createTest, getSections, getSubjects, type Test, type Question, type MultipleChoiceQuestion, type Section, type Subject } from '../services/api';
 import QuestionEditor from '../components/QuestionEditor';
 import { useNavigate } from 'react-router-dom';
 
 const CreateTestPage: React.FC = () => {
     const [testName, setTestName] = useState('');
     const [testDescription, setTestDescription] = useState('');
-    const [subjectName, setSubjectName] = useState('');
-    const [sectionName, setSectionName] = useState('');
+    const [subjectId, setSubjectId] = useState<number | null>(null);
+    const [sectionId, setSectionId] = useState<number | null>(null);
+    const [availableSubjects, setAvailableSubjects] = useState<Subject[]>([]);
+    const [availableSections, setAvailableSections] = useState<Section[]>([]);
     const [questions, setQuestions] = useState<Question[]>([]);
     const [testId, setTestId] = useState<number | null>(null);
     const [isSaving, setIsSaving] = useState(false);
@@ -18,6 +20,23 @@ const CreateTestPage: React.FC = () => {
     // Autosave logic
     // Autosave logic with debounce
     useEffect(() => {
+        const fetchOptions = async () => {
+            try {
+                const [sections, subjects] = await Promise.all([getSections(), getSubjects()]);
+                setAvailableSections(sections);
+                setAvailableSubjects(subjects);
+                // Set defaults if available
+                if (sections.length > 0) setSectionId(sections[0].id);
+                if (subjects.length > 0) setSubjectId(subjects[0].id);
+            } catch (err) {
+                console.error("Failed to fetch sections or subjects", err);
+            }
+        };
+        fetchOptions();
+    }, []);
+
+    // Autosave logic with debounce
+    useEffect(() => {
         if (testId && isDirty) {
             const timer = setTimeout(() => {
                 handleAutosave();
@@ -25,14 +44,14 @@ const CreateTestPage: React.FC = () => {
 
             return () => clearTimeout(timer);
         }
-    }, [questions, testId, testName, testDescription, subjectName, sectionName, isDirty]);
+    }, [questions, testId, testName, testDescription, subjectId, sectionId, isDirty]);
 
     const handleAutosave = async () => {
         if (!testId || !isDirty) return;
         setIsSaving(true);
         try {
             // Snapshot of questions being saved
-            // We send the tempId so the backend can persist it and return it for matching
+            // We send the tempId so thedmins backend can persist it and return it for matching
             const questionsToSave = questions.map(q => {
                 // Ensure tempId is set if missing (for older questions potentially)
                 const tempId = q.tempId || (q.id < 0 ? q.id : undefined);
@@ -46,8 +65,8 @@ const CreateTestPage: React.FC = () => {
                 testIssueDate: new Date().toISOString(),
                 testDueDate: new Date().toISOString(),
                 testDuration: 3600,
-                section: { id: 0, name: sectionName },
-                subject: { id: 0, name: subjectName, description: '' },
+                section: availableSections.find(s => s.id === sectionId) || { id: 0, name: '' },
+                subject: availableSubjects.find(s => s.id === subjectId) || { id: 0, name: '', description: '' },
                 questions: questionsToSave as Question[]
             };
 
@@ -119,8 +138,8 @@ const CreateTestPage: React.FC = () => {
                 testIssueDate: new Date().toISOString(),
                 testDueDate: new Date().toISOString(),
                 testDuration: 3600,
-                section: { id: 0, name: sectionName },
-                subject: { id: 0, name: subjectName, description: '' },
+                section: availableSections.find(s => s.id === sectionId) || { id: 0, name: '' },
+                subject: availableSubjects.find(s => s.id === subjectId) || { id: 0, name: '', description: '' },
                 questions: []
             };
             const createdTest = await createTest(newTest);
@@ -195,11 +214,31 @@ const CreateTestPage: React.FC = () => {
                         <div className="flex gap-4">
                             <div className="input-group" style={{ flex: 1 }}>
                                 <label>Subject</label>
-                                <input type="text" value={subjectName} onChange={e => setSubjectName(e.target.value)} required />
+                                <select
+                                    value={subjectId || ''}
+                                    onChange={e => setSubjectId(Number(e.target.value))}
+                                    required
+                                    style={{ width: '100%', padding: '0.5rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}
+                                >
+                                    <option value="" disabled>Select Subject</option>
+                                    {availableSubjects.map(s => (
+                                        <option key={s.id} value={s.id}>{s.name}</option>
+                                    ))}
+                                </select>
                             </div>
                             <div className="input-group" style={{ flex: 1 }}>
                                 <label>Section</label>
-                                <input type="text" value={sectionName} onChange={e => setSectionName(e.target.value)} required />
+                                <select
+                                    value={sectionId || ''}
+                                    onChange={e => setSectionId(Number(e.target.value))}
+                                    required
+                                    style={{ width: '100%', padding: '0.5rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}
+                                >
+                                    <option value="" disabled>Select Section</option>
+                                    {availableSections.map(s => (
+                                        <option key={s.id} value={s.id}>{s.name}</option>
+                                    ))}
+                                </select>
                             </div>
                         </div>
                         <button type="submit" className="btn btn-primary btn-block" disabled={isSaving}>

@@ -1,7 +1,8 @@
 package com.athena.lms.athena_lms.mapper;
 
+import com.athena.lms.athena_lms.dto.TestDto;
 import com.athena.lms.athena_lms.model.tests.Test;
-import com.dto.TestDto;
+
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

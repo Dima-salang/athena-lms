@@ -1,7 +1,8 @@
 package com.athena.lms.athena_lms.mapper;
 
+import com.athena.lms.athena_lms.dto.*;
 import com.athena.lms.athena_lms.model.questions.*;
-import com.dto.*;
+
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.SubclassMapping;

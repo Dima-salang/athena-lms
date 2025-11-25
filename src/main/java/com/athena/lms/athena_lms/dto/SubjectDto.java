@@ -1,8 +1,9 @@
-package com.dto;
+package com.athena.lms.athena_lms.dto;
 
-public class SectionDto {
+public class SubjectDto {
     private Long id;
     private String name;
+    private String description;
 
     public Long getId() {
         return id;
@@ -18,5 +19,13 @@ public class SectionDto {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

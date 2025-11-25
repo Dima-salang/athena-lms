@@ -6,6 +6,7 @@ import DashboardPage from './pages/DashboardPage';
 import App from './App';
 import CreateTestPage from './pages/CreateTestPage';
 import TestDetailPage from './pages/TestDetailPage';
+import AdminPage from './pages/AdminPage';
 
 const router = createBrowserRouter([
     {
@@ -35,6 +36,10 @@ const router = createBrowserRouter([
             {
                 path: 'test/:testId',
                 element: <TestDetailPage />,
+            },
+            {
+                path: 'admin',
+                element: <AdminPage />,
             },
         ],
     },

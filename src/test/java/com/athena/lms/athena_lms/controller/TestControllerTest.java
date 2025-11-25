@@ -1,12 +1,12 @@
 package com.athena.lms.athena_lms.controller;
 
+import com.athena.lms.athena_lms.dto.MultipleChoiceQuestionDto;
+import com.athena.lms.athena_lms.dto.QuestionDto;
+import com.athena.lms.athena_lms.dto.TestDto;
+import com.athena.lms.athena_lms.dto.TrueFalseQuestionDto;
 import com.athena.lms.athena_lms.model.Teacher;
 import com.athena.lms.athena_lms.repository.TestRepository;
 import com.athena.lms.athena_lms.repository.UserRepository;
-import com.dto.MultipleChoiceQuestionDto;
-import com.dto.QuestionDto;
-import com.dto.TestDto;
-import com.dto.TrueFalseQuestionDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -65,7 +65,7 @@ public class TestControllerTest {
         // but TestDto currently has IDs and embedded Section.
 
         // Let's use embedded section for the test case as per service logic
-        com.dto.SectionDto section = new com.dto.SectionDto();
+        com.athena.lms.athena_lms.dto.SectionDto section = new com.athena.lms.athena_lms.dto.SectionDto();
         section.setName("Section A");
         testDto.setSection(section);
 

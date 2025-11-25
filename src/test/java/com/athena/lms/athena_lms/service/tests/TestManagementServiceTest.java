@@ -16,11 +16,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.athena.lms.athena_lms.dto.MultipleChoiceQuestionDto;
+import com.athena.lms.athena_lms.dto.QuestionDto;
+import com.athena.lms.athena_lms.dto.TestDto;
 import com.athena.lms.athena_lms.mapper.QuestionMapper;
 import com.athena.lms.athena_lms.mapper.TestMapper;
-import com.dto.MultipleChoiceQuestionDto;
-import com.dto.QuestionDto;
-import com.dto.TestDto;
 import com.athena.lms.athena_lms.model.Section;
 import com.athena.lms.athena_lms.model.Student;
 import com.athena.lms.athena_lms.model.Teacher;
@@ -115,7 +115,7 @@ public class TestManagementServiceTest {
 
         // Setup DTO with embedded section (fallback logic test)
         // Setup DTO with embedded section (fallback logic test)
-        com.dto.SectionDto section = new com.dto.SectionDto();
+        com.athena.lms.athena_lms.dto.SectionDto section = new com.athena.lms.athena_lms.dto.SectionDto();
         section.setName("New Section");
         testDto.setSection(section);
 
