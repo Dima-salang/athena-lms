@@ -3,12 +3,8 @@ package com.athena.lms.athena_lms.service.auth;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.athena.lms.athena_lms.model.Section;
-import com.athena.lms.athena_lms.model.Student;
-import com.athena.lms.athena_lms.model.Teacher;
-import com.athena.lms.athena_lms.model.User;
-import com.athena.lms.athena_lms.repository.SectionRepository;
-import com.athena.lms.athena_lms.repository.UserRepository;
+import com.athena.lms.athena_lms.model.*;
+import com.athena.lms.athena_lms.repository.*;
 
 @Service
 public class AuthService {
@@ -48,6 +44,12 @@ public class AuthService {
         teacher.setRole("TEACHER");
         encodePassword(teacher);
         return userRepository.save(teacher);
+    }
+
+    public User registerAdmin(Admin admin) {
+        admin.setRole("ADMIN");
+        encodePassword(admin);
+        return userRepository.save(admin);
     }
 
     private void encodePassword(User user) {

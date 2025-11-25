@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.athena.lms.athena_lms.model.options.Option;
 import com.athena.lms.athena_lms.model.tests.Test;
+import com.athena.exceptions.DuplicateNameException;
 import com.athena.lms.athena_lms.dto.SectionDto;
 import com.athena.lms.athena_lms.dto.SubjectDto;
 import com.athena.lms.athena_lms.mapper.SectionMapper;
@@ -77,8 +78,12 @@ public class AdminService {
         return sectionDtos;
     }
 
-    public void createOrUpdateSection(Section section) {
-        sectionRepository.save(section);
+    public SectionDto createOrUpdateSection(Section section) {
+        if (sectionRepository.existsByName(section.getName())) {
+            throw new DuplicateNameException("Section name already exists");
+        }
+        Section savedSection = sectionRepository.save(section);
+        return sectionMapper.toDto(savedSection);
     }
 
     public void deleteSection(Long id) {
@@ -96,8 +101,12 @@ public class AdminService {
         return subjectDtos;
     }
 
-    public void createOrUpdateSubject(Subject subject) {
-        subjectRepository.save(subject);
+    public SubjectDto createOrUpdateSubject(Subject subject) {
+        if (subjectRepository.existsByName(subject.getName())) {
+            throw new DuplicateNameException("Subject name already exists");
+        }
+        Subject savedSubject = subjectRepository.save(subject);
+        return subjectMapper.toDto(savedSubject);
     }
 
     public void deleteSubject(Long id) {

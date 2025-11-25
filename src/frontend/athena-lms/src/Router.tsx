@@ -7,6 +7,8 @@ import App from './App';
 import CreateTestPage from './pages/CreateTestPage';
 import TestDetailPage from './pages/TestDetailPage';
 import AdminPage from './pages/AdminPage';
+import SectionManagementPage from './pages/SectionManagementPage';
+import SubjectManagementPage from './pages/SubjectManagementPage';
 
 const router = createBrowserRouter([
     {
@@ -40,6 +42,14 @@ const router = createBrowserRouter([
             {
                 path: 'admin',
                 element: <AdminPage />,
+            },
+            {
+                path: 'admin/sections',
+                element: <SectionManagementPage />,
+            },
+            {
+                path: 'admin/subjects',
+                element: <SubjectManagementPage />,
             },
         ],
     },

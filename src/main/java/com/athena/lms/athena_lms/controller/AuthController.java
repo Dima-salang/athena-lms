@@ -3,19 +3,17 @@ package com.athena.lms.athena_lms.controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 import com.athena.lms.athena_lms.service.auth.AuthService;
-import com.athena.lms.athena_lms.model.Student;
-import com.athena.lms.athena_lms.model.Teacher;
-import com.athena.lms.athena_lms.model.User;
+import com.athena.lms.athena_lms.model.*;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
     private final AuthService authService;
-    
+
     public AuthController(AuthService authService) {
         this.authService = authService;
     }
-    
+
     @PostMapping("/register/student")
     public ResponseEntity<User> registerStudent(@RequestBody Student student) {
         try {
@@ -33,5 +31,14 @@ public class AuthController {
             return ResponseEntity.badRequest().body(null);
         }
     }
-    
+
+    @PostMapping("/register/admin")
+    public ResponseEntity<User> registerAdmin(@RequestBody Admin admin) {
+        try {
+            return ResponseEntity.ok(authService.registerAdmin(admin));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+
 }

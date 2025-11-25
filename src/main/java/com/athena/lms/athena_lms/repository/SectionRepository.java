@@ -5,4 +5,5 @@ import com.athena.lms.athena_lms.model.Section;
 
 public interface SectionRepository extends JpaRepository<Section, Long> {
     Section findByName(String name);
+    boolean existsByName(String name);
 }
