@@ -5,7 +5,8 @@ import jakarta.persistence.Entity;
 @Entity
 public class TrueFalseQuestion extends Question {
     private String correctAnswer;
-    
+    private Long correctOptionId;
+
     // getters and setters
     public String getCorrectAnswer() {
         return correctAnswer;
@@ -13,5 +14,13 @@ public class TrueFalseQuestion extends Question {
 
     public void setCorrectAnswer(String correctAnswer) {
         this.correctAnswer = correctAnswer;
+    }
+
+    public Long getCorrectOptionId() {
+        return correctOptionId;
+    }
+
+    public void setCorrectOptionId(Long correctOptionId) {
+        this.correctOptionId = correctOptionId;
     }
 }

@@ -35,6 +35,13 @@ public class TestController {
         return ResponseEntity.ok(testManagementService.createOrUpdateQuestions(questions, testId));
     }
 
+    // delete questions
+    @DeleteMapping("/questions/{id}")
+    public ResponseEntity<Void> deleteQuestion(@PathVariable Long id) {
+        testManagementService.deleteQuestion(id);
+        return ResponseEntity.ok().build();
+    }
+
     // update test
     @PatchMapping("/{id}") // Changed mapping from /tests/{id} to /{id}
     public ResponseEntity<TestDto> updateTest(@PathVariable Long id, @RequestBody TestDto testDto) {

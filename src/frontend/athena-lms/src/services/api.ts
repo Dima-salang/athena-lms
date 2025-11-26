@@ -37,6 +37,7 @@ export interface Question {
     questionType: string;
     fullPoints: number;
     correctPoints: number;
+    isDirty?: boolean;
 }
 
 export interface EssayQuestion extends Question {
@@ -48,6 +49,7 @@ export interface MultipleChoiceQuestion extends Question {
     options: Partial<Option>[];
     questionAnswer: string;
     correctAnswer: string;
+    correctOptionId?: number;
 }
 
 export interface TrueFalseQuestion extends Question {
@@ -103,6 +105,16 @@ export const getTestById = async (id: number): Promise<Test> => {
     return response.data;
 };
 
+export const createOrUpdateQuestions = async (questions: Omit<Question, 'id'>[], testId: number): Promise<Question[]> => {
+    const response = await axios.post(`${API_BASE_URL}/tests/autosave`, questions, { params: { testId } });
+    console.log(response.data);
+    return response.data;
+};
+
+export const deleteQuestion = async (questionId: number): Promise<void> => {
+    await axios.delete(`${API_BASE_URL}/tests/questions/${questionId}`);
+};
+
 // Admin API
 export const getSections = async (): Promise<Section[]> => {
     const response = await axios.get(`${API_BASE_URL}/admin/sections`);
@@ -121,5 +133,7 @@ export const createSection = async (section: Omit<Section, 'id'>): Promise<void>
 export const createSubject = async (subject: Omit<Subject, 'id'>): Promise<void> => {
     await axios.post(`${API_BASE_URL}/admin/subjects`, subject);
 };
+
+
 
 

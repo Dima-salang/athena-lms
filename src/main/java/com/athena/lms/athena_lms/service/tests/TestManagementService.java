@@ -5,6 +5,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.athena.lms.athena_lms.dto.MultipleChoiceQuestionDto;
+import com.athena.lms.athena_lms.dto.OptionDto;
 import com.athena.lms.athena_lms.dto.QuestionDto;
 import com.athena.lms.athena_lms.dto.TestDto;
 import com.athena.lms.athena_lms.mapper.QuestionMapper;
@@ -24,6 +26,7 @@ import com.athena.lms.athena_lms.repository.SectionRepository;
 import com.athena.lms.athena_lms.repository.TestRepository;
 import com.athena.lms.athena_lms.repository.UserRepository;
 import com.athena.lms.athena_lms.repository.OptionRepository;
+import com.athena.lms.athena_lms.mapper.OptionMapper;
 
 @Service
 public class TestManagementService {
@@ -35,6 +38,7 @@ public class TestManagementService {
     private final OptionRepository optionRepository;
     private final TestMapper testMapper;
     private final QuestionMapper questionMapper;
+    private final OptionMapper optionMapper;
 
     public TestManagementService(UserRepository userRepository, TestRepository testRepository,
             QuestionRepository questionRepository,
@@ -42,7 +46,8 @@ public class TestManagementService {
             SectionRepository sectionRepository,
             OptionRepository optionRepository,
             TestMapper testMapper,
-            QuestionMapper questionMapper) {
+            QuestionMapper questionMapper,
+            OptionMapper optionMapper) {
         this.userRepository = userRepository;
         this.testRepository = testRepository;
         this.questionRepository = questionRepository;
@@ -51,6 +56,7 @@ public class TestManagementService {
         this.optionRepository = optionRepository;
         this.testMapper = testMapper;
         this.questionMapper = questionMapper;
+        this.optionMapper = optionMapper;
     }
 
     public TestDto createTest(TestDto testDto, String username) {
@@ -124,6 +130,11 @@ public class TestManagementService {
         if (questions != null) {
             for (Question question : questions) {
                 question.setTest(test);
+                // Handle negative IDs
+                if (question.getId() != null && question.getId() < 0) {
+                    question.setId(null);
+                }
+
                 if (question instanceof MultipleChoiceQuestion) {
                     MultipleChoiceQuestion multipleChoiceQuestion = (MultipleChoiceQuestion) question;
                     List<Option> options = multipleChoiceQuestion.getOptions();
@@ -131,6 +142,10 @@ public class TestManagementService {
                         for (Option option : options) {
                             option.setQuestion(question);
                             option.setTest(test);
+                            // Handle negative Option IDs
+                            if (option.getId() != null && option.getId() < 0) {
+                                option.setId(null);
+                            }
                         }
                     }
                 }
@@ -293,6 +308,10 @@ public class TestManagementService {
 
         for (Question question : questions) {
             question.setTest(test);
+            // Handle negative IDs
+            if (question.getId() != null && question.getId() < 0) {
+                question.setId(null);
+            }
 
             if (question instanceof MultipleChoiceQuestion) {
                 MultipleChoiceQuestion mcq = (MultipleChoiceQuestion) question;
@@ -300,6 +319,10 @@ public class TestManagementService {
                     for (Option option : mcq.getOptions()) {
                         option.setQuestion(question);
                         option.setTest(test);
+                        // Handle negative Option IDs
+                        if (option.getId() != null && option.getId() < 0) {
+                            option.setId(null);
+                        }
                     }
                 }
             }
@@ -330,9 +353,17 @@ public class TestManagementService {
 
         for (QuestionDto questionDto : questionDtos) {
             // look if the question exists
-            Question question = questionRepository.findById(questionDto.getId()).orElse(null);
+            Question question = null;
+            if (questionDto.getId() != null && questionDto.getId() > 0) {
+                question = questionRepository.findById(questionDto.getId()).orElse(null);
+            }
+
             if (question == null) {
                 question = questionMapper.toEntity(questionDto);
+                // If ID is negative, it's a temp ID. Nullify it for persistence.
+                if (question.getId() != null && question.getId() < 0) {
+                    question.setId(null);
+                }
             }
             // update the fields
             question.setQuestionNumber(questionDto.getQuestionNumber());
@@ -342,14 +373,36 @@ public class TestManagementService {
             question.setQuestionType(QuestionType.valueOf(questionDto.getQuestionType()));
             question.setTest(test);
 
-            if (question instanceof MultipleChoiceQuestion) {
+            if (question instanceof MultipleChoiceQuestion && questionDto instanceof MultipleChoiceQuestionDto) {
                 MultipleChoiceQuestion mcq = (MultipleChoiceQuestion) question;
-                if (mcq.getOptions() != null) {
+                MultipleChoiceQuestionDto mcqDto = (MultipleChoiceQuestionDto) questionDto;
+
+                mcq.setCorrectAnswer(mcqDto.getCorrectAnswer());
+                mcq.setCorrectOptionId(mcqDto.getCorrectOptionId());
+
+                // if the getOptions is not empty, meaning it was already created, then we
+                // update
+                if (!mcq.getOptions().isEmpty()) {
+                    // TODO: sync the optionText of the options entity with the optionsDto
                     for (Option option : mcq.getOptions()) {
                         option.setQuestion(question);
                         option.setTest(test);
                     }
+                } else {
+                    // if the getOptions is empty, meaning it was not created, then we create
+                    for (OptionDto optionDto : mcqDto.getOptions()) {
+                        Option option = optionMapper.toEntity(optionDto);
+                        option.setQuestion(question);
+                        option.setTest(test);
+                        // Handle negative Option IDs
+                        if (option.getId() != null && option.getId() < 0) {
+                            option.setId(null);
+                        }
+                        mcq.getOptions().add(option);
+                    }
+
                 }
+
             }
             toSaveQuestions.add(question);
         }

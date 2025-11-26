@@ -67,4 +67,12 @@ public class Option {
         this.test = test;
     }
 
+    public Long getTempId() {
+        return tempId;
+    }
+
+    public void setTempId(Long tempId) {
+        this.tempId = tempId;
+    }
+
 }

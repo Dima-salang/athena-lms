@@ -4,6 +4,7 @@ import java.util.List;
 
 public class MultipleChoiceQuestionDto extends QuestionDto {
     private String correctAnswer;
+    private Long correctOptionId;
     private List<OptionDto> options;
 
     public String getCorrectAnswer() {
@@ -20,5 +21,13 @@ public class MultipleChoiceQuestionDto extends QuestionDto {
 
     public void setOptions(List<OptionDto> options) {
         this.options = options;
+    }
+
+    public Long getCorrectOptionId() {
+        return correctOptionId;
+    }
+
+    public void setCorrectOptionId(Long correctOptionId) {
+        this.correctOptionId = correctOptionId;
     }
 }

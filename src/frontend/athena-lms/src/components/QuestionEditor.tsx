@@ -114,8 +114,11 @@ const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onUpdate, onD
                             <input
                                 type="radio"
                                 name={`correct-${localQuestion.id}`}
-                                checked={(localQuestion as MultipleChoiceQuestion).correctAnswer === option.optionText}
-                                onChange={() => handleChange('correctAnswer', option.optionText)}
+                                checked={(localQuestion as MultipleChoiceQuestion).correctOptionId === (option.id || option.tempId)}
+                                onChange={() => {
+                                    handleChange('correctOptionId', option.id || option.tempId);
+                                    handleChange('correctAnswer', option.optionText);
+                                }}
                             />
                             <input
                                 type="text"

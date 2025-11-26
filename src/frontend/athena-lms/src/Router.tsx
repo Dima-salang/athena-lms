@@ -6,6 +6,7 @@ import DashboardPage from './pages/DashboardPage';
 import App from './App';
 import CreateTestPage from './pages/CreateTestPage';
 import TestDetailPage from './pages/TestDetailPage';
+import TestEditorPage from './pages/TestEditorPage';
 import AdminPage from './pages/AdminPage';
 import SectionManagementPage from './pages/SectionManagementPage';
 import SubjectManagementPage from './pages/SubjectManagementPage';
@@ -38,6 +39,10 @@ const router = createBrowserRouter([
             {
                 path: 'test/:testId',
                 element: <TestDetailPage />,
+            },
+            {
+                path: 'test/:testId/edit',
+                element: <TestEditorPage />,
             },
             {
                 path: 'admin',

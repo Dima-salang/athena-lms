@@ -7,6 +7,4 @@ import com.athena.lms.athena_lms.model.questions.Question;
 
 public interface QuestionRepository extends JpaRepository<Question, Long> {
     List<Question> findByTestId(Long testId);
-    List<Question> findByTestIdAndIsDirty(Long testId, boolean isDirty);
-    
 }
