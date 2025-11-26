@@ -1,5 +1,6 @@
 package com.athena.lms.athena_lms.service.tests;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -15,6 +16,7 @@ import com.athena.lms.athena_lms.model.Section;
 import com.athena.lms.athena_lms.model.Teacher;
 import com.athena.lms.athena_lms.model.questions.MultipleChoiceQuestion;
 import com.athena.lms.athena_lms.model.questions.Question;
+import com.athena.lms.athena_lms.model.questions.QuestionType;
 import com.athena.lms.athena_lms.model.tests.Test;
 import com.athena.lms.athena_lms.repository.QuestionRepository;
 import com.athena.lms.athena_lms.repository.SubjectRepository;
@@ -202,14 +204,16 @@ public class TestManagementService {
                         if (question instanceof MultipleChoiceQuestion
                                 && questionDto instanceof com.athena.lms.athena_lms.dto.MultipleChoiceQuestionDto) {
                             ((MultipleChoiceQuestion) question).setCorrectAnswer(
-                                    ((com.athena.lms.athena_lms.dto.MultipleChoiceQuestionDto) questionDto).getCorrectAnswer());
+                                    ((com.athena.lms.athena_lms.dto.MultipleChoiceQuestionDto) questionDto)
+                                            .getCorrectAnswer());
                             // Options update is tricky. Replace all?
                             // Let's clear and re-add or update.
                             // Simpler to clear and re-add for now to avoid complex diffing.
                             // But we need to handle Option entities.
                             // Let's leave options update for a moment or do a simple replace.
                             final Question finalQuestion = question;
-                            List<Option> newOptions = ((com.athena.lms.athena_lms.dto.MultipleChoiceQuestionDto) questionDto).getOptions()
+                            List<Option> newOptions = ((com.athena.lms.athena_lms.dto.MultipleChoiceQuestionDto) questionDto)
+                                    .getOptions()
                                     .stream()
                                     .map(o -> {
                                         Option opt = new Option();
@@ -305,6 +309,55 @@ public class TestManagementService {
 
         if (test.getQuestions() == null) {
             test.setQuestions(new java.util.ArrayList<>());
+        }
+        test.getQuestions().addAll(savedQuestions);
+        testRepository.save(test); // Optional if cascading, but ensures update
+
+        return savedQuestions.stream()
+                .map(questionMapper::toDto)
+                .toList();
+    }
+
+    // creates or updates the delta of the questions instead of the whole test in
+    // autosaving
+    public List<QuestionDto> createOrUpdateQuestions(List<QuestionDto> questionDtos, Long testId) {
+        Test test = testRepository.findById(testId).orElse(null);
+        if (test == null) {
+            throw new RuntimeException("Test not found");
+        }
+
+        List<Question> toSaveQuestions = new ArrayList<>();
+
+        for (QuestionDto questionDto : questionDtos) {
+            // look if the question exists
+            Question question = questionRepository.findById(questionDto.getId()).orElse(null);
+            if (question == null) {
+                question = questionMapper.toEntity(questionDto);
+            }
+            // update the fields
+            question.setQuestionNumber(questionDto.getQuestionNumber());
+            question.setQuestionText(questionDto.getQuestionText());
+            question.setFullPoints(questionDto.getFullPoints());
+            question.setCorrectPoints(questionDto.getCorrectPoints());
+            question.setQuestionType(QuestionType.valueOf(questionDto.getQuestionType()));
+            question.setTest(test);
+
+            if (question instanceof MultipleChoiceQuestion) {
+                MultipleChoiceQuestion mcq = (MultipleChoiceQuestion) question;
+                if (mcq.getOptions() != null) {
+                    for (Option option : mcq.getOptions()) {
+                        option.setQuestion(question);
+                        option.setTest(test);
+                    }
+                }
+            }
+            toSaveQuestions.add(question);
+        }
+
+        List<Question> savedQuestions = questionRepository.saveAll(toSaveQuestions);
+
+        if (test.getQuestions() == null) {
+            test.setQuestions(new ArrayList<>());
         }
         test.getQuestions().addAll(savedQuestions);
         testRepository.save(test); // Optional if cascading, but ensures update

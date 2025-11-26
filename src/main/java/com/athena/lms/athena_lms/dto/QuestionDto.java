@@ -14,6 +14,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 public class QuestionDto {
     private Long id;
     private Long tempId;
+    private boolean isDirty;
     private String questionNumber;
     private String questionText;
     private String questionType;
@@ -38,6 +39,14 @@ public class QuestionDto {
 
     public void setTempId(Long tempId) {
         this.tempId = tempId;
+    }
+
+    public boolean isDirty() {
+        return isDirty;
+    }
+
+    public void setDirty(boolean dirty) {
+        isDirty = dirty;
     }
 
     public String getQuestionNumber() {

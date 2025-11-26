@@ -29,6 +29,12 @@ public class TestController {
         return ResponseEntity.ok(createdTest);
     }
 
+    @PostMapping("/autosave")
+    public ResponseEntity<List<QuestionDto>> autosaveQuestions(@RequestBody List<QuestionDto> questions,
+            @RequestParam Long testId) {
+        return ResponseEntity.ok(testManagementService.createOrUpdateQuestions(questions, testId));
+    }
+
     // update test
     @PatchMapping("/{id}") // Changed mapping from /tests/{id} to /{id}
     public ResponseEntity<TestDto> updateTest(@PathVariable Long id, @RequestBody TestDto testDto) {
