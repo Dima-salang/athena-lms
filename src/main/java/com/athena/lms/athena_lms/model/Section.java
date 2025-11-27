@@ -11,6 +11,11 @@ public class Section {
     @Column(unique = true)
     private String name;
 
+    // adviser
+    @ManyToOne
+    @JoinColumn(name = "teacher_id")
+    private Teacher adviser;
+
     // setters and getters
     public Long getId() {
         return id;
@@ -26,5 +31,13 @@ public class Section {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Teacher getAdviser() {
+        return adviser;
+    }
+
+    public void setAdviser(Teacher adviser) {
+        this.adviser = adviser;
     }
 }

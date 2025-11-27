@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { useParams, useNavigate } from "react-router-dom"
+import { useParams, Link } from "react-router-dom"
 import {
     getTestById,
     type Test,
@@ -15,7 +15,6 @@ import QuestionEditor from "../components/QuestionEditor"
 
 const TestEditorPage: React.FC = () => {
     const { testId } = useParams<{ testId: string }>()
-    const navigate = useNavigate()
     const [test, setTest] = useState<Test | null>(null)
     const [questions, setQuestions] = useState<Question[]>([])
     const [isSaving, setIsSaving] = useState(false)
@@ -41,6 +40,7 @@ const TestEditorPage: React.FC = () => {
     }
 
     useEffect(() => {
+
         if (testId && isDirty) {
             const timer = setTimeout(() => {
                 handleAutosave()
@@ -171,7 +171,7 @@ const TestEditorPage: React.FC = () => {
             await deleteQuestionApi(id)
         }
         setQuestions(questions.filter((q) => q.id !== id))
-        
+
     }
 
     const saveQuestion = async () => {
@@ -215,12 +215,13 @@ const TestEditorPage: React.FC = () => {
                     >
                         + Add New Question
                     </button>
-                    <button
-                        onClick={() => navigate("/dashboard")}
-                        className="w-full py-3 border border-slate-300 text-slate-700 hover:bg-slate-50 font-medium rounded-lg transition duration-200"
-                    >
-                        Done & Return to Dashboard
-                    </button>
+                    <Link to="/dashboard" onClick={() => handleAutosave()}>
+                        <button
+                            className="w-full py-3 border border-slate-300 text-slate-700 hover:bg-slate-50 font-medium rounded-lg transition duration-200"
+                        >
+                            Done & Return to Dashboard
+                        </button>
+                    </Link>
                 </div>
             </div>
         </div>
