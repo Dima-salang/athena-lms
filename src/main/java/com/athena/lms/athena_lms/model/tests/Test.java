@@ -25,6 +25,7 @@ public class Test {
     private LocalDateTime TestIssueDate;
     private LocalDateTime TestDueDate;
     private Duration TestDuration;
+    private boolean hasInfiniteTime;
 
     @ManyToOne
     @JoinColumn(name = "section_id")
@@ -91,6 +92,14 @@ public class Test {
 
     public void setTestDuration(Duration testDuration) {
         TestDuration = testDuration;
+    }
+
+    public boolean isHasInfiniteTime() {
+        return hasInfiniteTime;
+    }
+
+    public void setHasInfiniteTime(boolean hasInfiniteTime) {
+        this.hasInfiniteTime = hasInfiniteTime;
     }
 
     public Section getSection() {

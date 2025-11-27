@@ -56,6 +56,10 @@ export interface TrueFalseQuestion extends Question {
     trueFalseAnswer: string;
 }
 
+export interface IdentificationQuestion extends Question {
+    correctAnswer: string;
+}
+
 export interface Option {
     id: number;
     tempId?: number;
@@ -71,6 +75,7 @@ export interface Test {
     testIssueDate: string; // LocalDateTime is serialized as string
     testDueDate: string;   // LocalDateTime is serialized as string
     testDuration: number;  // Duration is serialized as seconds (long)
+    hasInfiniteTime: boolean;
     section: Section;
     subject: Subject;
     questions: Question[];

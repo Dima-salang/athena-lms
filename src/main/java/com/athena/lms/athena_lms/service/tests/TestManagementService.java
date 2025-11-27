@@ -6,6 +6,8 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.athena.lms.athena_lms.dto.MultipleChoiceQuestionDto;
+import com.athena.lms.athena_lms.dto.EssayQuestionDto;
+import com.athena.lms.athena_lms.dto.IdentificationQuestionDto;
 import com.athena.lms.athena_lms.dto.OptionDto;
 import com.athena.lms.athena_lms.dto.QuestionDto;
 import com.athena.lms.athena_lms.dto.TestDto;
@@ -17,6 +19,8 @@ import com.athena.lms.athena_lms.model.Subject;
 import com.athena.lms.athena_lms.model.Section;
 import com.athena.lms.athena_lms.model.Teacher;
 import com.athena.lms.athena_lms.model.questions.MultipleChoiceQuestion;
+import com.athena.lms.athena_lms.model.questions.EssayQuestion;
+import com.athena.lms.athena_lms.model.questions.IdentificationQuestion;
 import com.athena.lms.athena_lms.model.questions.Question;
 import com.athena.lms.athena_lms.model.questions.QuestionType;
 import com.athena.lms.athena_lms.model.tests.Test;
@@ -365,6 +369,8 @@ public class TestManagementService {
                     question.setId(null);
                 }
             }
+
+            // general question fields
             // update the fields
             question.setQuestionNumber(questionDto.getQuestionNumber());
             question.setQuestionText(questionDto.getQuestionText());
@@ -373,56 +379,9 @@ public class TestManagementService {
             question.setQuestionType(QuestionType.valueOf(questionDto.getQuestionType()));
             question.setTest(test);
 
-            if (question instanceof MultipleChoiceQuestion && questionDto instanceof MultipleChoiceQuestionDto) {
-                MultipleChoiceQuestion mcq = (MultipleChoiceQuestion) question;
-                MultipleChoiceQuestionDto mcqDto = (MultipleChoiceQuestionDto) questionDto;
+            // handle the specific question types
+            question = handleSpecificQuestions(question, questionDto, test);
 
-                mcq.setCorrectAnswer(mcqDto.getCorrectAnswer());
-                mcq.setCorrectOptionId(mcqDto.getCorrectOptionId());
-
-                // Sync options
-                if (mcqDto.getOptions() != null) {
-                    java.util.Map<Long, Option> existingOptionsMap = new java.util.HashMap<>();
-                    if (mcq.getOptions() != null) {
-                        for (Option opt : mcq.getOptions()) {
-                            if (opt.getId() != null) {
-                                existingOptionsMap.put(opt.getId(), opt);
-                            }
-                        }
-                    }
-
-                    List<Option> updatedOptions = new ArrayList<>();
-                    for (com.athena.lms.athena_lms.dto.OptionDto optDto : mcqDto.getOptions()) {
-                        Option option = null;
-                        if (optDto.getId() != null && optDto.getId() > 0) {
-                            option = existingOptionsMap.get(optDto.getId());
-                        }
-
-                        if (option == null) {
-                            // New option
-                            option = optionMapper.toEntity(optDto);
-                            // Handle negative IDs
-                            if (option.getId() != null && option.getId() < 0) {
-                                option.setId(null);
-                            }
-                        } else {
-                            // Update existing option
-                            option.setOptionText(optDto.getOptionText());
-                            option.setTempId(optDto.getTempId());
-                        }
-
-                        option.setQuestion(question);
-                        option.setTest(test);
-                        updatedOptions.add(option);
-                    }
-
-                    if (mcq.getOptions() == null) {
-                        mcq.setOptions(new ArrayList<>());
-                    }
-                    mcq.getOptions().clear();
-                    mcq.getOptions().addAll(updatedOptions);
-                }
-            }
             toSaveQuestions.add(question);
         }
 
@@ -437,6 +396,74 @@ public class TestManagementService {
         return savedQuestions.stream()
                 .map(questionMapper::toDto)
                 .toList();
+    }
+
+    private Question handleSpecificQuestions(Question question, QuestionDto questionDto, Test test) {
+        if (question instanceof MultipleChoiceQuestion && questionDto instanceof MultipleChoiceQuestionDto) {
+            MultipleChoiceQuestion mcq = (MultipleChoiceQuestion) question;
+            MultipleChoiceQuestionDto mcqDto = (MultipleChoiceQuestionDto) questionDto;
+
+            mcq.setCorrectAnswer(mcqDto.getCorrectAnswer());
+            mcq.setCorrectOptionId(mcqDto.getCorrectOptionId());
+
+            // Sync options
+            if (mcqDto.getOptions() != null) {
+                java.util.Map<Long, Option> existingOptionsMap = new java.util.HashMap<>();
+                if (mcq.getOptions() != null) {
+                    for (Option opt : mcq.getOptions()) {
+                        if (opt.getId() != null) {
+                            existingOptionsMap.put(opt.getId(), opt);
+                        }
+                    }
+                }
+
+                List<Option> updatedOptions = new ArrayList<>();
+                for (com.athena.lms.athena_lms.dto.OptionDto optDto : mcqDto.getOptions()) {
+                    Option option = null;
+                    if (optDto.getId() != null && optDto.getId() > 0) {
+                        option = existingOptionsMap.get(optDto.getId());
+                    }
+
+                    if (option == null) {
+                        // New option
+                        option = optionMapper.toEntity(optDto);
+                        // Handle negative IDs
+                        if (option.getId() != null && option.getId() < 0) {
+                            option.setId(null);
+                        }
+                    } else {
+                        // Update existing option
+                        option.setOptionText(optDto.getOptionText());
+                        option.setTempId(optDto.getTempId());
+                    }
+
+                    option.setQuestion(question);
+                    option.setTest(test);
+                    updatedOptions.add(option);
+                }
+
+                if (mcq.getOptions() == null) {
+                    mcq.setOptions(new ArrayList<>());
+                }
+                mcq.getOptions().clear();
+                mcq.getOptions().addAll(updatedOptions);
+                return mcq;
+
+            }
+        } else if (question instanceof EssayQuestion) {
+            EssayQuestion essayQuestion = (EssayQuestion) question;
+            EssayQuestionDto essayQuestionDto = (EssayQuestionDto) questionDto;
+
+            essayQuestion.setPoints(essayQuestionDto.getPoints());
+            return essayQuestion;
+        } else if (question instanceof IdentificationQuestion) {
+            IdentificationQuestion identificationQuestion = (IdentificationQuestion) question;
+            IdentificationQuestionDto identificationQuestionDto = (IdentificationQuestionDto) questionDto;
+
+            identificationQuestion.setCorrectAnswer(identificationQuestionDto.getCorrectAnswer());
+            return identificationQuestion;
+        }
+        return question;
     }
 
     public void updateQuestion(QuestionDto questionDto) {

@@ -11,6 +11,7 @@ const CreateTestPage: React.FC = () => {
     const [testIssueDate, setTestIssueDate] = useState("")
     const [testDueDate, setTestDueDate] = useState("")
     const [testDurationMinutes, setTestDurationMinutes] = useState(60)
+    const [hasInfiniteTime, setHasInfiniteTime] = useState(false)
     const [subjectId, setSubjectId] = useState<number | null>(null)
     const [sectionId, setSectionId] = useState<number | null>(null)
     const [availableSubjects, setAvailableSubjects] = useState<Subject[]>([])
@@ -42,7 +43,8 @@ const CreateTestPage: React.FC = () => {
                 testDescription,
                 testIssueDate: new Date(testIssueDate).toISOString(),
                 testDueDate: new Date(testDueDate).toISOString(),
-                testDuration: testDurationMinutes * 60, // Convert minutes to seconds
+                testDuration: hasInfiniteTime ? 0 : testDurationMinutes * 60, // Convert minutes to seconds
+                hasInfiniteTime: hasInfiniteTime,
                 section: availableSections.find((s) => s.id === sectionId) || { id: 0, name: "" },
                 subject: availableSubjects.find((s) => s.id === subjectId) || { id: 0, name: "", description: "" },
                 questions: [],
@@ -159,11 +161,25 @@ const CreateTestPage: React.FC = () => {
                                     type="number"
                                     value={testDurationMinutes}
                                     onChange={(e) => setTestDurationMinutes(Number(e.target.value))}
-                                    required
+                                    required={!hasInfiniteTime}
+                                    disabled={hasInfiniteTime}
                                     min="1"
-                                    className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                                    className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition disabled:bg-slate-100 disabled:text-slate-400"
                                 />
                             </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="checkbox"
+                                id="hasInfiniteTime"
+                                checked={hasInfiniteTime}
+                                onChange={(e) => setHasInfiniteTime(e.target.checked)}
+                                className="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500"
+                            />
+                            <label htmlFor="hasInfiniteTime" className="text-sm font-medium text-slate-700">
+                                Infinite Time (No Duration Limit)
+                            </label>
                         </div>
 
                         <button

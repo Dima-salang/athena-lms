@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import type { Question, MultipleChoiceQuestion, TrueFalseQuestion } from "../services/api"
+import type { Question, MultipleChoiceQuestion, TrueFalseQuestion, IdentificationQuestion, EssayQuestion } from "../services/api"
 
 interface QuestionEditorProps {
     question: Question
@@ -66,6 +66,8 @@ const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onUpdate, onD
                     >
                         <option value="MULTIPLE_CHOICE">Multiple Choice</option>
                         <option value="TRUE_FALSE">True / False</option>
+                        <option value="IDENTIFICATION">Identification</option>
+                        <option value="ESSAY">Essay</option>
                     </select>
                 </div>
                 <div className="flex gap-2">
@@ -171,6 +173,32 @@ const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onUpdate, onD
                             <option value="true">True</option>
                             <option value="false">False</option>
                         </select>
+                    </div>
+                )}
+
+                {localQuestion.questionType === "IDENTIFICATION" && (
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Correct Answer</label>
+                        <input
+                            type="text"
+                            value={(localQuestion as IdentificationQuestion).correctAnswer || ""}
+                            onChange={(e) => handleChange("correctAnswer", e.target.value)}
+                            placeholder="Enter the correct answer"
+                            className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                        />
+                    </div>
+                )}
+
+                {localQuestion.questionType === "ESSAY" && (
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Model Answer / Key Points (Optional)</label>
+                        <textarea
+                            value={(localQuestion as EssayQuestion).questionAnswer || ""}
+                            onChange={(e) => handleChange("questionAnswer", e.target.value)}
+                            rows={4}
+                            placeholder="Enter a model answer or key points for grading reference..."
+                            className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                        />
                     </div>
                 )}
             </div>

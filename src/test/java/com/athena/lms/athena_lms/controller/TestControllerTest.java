@@ -55,9 +55,16 @@ public class TestControllerTest {
     @Test
     @WithMockUser(username = "teacher1", roles = "TEACHER")
     public void testCreateTest_AssignsTeacherAutomatically() throws Exception {
+        Teacher teacher = (Teacher) userRepository.findByUsername("teacher1");
         TestDto testDto = new TestDto();
         testDto.setTestName("Math Test");
         testDto.setTestDescription("Midterm Exam");
+        testDto.setTeacherId(teacher.getId());
+        System.err.println("Teacher: " + teacher);
+        System.err.println("Teacher ID: " + teacher.getId());
+        System.err.println("Teacher Username: " + teacher.getUsername());
+
+
 
         // We can set IDs or embedded objects depending on DTO structure.
         // For this test, we might rely on the service creating them if names are
@@ -68,6 +75,7 @@ public class TestControllerTest {
         com.athena.lms.athena_lms.dto.SectionDto section = new com.athena.lms.athena_lms.dto.SectionDto();
         section.setName("Section A");
         testDto.setSection(section);
+        testDto.setTeacherId(teacher.getId());
 
         mockMvc.perform(post("/api/tests")
                 .contentType(MediaType.APPLICATION_JSON)

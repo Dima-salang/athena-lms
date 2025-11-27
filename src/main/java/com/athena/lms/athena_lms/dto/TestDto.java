@@ -12,6 +12,7 @@ public class TestDto {
     private LocalDateTime testIssueDate;
     private LocalDateTime testDueDate;
     private Duration testDuration;
+    private boolean hasInfiniteTime;
     private SectionDto section;
     private SubjectDto subject;
 
@@ -68,6 +69,14 @@ public class TestDto {
 
     public void setTestDuration(Duration testDuration) {
         this.testDuration = testDuration;
+    }
+
+    public boolean isHasInfiniteTime() {
+        return hasInfiniteTime;
+    }
+
+    public void setHasInfiniteTime(boolean hasInfiniteTime) {
+        this.hasInfiniteTime = hasInfiniteTime;
     }
 
     public SectionDto getSection() {
