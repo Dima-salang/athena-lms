@@ -380,29 +380,48 @@ public class TestManagementService {
                 mcq.setCorrectAnswer(mcqDto.getCorrectAnswer());
                 mcq.setCorrectOptionId(mcqDto.getCorrectOptionId());
 
-                // if the getOptions is not empty, meaning it was already created, then we
-                // update
-                if (!mcq.getOptions().isEmpty()) {
-                    // TODO: sync the optionText of the options entity with the optionsDto
-                    for (Option option : mcq.getOptions()) {
-                        option.setQuestion(question);
-                        option.setTest(test);
-                    }
-                } else {
-                    // if the getOptions is empty, meaning it was not created, then we create
-                    for (OptionDto optionDto : mcqDto.getOptions()) {
-                        Option option = optionMapper.toEntity(optionDto);
-                        option.setQuestion(question);
-                        option.setTest(test);
-                        // Handle negative Option IDs
-                        if (option.getId() != null && option.getId() < 0) {
-                            option.setId(null);
+                // Sync options
+                if (mcqDto.getOptions() != null) {
+                    java.util.Map<Long, Option> existingOptionsMap = new java.util.HashMap<>();
+                    if (mcq.getOptions() != null) {
+                        for (Option opt : mcq.getOptions()) {
+                            if (opt.getId() != null) {
+                                existingOptionsMap.put(opt.getId(), opt);
+                            }
                         }
-                        mcq.getOptions().add(option);
                     }
 
-                }
+                    List<Option> updatedOptions = new ArrayList<>();
+                    for (com.athena.lms.athena_lms.dto.OptionDto optDto : mcqDto.getOptions()) {
+                        Option option = null;
+                        if (optDto.getId() != null && optDto.getId() > 0) {
+                            option = existingOptionsMap.get(optDto.getId());
+                        }
 
+                        if (option == null) {
+                            // New option
+                            option = optionMapper.toEntity(optDto);
+                            // Handle negative IDs
+                            if (option.getId() != null && option.getId() < 0) {
+                                option.setId(null);
+                            }
+                        } else {
+                            // Update existing option
+                            option.setOptionText(optDto.getOptionText());
+                            option.setTempId(optDto.getTempId());
+                        }
+
+                        option.setQuestion(question);
+                        option.setTest(test);
+                        updatedOptions.add(option);
+                    }
+
+                    if (mcq.getOptions() == null) {
+                        mcq.setOptions(new ArrayList<>());
+                    }
+                    mcq.getOptions().clear();
+                    mcq.getOptions().addAll(updatedOptions);
+                }
             }
             toSaveQuestions.add(question);
         }

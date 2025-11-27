@@ -14,5 +14,4 @@ public class EssayQuestion extends Question {
     public void setPoints(int points) {
         this.points = points;
     }
-
 }

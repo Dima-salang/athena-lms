@@ -1,38 +1,25 @@
-import './App.css';
-import { Outlet, Link, useLocation } from 'react-router-dom';
+"use client"
 
-function App() {
-  const location = useLocation();
+import { Outlet } from "react-router-dom"
+import { useState } from "react"
+import Navbar from "./components/navbar/navbar"
 
-  const isActive = (path: string) => {
-    return location.pathname === path ? 'nav-link active' : 'nav-link';
-  };
+export default function AppWithNavbar() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [userName, setUserName] = useState("User")
+
+  const handleLogout = () => {
+    setIsLoggedIn(false)
+    setUserName("User")
+    // Add your logout logic here
+  }
 
   return (
-    <>
-      <header className="app-header">
-        <div className="container header-content">
-          <Link to="/" className="logo">Athena LMS</Link>
-          <nav>
-            <ul className="nav-menu">
-              <li>
-                <Link to="/login" className={isActive('/login')}>Login</Link>
-              </li>
-              <li>
-                <Link to="/register" className={isActive('/register')}>Register</Link>
-              </li>
-              <li>
-                <Link to="/dashboard" className={isActive('/dashboard')}>Dashboard</Link>
-              </li>
-            </ul>
-          </nav>
-        </div>
-      </header>
-      <main className="container main-content">
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
+      <Navbar isLoggedIn={isLoggedIn} userName={userName} onLogout={handleLogout} />
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-[calc(100vh-64px)]">
         <Outlet />
       </main>
-    </>
+    </div>
   )
 }
-
-export default App

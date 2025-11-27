@@ -1,65 +1,68 @@
-import React, { useState, useEffect } from 'react';
-import type { Question, MultipleChoiceQuestion, TrueFalseQuestion } from '../services/api';
+"use client"
+
+import type React from "react"
+import { useState, useEffect } from "react"
+import type { Question, MultipleChoiceQuestion, TrueFalseQuestion } from "../services/api"
 
 interface QuestionEditorProps {
-    question: Question;
-    onUpdate: (updatedQuestion: Question) => void;
-    onDelete: (id: number) => void;
-    onSave: () => void;
+    question: Question
+    onUpdate: (updatedQuestion: Question) => void
+    onDelete: (id: number) => void
+    onSave: () => void
 }
 
 const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onUpdate, onDelete, onSave }) => {
-    const [localQuestion, setLocalQuestion] = useState<Question>(question);
+    const [localQuestion, setLocalQuestion] = useState<Question>(question)
 
     useEffect(() => {
-        setLocalQuestion(question);
-    }, [question]);
+        setLocalQuestion(question)
+    }, [question])
 
     const handleChange = (field: string, value: any) => {
-        const updated = { ...localQuestion, [field]: value } as Question;
-        setLocalQuestion(updated);
-        onUpdate(updated);
-    };
+        const updated = { ...localQuestion, [field]: value } as Question
+        setLocalQuestion(updated)
+        onUpdate(updated)
+    }
 
     const handleOptionChange = (index: number, value: string) => {
-        if (localQuestion.questionType === 'MULTIPLE_CHOICE') {
-            const mcQuestion = localQuestion as MultipleChoiceQuestion;
-            const newOptions = [...mcQuestion.options];
-            newOptions[index] = { ...newOptions[index], optionText: value };
-            const updated = { ...mcQuestion, options: newOptions };
-            setLocalQuestion(updated);
-            onUpdate(updated);
+        if (localQuestion.questionType === "MULTIPLE_CHOICE") {
+            const mcQuestion = localQuestion as MultipleChoiceQuestion
+            const newOptions = [...mcQuestion.options]
+            newOptions[index] = { ...newOptions[index], optionText: value }
+            const updated = { ...mcQuestion, options: newOptions }
+            setLocalQuestion(updated)
+            onUpdate(updated)
         }
-    };
+    }
 
     const addOption = () => {
-        if (localQuestion.questionType === 'MULTIPLE_CHOICE') {
-            const mcQuestion = localQuestion as MultipleChoiceQuestion;
-            const updated = { ...mcQuestion, options: [...mcQuestion.options, { optionText: '', tempId: -Date.now() }] };
-            setLocalQuestion(updated);
-            onUpdate(updated);
+        if (localQuestion.questionType === "MULTIPLE_CHOICE") {
+            const mcQuestion = localQuestion as MultipleChoiceQuestion
+            const updated = { ...mcQuestion, options: [...mcQuestion.options, { optionText: "", tempId: -Date.now() }] }
+            setLocalQuestion(updated)
+            onUpdate(updated)
         }
-    };
+    }
 
     const removeOption = (index: number) => {
-        if (localQuestion.questionType === 'MULTIPLE_CHOICE') {
-            const mcQuestion = localQuestion as MultipleChoiceQuestion;
-            const newOptions = mcQuestion.options.filter((_, i) => i !== index);
-            const updated = { ...mcQuestion, options: newOptions };
-            setLocalQuestion(updated);
-            onUpdate(updated);
+        if (localQuestion.questionType === "MULTIPLE_CHOICE") {
+            const mcQuestion = localQuestion as MultipleChoiceQuestion
+            const newOptions = mcQuestion.options.filter((_, i) => i !== index)
+            const updated = { ...mcQuestion, options: newOptions }
+            setLocalQuestion(updated)
+            onUpdate(updated)
         }
-    };
+    }
 
     return (
-        <div className="card mb-4" style={{ position: 'relative' }}>
-            <div className="flex justify-between items-center mb-4">
-                <div className="flex gap-4 items-center">
-                    <h3 style={{ margin: 0 }}>Question {localQuestion.questionNumber}</h3>
+        <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                <div className="flex gap-3 items-center">
+                    <h3 className="text-lg font-bold text-slate-900">Question {localQuestion.questionNumber}</h3>
                     <select
                         value={localQuestion.questionType}
-                        onChange={(e) => handleChange('questionType', e.target.value)}
-                        style={{ padding: '0.25rem', borderRadius: '4px' }}
+                        onChange={(e) => handleChange("questionType", e.target.value)}
+                        className="px-3 py-1.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                     >
                         <option value="MULTIPLE_CHOICE">Multiple Choice</option>
                         <option value="TRUE_FALSE">True / False</option>
@@ -68,87 +71,111 @@ const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onUpdate, onD
                 <div className="flex gap-2">
                     <button
                         onClick={() => onSave()}
-                        className="btn"
-                        style={{ color: 'var(--success-color)', padding: '0.5rem' }}
+                        className="px-4 py-2 text-green-600 hover:bg-green-50 rounded-lg transition font-semibold"
                         title="Save Question"
                     >
-                        ✓
+                        ✓ Save
                     </button>
                     <button
                         onClick={() => onDelete(localQuestion.id)}
-                        className="btn"
-                        style={{ color: 'var(--error-color)', padding: '0.5rem' }}
+                        className="px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition font-semibold"
                         title="Delete Question"
                     >
-                        🗑
+                        🗑 Delete
                     </button>
                 </div>
             </div>
 
-            <div className="input-group">
-                <label>Question Text</label>
-                <textarea
-                    value={localQuestion.questionText}
-                    onChange={(e) => handleChange('questionText', e.target.value)}
-                    rows={3}
-                    style={{ width: '100%', padding: '0.5rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}
-                />
-            </div>
+            <div className="space-y-6">
+                <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Question Text</label>
+                    <textarea
+                        value={localQuestion.questionText}
+                        onChange={(e) => handleChange("questionText", e.target.value)}
+                        rows={3}
+                        placeholder="Enter your question here..."
+                        className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                    />
+                </div>
 
-            <div className="flex gap-4">
-                <div className="input-group" style={{ flex: 1 }}>
-                    <label>Points</label>
+                <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Points</label>
                     <input
                         type="number"
                         value={localQuestion.fullPoints}
-                        onChange={(e) => handleChange('fullPoints', Number(e.target.value))}
+                        onChange={(e) => handleChange("fullPoints", Number(e.target.value))}
+                        min="1"
+                        className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                     />
                 </div>
-            </div>
 
-            {localQuestion.questionType === 'MULTIPLE_CHOICE' && (
-                <div>
-                    <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>Options</label>
-                    {(localQuestion as MultipleChoiceQuestion).options?.map((option, index) => (
-                        <div key={option.id || option.tempId || index} className="flex gap-2 mb-2 items-center">
-                            <input
-                                type="radio"
-                                name={`correct-${localQuestion.id}`}
-                                checked={(localQuestion as MultipleChoiceQuestion).correctOptionId === (option.id || option.tempId)}
-                                onChange={() => {
-                                    handleChange('correctOptionId', option.id || option.tempId);
-                                    handleChange('correctAnswer', option.optionText);
-                                }}
-                            />
-                            <input
-                                type="text"
-                                value={option.optionText || ''}
-                                onChange={(e) => handleOptionChange(index, e.target.value)}
-                                placeholder={`Option ${index + 1}`}
-                                style={{ flex: 1, padding: '0.5rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}
-                            />
-                            <button onClick={() => removeOption(index)} style={{ color: 'var(--error-color)', background: 'none', border: 'none', cursor: 'pointer' }}>×</button>
+                {localQuestion.questionType === "MULTIPLE_CHOICE" && (
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-3">Options</label>
+                        <div className="space-y-3">
+                            {(localQuestion as MultipleChoiceQuestion).options?.map((option, index) => (
+                                <div key={option.id || option.tempId || index} className="flex gap-3 items-start">
+                                    <input
+                                        type="radio"
+                                        name={`correct-${localQuestion.id}`}
+                                        checked={(localQuestion as MultipleChoiceQuestion).correctOptionId === (option.id || option.tempId)}
+                                        onChange={() => {
+                                            const updated = {
+                                                ...localQuestion,
+                                                correctOptionId: option.id || option.tempId,
+                                                correctAnswer: option.optionText,
+                                            } as Question
+                                            setLocalQuestion(updated)
+                                            onUpdate(updated)
+                                        }}
+                                        className="mt-3 w-4 h-4 cursor-pointer"
+                                    />
+                                    <div className="flex-1">
+                                        <input
+                                            type="text"
+                                            value={option.optionText || ""}
+                                            onChange={(e) => handleOptionChange(index, e.target.value)}
+                                            placeholder={`Option ${String.fromCharCode(65 + index)}`}
+                                            className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                                        />
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => removeOption(index)}
+                                        className="mt-2.5 text-red-600 hover:bg-red-50 px-3 py-1.5 rounded transition font-semibold"
+                                    >
+                                        ×
+                                    </button>
+                                </div>
+                            ))}
                         </div>
-                    ))}
-                    <button onClick={addOption} className="btn" style={{ fontSize: '0.875rem', padding: '0.25rem 0.5rem' }}>+ Add Option</button>
-                </div>
-            )}
+                        <button
+                            type="button"
+                            onClick={addOption}
+                            className="mt-4 px-4 py-2 text-blue-600 border border-blue-300 rounded-lg hover:bg-blue-50 font-medium transition"
+                        >
+                            + Add Option
+                        </button>
+                    </div>
+                )}
 
-            {localQuestion.questionType === 'TRUE_FALSE' && (
-                <div className="input-group">
-                    <label>Correct Answer</label>
-                    <select
-                        value={(localQuestion as TrueFalseQuestion).trueFalseAnswer}
-                        onChange={(e) => handleChange('trueFalseAnswer', e.target.value)}
-                    >
-                        <option value="">Select Answer</option>
-                        <option value="true">True</option>
-                        <option value="false">False</option>
-                    </select>
-                </div>
-            )}
+                {localQuestion.questionType === "TRUE_FALSE" && (
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Correct Answer</label>
+                        <select
+                            value={(localQuestion as TrueFalseQuestion).trueFalseAnswer}
+                            onChange={(e) => handleChange("trueFalseAnswer", e.target.value)}
+                            className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                        >
+                            <option value="">Select Answer</option>
+                            <option value="true">True</option>
+                            <option value="false">False</option>
+                        </select>
+                    </div>
+                )}
+            </div>
         </div>
-    );
-};
+    )
+}
 
-export default QuestionEditor;
+export default QuestionEditor
