@@ -25,8 +25,7 @@ public class StudentAnswer {
     // answer of the student in case of multiple choice or true false
     @ManyToOne
     @JoinColumn(name = "option_id")
-    private Option optionId;
-
+    private Option option;
 
     // points for the answer
     private Double points;
@@ -64,12 +63,12 @@ public class StudentAnswer {
         this.textAnswer = textAnswer;
     }
 
-    public Option getOptionId() {
-        return optionId;
+    public Option getOption() {
+        return option;
     }
 
-    public void setOptionId(Option optionId) {
-        this.optionId = optionId;
+    public void setOption(Option option) {
+        this.option = option;
     }
 
     public Double getPoints() {
