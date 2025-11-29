@@ -13,7 +13,7 @@ public class Section {
 
     // adviser
     @ManyToOne
-    @JoinColumn(name = "teacher_id")
+    @JoinColumn(name = "teacher_id", nullable = true)
     private Teacher adviser;
 
     // setters and getters

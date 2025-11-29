@@ -2,12 +2,14 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { getSections, createSection, type Section } from "../services/api"
+import { getSections, createSection, getAllTeachers, type Section, type Teacher } from "../services/api"
 import { useNavigate } from "react-router-dom"
 
 const SectionManagementPage: React.FC = () => {
   const [sections, setSections] = useState<Section[]>([])
+  const [teachers, setTeachers] = useState<Teacher[]>([])
   const [newSectionName, setNewSectionName] = useState("")
+  const [selectedTeacherId, setSelectedTeacherId] = useState<number | "">("")
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const navigate = useNavigate()
@@ -18,18 +20,26 @@ const SectionManagementPage: React.FC = () => {
 
   const fetchData = async () => {
     try {
-      const fetchedSections = await getSections()
+      const [fetchedSections, fetchedTeachers] = await Promise.all([
+        getSections(),
+        getAllTeachers()
+      ])
       setSections(fetchedSections)
+      setTeachers(fetchedTeachers)
     } catch (err) {
-      setError("Failed to fetch sections")
+      setError("Failed to fetch data")
     }
   }
 
   const handleCreateSection = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      await createSection({ name: newSectionName })
+      await createSection(
+        { name: newSectionName },
+        selectedTeacherId === "" ? undefined : Number(selectedTeacherId)
+      )
       setNewSectionName("")
+      setSelectedTeacherId("")
       setSuccess("Section created successfully")
       fetchData()
       setTimeout(() => setSuccess(null), 3000)
@@ -82,6 +92,20 @@ const SectionManagementPage: React.FC = () => {
                 className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
               />
             </div>
+            <div className="flex-1">
+              <select
+                value={selectedTeacherId}
+                onChange={(e) => setSelectedTeacherId(e.target.value ? Number(e.target.value) : "")}
+                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition bg-white"
+              >
+                <option value="">Select Adviser (Optional)</option>
+                {teachers.map((teacher) => (
+                  <option key={teacher.id} value={teacher.id}>
+                    {teacher.firstName} {teacher.lastName}
+                  </option>
+                ))}
+              </select>
+            </div>
             <button
               type="submit"
               className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition duration-200 whitespace-nowrap"
@@ -102,6 +126,9 @@ const SectionManagementPage: React.FC = () => {
                   <th className="px-6 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">
                     Name
                   </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                    Adviser
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
@@ -109,6 +136,9 @@ const SectionManagementPage: React.FC = () => {
                   <tr key={section.id} className="hover:bg-slate-50 transition">
                     <td className="px-6 py-4 text-sm text-slate-700">{section.id}</td>
                     <td className="px-6 py-4 text-sm font-medium text-slate-900">{section.name}</td>
+                    <td className="px-6 py-4 text-sm text-slate-600">
+                      {section.adviserName || <span className="text-slate-400 italic">None</span>}
+                    </td>
                   </tr>
                 ))}
                 {sections.length === 0 && (

@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -62,8 +63,8 @@ public class AdminController {
     }
 
     @PostMapping("/sections")
-    public void createOrUpdateSection(@RequestBody Section section) {
-        adminService.createOrUpdateSection(section);
+    public void createOrUpdateSection(@RequestBody Section section, @RequestParam(required = false) Long teacherId) {
+        adminService.createOrUpdateSection(section, teacherId);
     }
 
     @PostMapping("/subjects")

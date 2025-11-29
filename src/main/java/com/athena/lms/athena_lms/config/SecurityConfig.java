@@ -24,6 +24,7 @@ public class SecurityConfig {
                                               // needed for browser clients
                 .authorizeHttpRequests((authorize) -> authorize
                         .requestMatchers("/api/auth/register/**").permitAll()
+                        .requestMatchers("/api/auth/me").permitAll()
                         .requestMatchers("/api/tests/**").hasRole("TEACHER")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/students/**").hasRole("STUDENT")

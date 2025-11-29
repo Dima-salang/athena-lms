@@ -2,6 +2,7 @@ package com.athena.lms.athena_lms.controller;
 
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import org.springframework.http.ResponseEntity;
 
 import com.athena.lms.athena_lms.dto.TestDto;
 import com.athena.lms.athena_lms.service.tests.TestManagementService;
@@ -16,12 +17,13 @@ public class StudentTestController {
     }
 
     @GetMapping("/section/{sectionId}")
-    public List<TestDto> getTestBySection(@PathVariable Long sectionId) {
-        return testManagementService.getTestsBySection(sectionId);
+    public ResponseEntity<List<TestDto>> getTestBySection(@PathVariable Long sectionId) {
+        System.err.println("Section ID: " + sectionId);
+        return ResponseEntity.ok(testManagementService.getTestsBySection(sectionId));
     }
 
     @GetMapping("/subject/{subjectId}")
-    public List<TestDto> getTestBySubject(@PathVariable Long subjectId) {
-        return testManagementService.getTestsBySubject(subjectId);
+    public ResponseEntity<List<TestDto>> getTestBySubject(@PathVariable Long subjectId) {
+        return ResponseEntity.ok(testManagementService.getTestsBySubject(subjectId));
     }
 }

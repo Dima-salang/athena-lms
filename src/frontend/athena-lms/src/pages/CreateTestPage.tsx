@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { createTest, getSections, getSubjects, type Test, type Section, type Subject } from "../services/api"
+import { createTest, getSectionsTeacher, getSubjectsTeacher, type Test, type Section, type Subject } from "../services/api"
 import { useNavigate } from "react-router-dom"
 
 const CreateTestPage: React.FC = () => {
@@ -22,7 +22,7 @@ const CreateTestPage: React.FC = () => {
     useEffect(() => {
         const fetchOptions = async () => {
             try {
-                const [sections, subjects] = await Promise.all([getSections(), getSubjects()])
+                const [sections, subjects] = await Promise.all([getSectionsTeacher(), getSubjectsTeacher()])
                 setAvailableSections(sections)
                 setAvailableSubjects(subjects)
                 if (sections.length > 0) setSectionId(sections[0].id)

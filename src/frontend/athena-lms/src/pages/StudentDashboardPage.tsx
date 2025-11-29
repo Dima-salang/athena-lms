@@ -16,16 +16,13 @@ const StudentDashboardPage: React.FC = () => {
         const fetchStudentAndTests = async () => {
             try {
                 const user = await getCurrentUser()
-                // Check if user is a student (has lrn and section)
-                // Since User interface doesn't have role, we check properties or cast
-                // Ideally backend returns role. For now assuming if it has section it's student
-                // But User type in api.ts doesn't have section unless cast to Student.
-                // Let's cast for now.
                 const studentUser = user as Student;
                 setStudent(studentUser)
+                console.log(studentUser)
 
                 if (studentUser.section) {
                     const sectionTests = await getTestsBySection(studentUser.section.id)
+                    console.log(sectionTests)
                     setTests(sectionTests)
                 } else {
                     setError("You are not assigned to any section.")

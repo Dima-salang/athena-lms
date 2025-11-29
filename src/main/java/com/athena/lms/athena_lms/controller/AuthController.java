@@ -1,7 +1,12 @@
 package com.athena.lms.athena_lms.controller;
 
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
+
+import com.athena.lms.athena_lms.service.SectionService;
 import com.athena.lms.athena_lms.service.auth.AuthService;
 import com.athena.lms.athena_lms.model.*;
 
@@ -9,9 +14,11 @@ import com.athena.lms.athena_lms.model.*;
 @RequestMapping("/api/auth")
 public class AuthController {
     private final AuthService authService;
+    private final SectionService sectionService;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, SectionService sectionService) {
         this.authService = authService;
+        this.sectionService = sectionService;
     }
 
     @PostMapping("/register/student")
@@ -35,15 +42,15 @@ public class AuthController {
     @GetMapping("/me")
     public ResponseEntity<User> getCurrentUser(java.security.Principal principal) {
         if (principal == null) {
-            return ResponseEntity.status(401).build();
+            // return null user
+            return ResponseEntity.ok(null);
         }
-        // We need to fetch the user from the repository to get full details including
-        // section
-        // Assuming authService has a method or we inject repository here.
-        // For simplicity, let's inject UserRepository into AuthController or add a
-        // method to AuthService.
-        // Let's use AuthService.
         return ResponseEntity.ok(authService.getUserByUsername(principal.getName()));
+    }
+
+    @GetMapping("/register/sections")
+    public ResponseEntity<List<Section>> getSections() {
+        return ResponseEntity.ok(sectionService.getAllSections());
     }
 
 }

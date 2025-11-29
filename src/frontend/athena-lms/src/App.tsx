@@ -1,17 +1,43 @@
 "use client"
 
-import { Outlet } from "react-router-dom"
-import { useState } from "react"
+import { Outlet, useNavigate } from "react-router-dom"
+import { useState, useEffect } from "react"
 import Navbar from "./components/navbar/navbar"
+import { getCurrentUser, logout } from "./services/authApi"
 
 export default function AppWithNavbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [userName, setUserName] = useState("User")
+  const navigate = useNavigate()
 
-  const handleLogout = () => {
-    setIsLoggedIn(false)
-    setUserName("User")
-    // Add your logout logic here
+  useEffect(() => {
+    const checkLoginStatus = async () => {
+      try {
+        const user = await getCurrentUser()
+        if (user) {
+          setIsLoggedIn(true)
+          setUserName(user.firstName || user.username)
+        }
+      } catch (error) {
+        // Not logged in or session expired
+        setIsLoggedIn(false)
+      }
+    }
+
+    checkLoginStatus()
+  }, [])
+
+  const handleLogout = async () => {
+    try {
+      await logout()
+    } catch (error) {
+      console.error("Logout failed", error)
+    } finally {
+      localStorage.removeItem("role")
+      setIsLoggedIn(false)
+      setUserName("User")
+      navigate("/login")
+    }
   }
 
   return (

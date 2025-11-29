@@ -14,6 +14,7 @@ import com.athena.lms.athena_lms.mapper.SectionMapper;
 import com.athena.lms.athena_lms.mapper.SubjectMapper;
 import com.athena.lms.athena_lms.model.Section;
 import com.athena.lms.athena_lms.model.Subject;
+import com.athena.lms.athena_lms.model.Teacher;
 import com.athena.lms.athena_lms.model.User;
 import com.athena.lms.athena_lms.repository.OptionRepository;
 import com.athena.lms.athena_lms.repository.SectionRepository;
@@ -78,9 +79,13 @@ public class AdminService {
         return sectionDtos;
     }
 
-    public SectionDto createOrUpdateSection(Section section) {
+    public SectionDto createOrUpdateSection(Section section, Long teacherId) {
         if (sectionRepository.existsByName(section.getName())) {
             throw new DuplicateNameException("Section name already exists");
+        }
+        if (teacherId != null) {
+            section.setAdviser((Teacher) userRepository.findById(teacherId)
+                    .orElseThrow(() -> new IllegalArgumentException("Teacher not found")));
         }
         Section savedSection = sectionRepository.save(section);
         return sectionMapper.toDto(savedSection);

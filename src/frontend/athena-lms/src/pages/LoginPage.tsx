@@ -3,14 +3,14 @@
 import type React from "react"
 import { useState } from "react"
 import { login } from "../services/authApi"
-import { useNavigate, Link } from "react-router-dom"
+import { Link } from "react-router-dom"
 
 const LoginPage: React.FC = () => {
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const navigate = useNavigate()
+
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -23,13 +23,13 @@ const LoginPage: React.FC = () => {
         if (data.role) {
           localStorage.setItem("role", data.role)
           if (data.role === "STUDENT") {
-            navigate("/student-dashboard")
+            window.location.href = "/student-dashboard"
           } else {
-            navigate("/dashboard")
+            window.location.href = "/dashboard"
           }
         } else {
           // Default fallback
-          navigate("/dashboard")
+          window.location.href = "/dashboard"
         }
       } else {
         setError("Login failed")

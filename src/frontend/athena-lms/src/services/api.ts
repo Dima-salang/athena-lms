@@ -20,7 +20,22 @@ export interface Student extends User {
 export interface Section {
     id: number;
     name: string;
+    adviserName?: string;
 }
+
+// ... (keep other interfaces)
+
+export const getAllTeachers = async (): Promise<Teacher[]> => {
+    const response = await axios.get(`${API_BASE_URL}/admin/users`);
+    // Filter for teachers, assuming role is available or backend filters. 
+    // Since /admin/users returns all users, we might need to filter on frontend if backend doesn't support filtering.
+    // However, for now, let's assume we filter here.
+    return response.data.filter((user: any) => user.role === 'TEACHER');
+};
+
+export const createSection = async (section: Omit<Section, 'id' | 'adviserName'>, teacherId?: number): Promise<void> => {
+    await axios.post(`${API_BASE_URL}/admin/sections`, section, { params: { teacherId } });
+};
 
 export interface Subject {
     id: number;
@@ -120,6 +135,16 @@ export const deleteQuestion = async (questionId: number): Promise<void> => {
     await axios.delete(`${API_BASE_URL}/teacher/tests/questions/${questionId}`);
 };
 
+export const getSectionsTeacher = async (): Promise<Section[]> => {
+    const response = await axios.get(`${API_BASE_URL}/teacher/tests/sections`);
+    return response.data;
+};
+
+export const getSubjectsTeacher = async (): Promise<Subject[]> => {
+    const response = await axios.get(`${API_BASE_URL}/teacher/tests/subjects`);
+    return response.data;
+};
+
 // Admin API
 export const getSections = async (): Promise<Section[]> => {
     const response = await axios.get(`${API_BASE_URL}/admin/sections`);
@@ -131,16 +156,18 @@ export const getSubjects = async (): Promise<Subject[]> => {
     return response.data;
 };
 
-export const createSection = async (section: Omit<Section, 'id'>): Promise<void> => {
-    await axios.post(`${API_BASE_URL}/admin/sections`, section);
-};
+
+
+
+
+
 
 export const createSubject = async (subject: Omit<Subject, 'id'>): Promise<void> => {
     await axios.post(`${API_BASE_URL}/admin/subjects`, subject);
 };
 
 export const getAllSections = async (): Promise<Section[]> => {
-    const response = await axios.get(`${API_BASE_URL}/sections`);
+    const response = await axios.get(`${API_BASE_URL}/auth/register/sections`);
     return response.data;
 };
 

@@ -19,4 +19,14 @@ public class SectionDto {
     public void setName(String name) {
         this.name = name;
     }
+
+    private String adviserName;
+
+    public String getAdviserName() {
+        return adviserName;
+    }
+
+    public void setAdviserName(String adviserName) {
+        this.adviserName = adviserName;
+    }
 }

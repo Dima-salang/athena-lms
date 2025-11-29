@@ -6,6 +6,8 @@ import org.springframework.http.ResponseEntity;
 
 import com.athena.lms.athena_lms.dto.QuestionDto;
 import com.athena.lms.athena_lms.dto.TestDto;
+import com.athena.lms.athena_lms.model.Section;
+import com.athena.lms.athena_lms.model.Subject;
 import com.athena.lms.athena_lms.service.tests.TestManagementService;
 
 import java.security.Principal;
@@ -25,6 +27,7 @@ public class TestController {
         System.err.println("Created test: " + createdTest);
         System.err.println("Created test: " + createdTest.getQuestions());
         System.err.println("Created test: " + createdTest.getSection());
+        System.err.println("Created test <Section ID>: " + createdTest.getSection().getId());
         System.err.println("Created test: " + createdTest.getId());
         return ResponseEntity.ok(createdTest);
     }
@@ -73,6 +76,17 @@ public class TestController {
        } else {
             return ResponseEntity.notFound().build();
         }
+    }
+
+
+    @GetMapping("/sections")
+    public ResponseEntity<List<Section>> getSections() {
+        return ResponseEntity.ok(testManagementService.getSections());
+    }
+
+    @GetMapping("/subjects")
+    public ResponseEntity<List<Subject>> getSubjects() {
+        return ResponseEntity.ok(testManagementService.getSubjects());
     }
 
 }

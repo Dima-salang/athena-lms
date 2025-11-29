@@ -10,8 +10,10 @@ import com.athena.lms.athena_lms.dto.EssayQuestionDto;
 import com.athena.lms.athena_lms.dto.IdentificationQuestionDto;
 import com.athena.lms.athena_lms.dto.OptionDto;
 import com.athena.lms.athena_lms.dto.QuestionDto;
+import com.athena.lms.athena_lms.dto.SectionDto;
 import com.athena.lms.athena_lms.dto.TestDto;
 import com.athena.lms.athena_lms.mapper.QuestionMapper;
+import com.athena.lms.athena_lms.mapper.SectionMapper;
 import com.athena.lms.athena_lms.mapper.TestMapper;
 import com.athena.lms.athena_lms.model.User;
 import com.athena.lms.athena_lms.model.options.Option;
@@ -302,13 +304,14 @@ public class TestManagementService {
         testRepository.deleteById(id);
     }
 
-
     public List<TestDto> getTestsBySection(Long sectionId) {
-        return testRepository.findBySectionId(sectionId).stream()
+        System.err.println("Section ID: " + sectionId);
+        List<Test> tests = testRepository.findBySectionId(sectionId);
+        System.err.println("Tests: " + tests.stream().map(test -> test.getId()).toList());
+        return tests.stream()
                 .map(testMapper::toDto)
                 .toList();
     }
-
 
     public List<TestDto> getTestsBySubject(Long subjectId) {
         return testRepository.findBySubjectId(subjectId).stream()
@@ -487,5 +490,13 @@ public class TestManagementService {
 
     public void deleteQuestion(Long id) {
         questionRepository.deleteById(id);
+    }
+
+    public List<Section> getSections() {
+        return sectionRepository.findAll();
+    }
+
+    public List<Subject> getSubjects() {
+        return subjectRepository.findAll();
     }
 }
