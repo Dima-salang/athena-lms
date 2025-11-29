@@ -35,7 +35,7 @@ const router = createBrowserRouter([
             {
                 path: 'dashboard',
                 element: (
-                    <ProtectedRoute allowedRoles={['TEACHER']}>
+                    <ProtectedRoute allowedRoles={['ROLE_TEACHER']}>
                         <DashboardPage />
                     </ProtectedRoute>
                 ),
@@ -43,7 +43,7 @@ const router = createBrowserRouter([
             {
                 path: 'student-dashboard',
                 element: (
-                    <ProtectedRoute allowedRoles={['STUDENT']}>
+                    <ProtectedRoute allowedRoles={['ROLE_STUDENT']}>
                         <StudentDashboardPage />
                     </ProtectedRoute>
                 ),
@@ -51,7 +51,7 @@ const router = createBrowserRouter([
             {
                 path: 'create-test',
                 element: (
-                    <ProtectedRoute allowedRoles={['TEACHER']}>
+                    <ProtectedRoute allowedRoles={['ROLE_TEACHER']}>
                         <CreateTestPage />
                     </ProtectedRoute>
                 ),
@@ -59,7 +59,7 @@ const router = createBrowserRouter([
             {
                 path: 'test/:testId',
                 element: (
-                    <ProtectedRoute allowedRoles={['TEACHER']}>
+                    <ProtectedRoute allowedRoles={['ROLE_TEACHER']}>
                         <TestDetailPage />
                     </ProtectedRoute>
                 ),
@@ -67,7 +67,7 @@ const router = createBrowserRouter([
             {
                 path: 'test/:testId/edit',
                 element: (
-                    <ProtectedRoute allowedRoles={['TEACHER']}>
+                    <ProtectedRoute allowedRoles={['ROLE_TEACHER']}>
                         <TestEditorPage />
                     </ProtectedRoute>
                 ),
@@ -75,7 +75,7 @@ const router = createBrowserRouter([
             {
                 path: 'admin',
                 element: (
-                    <ProtectedRoute allowedRoles={['ADMIN']}>
+                    <ProtectedRoute allowedRoles={['ROLE_ADMIN']}>
                         <AdminPage />
                     </ProtectedRoute>
                 ),
@@ -83,7 +83,7 @@ const router = createBrowserRouter([
             {
                 path: 'admin/sections',
                 element: (
-                    <ProtectedRoute allowedRoles={['ADMIN']}>
+                    <ProtectedRoute allowedRoles={['ROLE_ADMIN']}>
                         <SectionManagementPage />
                     </ProtectedRoute>
                 ),
@@ -91,7 +91,7 @@ const router = createBrowserRouter([
             {
                 path: 'admin/subjects',
                 element: (
-                    <ProtectedRoute allowedRoles={['ADMIN']}>
+                    <ProtectedRoute allowedRoles={['ROLE_ADMIN']}>
                         <SubjectManagementPage />
                     </ProtectedRoute>
                 ),

@@ -12,7 +12,10 @@ import jakarta.persistence.ManyToOne;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
+import jakarta.persistence.Table;
+
 @Entity
+@Table(name = "question_options")
 public class Option {
     private String optionText;
 

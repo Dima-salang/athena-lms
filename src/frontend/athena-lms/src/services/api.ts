@@ -82,12 +82,12 @@ export interface Test {
 }
 
 export const getTeacherTests = async (teacherId: number): Promise<Test[]> => {
-    const response = await axios.get(`${API_BASE_URL}/tests/${teacherId}/tests`);
+    const response = await axios.get(`${API_BASE_URL}/teacher/tests/${teacherId}/tests`);
     return response.data;
 };
 
 export const createTest = async (test: Omit<Test, 'teacher'> | Omit<Test, 'id' | 'teacher'>): Promise<Test> => {
-    const response = await axios.post(`${API_BASE_URL}/tests`, test);
+    const response = await axios.post(`${API_BASE_URL}/teacher/tests`, test);
     console.log(response.data);
     return response.data;
 };
@@ -100,24 +100,24 @@ use the options when creating the questions
 
 
 export const createQuestions = async (questions: Omit<Question, 'id'>[], options: Omit<Option, 'id'>[]): Promise<Question[]> => {
-    const response = await axios.post(`${API_BASE_URL}/tests/questions`, questions, { params: { testId: questions[0].test.id, options } });
+    const response = await axios.post(`${API_BASE_URL}/teacher/tests/questions`, questions, { params: { testId: questions[0].test.id, options } });
     return response.data;
 };
 
 
 export const getTestById = async (id: number): Promise<Test> => {
-    const response = await axios.get(`${API_BASE_URL}/tests/${id}`);
+    const response = await axios.get(`${API_BASE_URL}/teacher/tests/${id}`);
     return response.data;
 };
 
 export const createOrUpdateQuestions = async (questions: Omit<Question, 'id'>[], testId: number): Promise<Question[]> => {
-    const response = await axios.post(`${API_BASE_URL}/tests/autosave`, questions, { params: { testId } });
+    const response = await axios.post(`${API_BASE_URL}/teacher/tests/autosave`, questions, { params: { testId } });
     console.log(response.data);
     return response.data;
 };
 
 export const deleteQuestion = async (questionId: number): Promise<void> => {
-    await axios.delete(`${API_BASE_URL}/tests/questions/${questionId}`);
+    await axios.delete(`${API_BASE_URL}/teacher/tests/questions/${questionId}`);
 };
 
 // Admin API
@@ -145,7 +145,12 @@ export const getAllSections = async (): Promise<Section[]> => {
 };
 
 export const getTestsBySection = async (sectionId: number): Promise<Test[]> => {
-    const response = await axios.get(`${API_BASE_URL}/tests/section/${sectionId}`);
+    const response = await axios.get(`${API_BASE_URL}/student/tests/section/${sectionId}`);
+    return response.data;
+};
+
+export const createAdmin = async (admin: User): Promise<User> => {
+    const response = await axios.post(`${API_BASE_URL}/admin/register/admin`, admin);
     return response.data;
 };
 

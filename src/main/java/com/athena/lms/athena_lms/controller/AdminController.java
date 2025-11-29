@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import com.athena.lms.athena_lms.service.admin.AdminService;
+import com.athena.lms.athena_lms.service.auth.AuthService;
+import com.athena.lms.athena_lms.model.Admin;
 import com.athena.lms.athena_lms.model.Section;
 import com.athena.lms.athena_lms.model.Subject;
 import com.athena.lms.athena_lms.model.User;
@@ -22,9 +24,11 @@ import com.athena.lms.athena_lms.dto.SubjectDto;
 public class AdminController {
 
     private final AdminService adminService;
+    private final AuthService authService;
 
-    public AdminController(AdminService adminService) {
+    public AdminController(AdminService adminService, AuthService authService) {
         this.adminService = adminService;
+        this.authService = authService;
     }
 
     @GetMapping("/users")
@@ -65,6 +69,12 @@ public class AdminController {
     @PostMapping("/subjects")
     public void createOrUpdateSubject(@RequestBody Subject subject) {
         adminService.createOrUpdateSubject(subject);
+    }
+
+    // create another admin account
+    @PostMapping("/register/admin")
+    public User createAdmin(@RequestBody Admin admin) {
+        return authService.registerAdmin(admin);
     }
 
 }

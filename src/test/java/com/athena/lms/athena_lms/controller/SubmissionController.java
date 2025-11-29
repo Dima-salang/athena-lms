@@ -10,6 +10,7 @@ import com.athena.lms.athena_lms.dto.StudentAnswerDto;
 import com.athena.lms.athena_lms.dto.SubmissionDto;
 
 @RestController
+@RequestMapping("/api/student/submissions")
 public class SubmissionController {
 
     private final SubmissionService submissionService;

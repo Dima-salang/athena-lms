@@ -32,15 +32,6 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/register/admin")
-    public ResponseEntity<User> registerAdmin(@RequestBody Admin admin) {
-        try {
-            return ResponseEntity.ok(authService.registerAdmin(admin));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(null);
-        }
-    }
-
     @GetMapping("/me")
     public ResponseEntity<User> getCurrentUser(java.security.Principal principal) {
         if (principal == null) {
