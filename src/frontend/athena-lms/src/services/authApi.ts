@@ -30,3 +30,7 @@ export const registerTeacher = async (teacher: Omit<Teacher, 'id'>): Promise<Use
     const response = await axios.post(`${API_BASE_URL}/register/teacher`, teacher);
     return response.data;
 };
+export const getCurrentUser = async (): Promise<User> => {
+    const response = await axios.get(`${API_BASE_URL}/me`);
+    return response.data;
+};

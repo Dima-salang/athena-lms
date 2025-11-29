@@ -139,6 +139,16 @@ export const createSubject = async (subject: Omit<Subject, 'id'>): Promise<void>
     await axios.post(`${API_BASE_URL}/admin/subjects`, subject);
 };
 
+export const getAllSections = async (): Promise<Section[]> => {
+    const response = await axios.get(`${API_BASE_URL}/sections`);
+    return response.data;
+};
+
+export const getTestsBySection = async (sectionId: number): Promise<Test[]> => {
+    const response = await axios.get(`${API_BASE_URL}/tests/section/${sectionId}`);
+    return response.data;
+};
+
 
 
 

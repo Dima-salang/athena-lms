@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import RegistrationPage from './pages/RegistrationPage';
 import DashboardPage from './pages/DashboardPage';
+import StudentDashboardPage from './pages/StudentDashboardPage';
 
 import App from './App';
 import CreateTestPage from './pages/CreateTestPage';
@@ -10,6 +11,9 @@ import TestEditorPage from './pages/TestEditorPage';
 import AdminPage from './pages/AdminPage';
 import SectionManagementPage from './pages/SectionManagementPage';
 import SubjectManagementPage from './pages/SubjectManagementPage';
+import ProtectedRoute from './components/ProtectedRoute';
+
+
 
 const router = createBrowserRouter([
     {
@@ -30,31 +34,67 @@ const router = createBrowserRouter([
             },
             {
                 path: 'dashboard',
-                element: <DashboardPage />,
+                element: (
+                    <ProtectedRoute allowedRoles={['TEACHER']}>
+                        <DashboardPage />
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: 'student-dashboard',
+                element: (
+                    <ProtectedRoute allowedRoles={['STUDENT']}>
+                        <StudentDashboardPage />
+                    </ProtectedRoute>
+                ),
             },
             {
                 path: 'create-test',
-                element: <CreateTestPage />,
+                element: (
+                    <ProtectedRoute allowedRoles={['TEACHER']}>
+                        <CreateTestPage />
+                    </ProtectedRoute>
+                ),
             },
             {
                 path: 'test/:testId',
-                element: <TestDetailPage />,
+                element: (
+                    <ProtectedRoute allowedRoles={['TEACHER']}>
+                        <TestDetailPage />
+                    </ProtectedRoute>
+                ),
             },
             {
                 path: 'test/:testId/edit',
-                element: <TestEditorPage />,
+                element: (
+                    <ProtectedRoute allowedRoles={['TEACHER']}>
+                        <TestEditorPage />
+                    </ProtectedRoute>
+                ),
             },
             {
                 path: 'admin',
-                element: <AdminPage />,
+                element: (
+                    <ProtectedRoute allowedRoles={['ADMIN']}>
+                        <AdminPage />
+                    </ProtectedRoute>
+                ),
             },
             {
                 path: 'admin/sections',
-                element: <SectionManagementPage />,
+                element: (
+                    <ProtectedRoute allowedRoles={['ADMIN']}>
+                        <SectionManagementPage />
+                    </ProtectedRoute>
+                ),
             },
             {
                 path: 'admin/subjects',
-                element: <SubjectManagementPage />,
+                element: (
+                    <ProtectedRoute allowedRoles={['ADMIN']}>
+                        <SubjectManagementPage />
+                    </ProtectedRoute>
+                ),
             },
         ],
     },

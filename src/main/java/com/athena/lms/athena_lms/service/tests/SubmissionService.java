@@ -51,7 +51,7 @@ public class SubmissionService {
     }
 
     // student answers
-    public List<StudentAnswerDto> createorUpdateStudentAnswers(List<StudentAnswerDto> studentAnswerDtos) {
+    public List<StudentAnswerDto> createOrUpdateStudentAnswers(List<StudentAnswerDto> studentAnswerDtos) {
         List<StudentAnswer> studentAnswers = new ArrayList<>();
 
         // update the entity from the db or create it

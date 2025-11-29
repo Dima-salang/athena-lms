@@ -74,4 +74,22 @@ public class TestController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    @GetMapping("/section/{sectionId}")
+    public ResponseEntity<List<TestDto>> getTestsBySection(@PathVariable Long sectionId) {
+        try {
+            return ResponseEntity.ok(testManagementService.getTestsBySection(sectionId));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+
+    @GetMapping("/subject/{subjectId}")
+    public ResponseEntity<List<TestDto>> getTestsBySubject(@PathVariable Long subjectId) {
+        try {
+            return ResponseEntity.ok(testManagementService.getTestsBySubject(subjectId));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
 }

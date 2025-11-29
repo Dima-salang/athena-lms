@@ -1,9 +1,9 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { registerStudent, registerTeacher } from "../services/authApi"
-import type { Student, Teacher } from "../services/api"
+import { getAllSections, type Section, type Student, type Teacher } from "../services/api"
 import { Link } from "react-router-dom"
 
 const RegistrationPage: React.FC = () => {
@@ -13,10 +13,23 @@ const RegistrationPage: React.FC = () => {
   const [password, setPassword] = useState("")
   const [userType, setUserType] = useState("student")
   const [lrn, setLrn] = useState(0)
-  const [sectionName, setSectionName] = useState("")
+  const [selectedSectionId, setSelectedSectionId] = useState<number | "">("")
+  const [sections, setSections] = useState<Section[]>([])
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+
+  useEffect(() => {
+    const fetchSections = async () => {
+      try {
+        const data = await getAllSections()
+        setSections(data)
+      } catch (err) {
+        console.error("Failed to fetch sections", err)
+      }
+    }
+    fetchSections()
+  }, [])
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -26,13 +39,18 @@ const RegistrationPage: React.FC = () => {
 
     try {
       if (userType === "student") {
+        const section = sections.find((s) => s.id === Number(selectedSectionId))
+        if (!section) {
+          throw new Error("Invalid section selected")
+        }
+
         const student: Omit<Student, "id"> = {
           firstName,
           lastName,
           username,
           password,
           lrn,
-          section: { id: 1, name: sectionName },
+          section: section,
         }
         await registerStudent(student)
         setSuccess("Student registered successfully!")
@@ -160,14 +178,19 @@ const RegistrationPage: React.FC = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Section</label>
-                    <input
-                      type="text"
-                      value={sectionName}
-                      onChange={(e) => setSectionName(e.target.value)}
+                    <select
+                      value={selectedSectionId}
+                      onChange={(e) => setSelectedSectionId(Number(e.target.value))}
                       required
-                      placeholder="Grade 10 - Newton"
                       className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                    />
+                    >
+                      <option value="">Select a section</option>
+                      {sections.map((section) => (
+                        <option key={section.id} value={section.id}>
+                          {section.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </>
               )}

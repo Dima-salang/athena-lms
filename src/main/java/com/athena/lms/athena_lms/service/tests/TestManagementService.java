@@ -302,6 +302,20 @@ public class TestManagementService {
         testRepository.deleteById(id);
     }
 
+
+    public List<TestDto> getTestsBySection(Long sectionId) {
+        return testRepository.findBySectionId(sectionId).stream()
+                .map(testMapper::toDto)
+                .toList();
+    }
+
+
+    public List<TestDto> getTestsBySubject(Long subjectId) {
+        return testRepository.findBySubjectId(subjectId).stream()
+                .map(testMapper::toDto)
+                .toList();
+    }
+
     public List<QuestionDto> createQuestions(List<QuestionDto> questionDtos, Long testId) {
         // save the questions on the test list
         Test test = testRepository.findById(testId).orElseThrow(() -> new RuntimeException("Test not found"));

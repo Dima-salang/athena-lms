@@ -22,8 +22,15 @@ const LoginPage: React.FC = () => {
       if (data) {
         if (data.role) {
           localStorage.setItem("role", data.role)
+          if (data.role === "STUDENT") {
+            navigate("/student-dashboard")
+          } else {
+            navigate("/dashboard")
+          }
+        } else {
+          // Default fallback
+          navigate("/dashboard")
         }
-        navigate("/dashboard")
       } else {
         setError("Login failed")
       }

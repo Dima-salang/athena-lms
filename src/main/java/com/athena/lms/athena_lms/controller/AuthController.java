@@ -41,4 +41,18 @@ public class AuthController {
         }
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<User> getCurrentUser(java.security.Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(401).build();
+        }
+        // We need to fetch the user from the repository to get full details including
+        // section
+        // Assuming authService has a method or we inject repository here.
+        // For simplicity, let's inject UserRepository into AuthController or add a
+        // method to AuthService.
+        // Let's use AuthService.
+        return ResponseEntity.ok(authService.getUserByUsername(principal.getName()));
+    }
+
 }

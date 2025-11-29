@@ -7,4 +7,8 @@ import com.athena.lms.athena_lms.model.tests.Test;
 
 public interface TestRepository extends JpaRepository<Test, Long> {
     List<Test> findByTeacherId(Long teacherId);
+
+    List<Test> findBySectionId(Long sectionId);
+
+    List<Test> findBySubjectId(Long subjectId);
 }
