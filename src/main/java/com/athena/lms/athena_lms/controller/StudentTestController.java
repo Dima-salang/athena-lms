@@ -11,7 +11,7 @@ import com.athena.lms.athena_lms.service.tests.TestManagementService;
 @RequestMapping("/api/student/tests")
 public class StudentTestController {
     private final TestManagementService testManagementService;
-    
+
     public StudentTestController(TestManagementService testManagementService) {
         this.testManagementService = testManagementService;
     }
@@ -25,5 +25,10 @@ public class StudentTestController {
     @GetMapping("/subject/{subjectId}")
     public ResponseEntity<List<TestDto>> getTestBySubject(@PathVariable Long subjectId) {
         return ResponseEntity.ok(testManagementService.getTestsBySubject(subjectId));
+    }
+
+    @GetMapping("/{testId}")
+    public ResponseEntity<TestDto> getTestById(@PathVariable Long testId) {
+        return ResponseEntity.ok(testManagementService.getTestById(testId));
     }
 }

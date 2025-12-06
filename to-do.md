@@ -1,7 +1,15 @@
+NOVEMBER 29, 2025
+- solve the issue of 404 in getting tests for the student dashboard - DONE
+- test starting
+- autosaving for students
+- test ending
+- system configurations
+- enhance ui
+
 NOVEMBER 27, 2025
 - test starting
 - autosaving for students
-- prepopulation of section for students at registration
+- prepopulation of section for students at registration - DONE
 - test ending
 - system configurations
 - enhance ui

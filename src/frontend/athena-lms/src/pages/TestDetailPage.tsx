@@ -103,7 +103,9 @@ const TestDetailPage: React.FC = () => {
             </div>
             <div>
               <p className="text-xs text-slate-500 font-medium uppercase tracking-wide">Duration</p>
-              <p className="text-sm font-semibold text-slate-900 mt-1">{test.testDuration / 60} mins</p>
+              <p className="text-sm font-semibold text-slate-900 mt-1">
+                {test.testDuration ? `${test.testDuration / 60} mins` : "No time limit"}
+              </p>
             </div>
             <div>
               <p className="text-xs text-slate-500 font-medium uppercase tracking-wide">Questions</p>
@@ -142,14 +144,12 @@ const TestDetailPage: React.FC = () => {
                           return (
                             <li
                               key={i}
-                              className={`flex items-center gap-2 p-3 rounded border ${
-                                isCorrect ? "bg-green-50 border-green-200" : "bg-slate-50 border-slate-200"
-                              }`}
+                              className={`flex items-center gap-2 p-3 rounded border ${isCorrect ? "bg-green-50 border-green-200" : "bg-slate-50 border-slate-200"
+                                }`}
                             >
                               <span
-                                className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-xs font-bold ${
-                                  isCorrect ? "bg-green-200 text-green-700" : "bg-slate-200 text-slate-700"
-                                }`}
+                                className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-xs font-bold ${isCorrect ? "bg-green-200 text-green-700" : "bg-slate-200 text-slate-700"
+                                  }`}
                               >
                                 {String.fromCharCode(65 + i)}
                               </span>
@@ -175,6 +175,17 @@ const TestDetailPage: React.FC = () => {
                       </p>
                       <div className="inline-block px-4 py-2 bg-green-100 text-green-700 font-semibold rounded-lg">
                         {(q as TrueFalseQuestion).trueFalseAnswer === "true" ? "True" : "False"}
+                      </div>
+                    </div>
+                  )}
+
+                  {q.questionType === "IDENTIFICATION" && (
+                    <div className="space-y-2">
+                      <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-3">
+                        Correct Answer:
+                      </p>
+                      <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-green-800 font-medium">
+                        {(q as any).correctAnswer || "No answer set"}
                       </div>
                     </div>
                   )}

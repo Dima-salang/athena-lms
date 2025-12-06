@@ -96,8 +96,38 @@ export interface Test {
     questions: Question[];
 }
 
-export const getTeacherTests = async (teacherId: number): Promise<Test[]> => {
-    const response = await axios.get(`${API_BASE_URL}/teacher/tests/${teacherId}/tests`);
+export interface StudentAnswer {
+    id?: number;
+    submission?: Submission;
+    question: Question;
+    optionId?: number;
+    textAnswer?: string;
+    points?: number;
+}
+
+export interface Submission {
+    id: number;
+    test: Test;
+    student: Student;
+    startTime: string;
+    endTime?: string;
+    totalScore?: number;
+}
+
+export interface PaginatedResponse<T> {
+    content: T[];
+    page: {
+        size: number;
+        totalElements: number;
+        totalPages: number;
+        number: number;
+    };
+}
+
+export const getTeacherTests = async (teacherId: number, page: number = 0, size: number = 5): Promise<PaginatedResponse<Test>> => {
+    const response = await axios.get(`${API_BASE_URL}/teacher/tests/${teacherId}/tests`, {
+        params: { page, size }
+    });
     return response.data;
 };
 
@@ -133,6 +163,13 @@ export const createOrUpdateQuestions = async (questions: Omit<Question, 'id'>[],
 
 export const deleteQuestion = async (questionId: number): Promise<void> => {
     await axios.delete(`${API_BASE_URL}/teacher/tests/questions/${questionId}`);
+};
+
+export const autosaveTest = async (testId: number, test: Partial<Test>): Promise<Test> => {
+    const response = await axios.post(`${API_BASE_URL}/teacher/tests/autosave/${testId}`, test);
+    console.log("Called autosaveTest...")
+    console.log(response.data)
+    return response.data;
 };
 
 export const getSectionsTeacher = async (): Promise<Section[]> => {
@@ -173,6 +210,31 @@ export const getAllSections = async (): Promise<Section[]> => {
 
 export const getTestsBySection = async (sectionId: number): Promise<Test[]> => {
     const response = await axios.get(`${API_BASE_URL}/student/tests/section/${sectionId}`);
+    return response.data;
+};
+
+export const getStudentTestById = async (testId: number): Promise<Test> => {
+    const response = await axios.get(`${API_BASE_URL}/student/tests/${testId}`);
+    return response.data;
+};
+
+export const startTest = async (testId: number): Promise<Submission> => {
+    const response = await axios.post(`${API_BASE_URL}/student/submissions/start/${testId}`);
+    return response.data;
+};
+
+export const submitTest = async (submissionId: number, answers: StudentAnswer[]): Promise<Submission> => {
+    const response = await axios.post(`${API_BASE_URL}/student/submissions/${submissionId}/finalize`, answers);
+    return response.data;
+};
+
+export const updateAnswers = async (answers: StudentAnswer[]): Promise<StudentAnswer[]> => {
+    const response = await axios.post(`${API_BASE_URL}/student/submissions/submit/update-answers`, answers);
+    return response.data;
+};
+
+export const getStudentAnswers = async (submissionId: number): Promise<StudentAnswer[]> => {
+    const response = await axios.get(`${API_BASE_URL}/student/submissions/${submissionId}/answers`);
     return response.data;
 };
 

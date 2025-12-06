@@ -38,6 +38,11 @@ public class TestController {
         return ResponseEntity.ok(testManagementService.createOrUpdateQuestions(questions, testId));
     }
 
+    @PostMapping("/autosave/{testId}")
+    public ResponseEntity<TestDto> autosaveTest(@RequestBody TestDto testDto, @PathVariable Long testId) {
+        return ResponseEntity.ok(testManagementService.autosaveTest(testId, testDto));
+    }
+
     // delete questions
     @DeleteMapping("/questions/{id}")
     public ResponseEntity<Void> deleteQuestion(@PathVariable Long id) {
@@ -60,9 +65,12 @@ public class TestController {
 
     // get specific tests for the teacher
     @GetMapping("{teacherId}/tests")
-    public ResponseEntity<List<TestDto>> getTeacherTests(@PathVariable Long teacherId) {
+    public ResponseEntity<org.springframework.data.domain.Page<TestDto>> getTeacherTests(
+            @PathVariable Long teacherId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size) {
         try {
-            return ResponseEntity.ok(testManagementService.getTeacherTests(teacherId));
+            return ResponseEntity.ok(testManagementService.getTeacherTests(teacherId, page, size));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(null);
         }
@@ -73,11 +81,10 @@ public class TestController {
         TestDto test = testManagementService.getTestById(id);
         if (test != null) {
             return ResponseEntity.ok(test);
-       } else {
+        } else {
             return ResponseEntity.notFound().build();
         }
     }
-
 
     @GetMapping("/sections")
     public ResponseEntity<List<Section>> getSections() {

@@ -34,9 +34,25 @@ public class SubmissionController {
         return submissionService.getSubmissionsByTest(testId);
     }
 
+    @PostMapping("/start/{testId}")
+    public SubmissionDto startTest(@PathVariable Long testId, java.security.Principal principal) {
+        return submissionService.startTest(testId, principal.getName());
+    }
+
     @PostMapping("/submit/update-answers")
     public List<StudentAnswerDto> createOrUpdateStudentAnswers(@RequestBody List<StudentAnswerDto> studentAnswerDtos) {
         return submissionService.createOrUpdateStudentAnswers(studentAnswerDtos);
+    }
+
+    @PostMapping("/{submissionId}/finalize")
+    public SubmissionDto submitTest(@PathVariable Long submissionId,
+            @RequestBody List<StudentAnswerDto> studentAnswerDtos) {
+        return submissionService.submitTest(submissionId, studentAnswerDtos);
+    }
+
+    @GetMapping("/{submissionId}/answers")
+    public List<StudentAnswerDto> getStudentAnswers(@PathVariable Long submissionId) {
+        return submissionService.getStudentAnswers(submissionId);
     }
 
 }

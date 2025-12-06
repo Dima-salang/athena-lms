@@ -24,7 +24,7 @@ public class StudentAnswer {
 
     // answer of the student in case of multiple choice or true false
     @ManyToOne
-    @JoinColumn(name = "option_id")
+    @JoinColumn(name = "option_id", nullable = true)
     private Option option;
 
     // points for the answer

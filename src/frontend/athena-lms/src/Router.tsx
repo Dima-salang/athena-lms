@@ -12,6 +12,7 @@ import AdminPage from './pages/AdminPage';
 import SectionManagementPage from './pages/SectionManagementPage';
 import SubjectManagementPage from './pages/SubjectManagementPage';
 import ProtectedRoute from './components/ProtectedRoute';
+import TakeTestPage from './pages/TakeTestPage';
 
 
 
@@ -45,6 +46,14 @@ const router = createBrowserRouter([
                 element: (
                     <ProtectedRoute allowedRoles={['ROLE_STUDENT']}>
                         <StudentDashboardPage />
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: 'student/test/:testId',
+                element: (
+                    <ProtectedRoute allowedRoles={['ROLE_STUDENT']}>
+                        <TakeTestPage />
                     </ProtectedRoute>
                 ),
             },

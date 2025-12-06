@@ -14,10 +14,10 @@ public interface StudentAnswerMapper {
     @Mapping(source = "option.id", target = "optionId")
     StudentAnswerDto toDto(StudentAnswer studentAnswer);
 
-    @Mapping(source = "optionId", target = "option.id")
+    @Mapping(target = "option.id", ignore = true)
     StudentAnswer toEntity(StudentAnswerDto studentAnswerDto);
 
-    @Mapping(source = "optionId", target = "option.id")
+    @Mapping(target = "option.id", ignore = true)
     void updateEntityFromDto(StudentAnswerDto studentAnswerDto, @MappingTarget StudentAnswer studentAnswer);
 
     List<StudentAnswer> toEntityList(List<StudentAnswerDto> dtos);

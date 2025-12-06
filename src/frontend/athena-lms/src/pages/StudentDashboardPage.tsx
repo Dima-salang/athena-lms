@@ -115,7 +115,7 @@ const StudentDashboardPage: React.FC = () => {
                                 </div>
                                 <div className="p-4 bg-slate-50 border-t border-slate-100">
                                     <button
-                                        onClick={() => navigate(`/test/${test.id}`)}
+                                        onClick={() => navigate(`/student/test/${test.id}`)}
                                         className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition duration-200"
                                     >
                                         Take Test

@@ -10,6 +10,7 @@ import {
     type MultipleChoiceQuestion,
     createOrUpdateQuestions,
     deleteQuestion as deleteQuestionApi,
+    autosaveTest,
 } from "../services/api"
 import QuestionEditor from "../components/QuestionEditor"
 
@@ -21,6 +22,12 @@ const TestEditorPage: React.FC = () => {
     const [isDirty, setIsDirty] = useState(false)
     const [lastSavedTime, setLastSavedTime] = useState<Date | null>(null)
 
+    // Test details state
+    const [testName, setTestName] = useState("")
+    const [testDescription, setTestDescription] = useState("")
+    const [testDuration, setTestDuration] = useState<number>(0)
+    const [isTestDetailsDirty, setIsTestDetailsDirty] = useState(false)
+
     useEffect(() => {
         if (testId) {
             fetchTest(Number(testId))
@@ -31,6 +38,9 @@ const TestEditorPage: React.FC = () => {
         try {
             const fetchedTest = await getTestById(id)
             setTest(fetchedTest)
+            setTestName(fetchedTest.testName)
+            setTestDescription(fetchedTest.testDescription)
+            setTestDuration(fetchedTest.testDuration / 60) // Convert seconds to minutes for display
             if (fetchedTest.questions) {
                 setQuestions(fetchedTest.questions.map((q) => ({ ...q, isDirty: false })))
             }
@@ -39,18 +49,27 @@ const TestEditorPage: React.FC = () => {
         }
     }
 
+    // Autosave for questions
     useEffect(() => {
-
         if (testId && isDirty) {
             const timer = setTimeout(() => {
-                handleAutosave()
+                handleAutosaveQuestions()
             }, 2000)
-
             return () => clearTimeout(timer)
         }
     }, [questions, testId, isDirty])
 
-    const handleAutosave = async () => {
+    // Autosave for test details
+    useEffect(() => {
+        if (testId && isTestDetailsDirty) {
+            const timer = setTimeout(() => {
+                handleAutosaveTestDetails()
+            }, 2000)
+            return () => clearTimeout(timer)
+        }
+    }, [testName, testDescription, testDuration, testId, isTestDetailsDirty])
+
+    const handleAutosaveQuestions = async () => {
         if (!testId || !isDirty) return
         setIsSaving(true)
         try {
@@ -89,7 +108,8 @@ const TestEditorPage: React.FC = () => {
 
                         if (savedQ) {
                             const newQ = { ...localQ, id: savedQ.id, isDirty: false }
-
+                            // ... (keep existing complex logic for MCQ options mapping if needed, simplified here for brevity as it was correct before)
+                            // Re-applying the logic from previous version to ensure no regression
                             if (localQ.questionType === "MULTIPLE_CHOICE") {
                                 const mcQuestion = localQ as MultipleChoiceQuestion
                                 const savedMcQuestion = savedQ as MultipleChoiceQuestion
@@ -130,7 +150,27 @@ const TestEditorPage: React.FC = () => {
             setLastSavedTime(new Date())
             setIsDirty(false)
         } catch (error) {
-            console.error("Autosave failed", error)
+            console.error("Autosave questions failed", error)
+        } finally {
+            setIsSaving(false)
+        }
+    }
+
+    const handleAutosaveTestDetails = async () => {
+        if (!testId || !isTestDetailsDirty) return
+        setIsSaving(true)
+        try {
+            await autosaveTest(Number(testId), {
+                testName,
+                testDescription,
+                testDuration: testDuration * 60 // Convert minutes back to seconds
+            })
+            console.log("Autosave test details success")
+            console.log("Duration: ", testDuration)
+            setLastSavedTime(new Date())
+            setIsTestDetailsDirty(false)
+        } catch (error) {
+            console.error("Autosave test details failed", error)
         } finally {
             setIsSaving(false)
         }
@@ -171,11 +211,10 @@ const TestEditorPage: React.FC = () => {
             await deleteQuestionApi(id)
         }
         setQuestions(questions.filter((q) => q.id !== id))
-
     }
 
-    const saveQuestion = async () => {
-        handleAutosave()
+    const saveAll = async () => {
+        await Promise.all([handleAutosaveQuestions(), handleAutosaveTestDetails()])
     }
 
     if (!test) return <div className="text-center py-8">Loading...</div>
@@ -185,8 +224,8 @@ const TestEditorPage: React.FC = () => {
             <div className="max-w-4xl mx-auto">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                     <div>
-                        <h1 className="text-3xl font-bold text-slate-900">Editing: {test.testName}</h1>
-                        <p className="text-slate-600 text-sm mt-1">Add and manage questions for this test</p>
+                        <h1 className="text-3xl font-bold text-slate-900">Edit Test</h1>
+                        <p className="text-slate-600 text-sm mt-1">Manage test details and questions</p>
                     </div>
                     <div className="flex items-center gap-4">
                         {isSaving && <span className="text-blue-600 font-medium">Saving...</span>}
@@ -196,14 +235,62 @@ const TestEditorPage: React.FC = () => {
                     </div>
                 </div>
 
+                {/* Test Details Editor */}
+                <div className="bg-white rounded-lg shadow-sm p-6 mb-8 border border-slate-200">
+                    <h2 className="text-lg font-semibold text-slate-900 mb-4">Test Details</h2>
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Test Name</label>
+                            <input
+                                type="text"
+                                value={testName}
+                                onChange={(e) => {
+                                    setTestName(e.target.value)
+                                    setIsTestDetailsDirty(true)
+                                }}
+                                className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Enter test name"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
+                            <textarea
+                                value={testDescription}
+                                onChange={(e) => {
+                                    setTestDescription(e.target.value)
+                                    setIsTestDetailsDirty(true)
+                                }}
+                                rows={3}
+                                className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Enter test description"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Duration (minutes)</label>
+                            <input
+                                type="number"
+                                value={testDuration}
+                                onChange={(e) => {
+                                    setTestDuration(Number(e.target.value))
+                                    setIsTestDetailsDirty(true)
+                                }}
+                                min="0"
+                                className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                            <p className="text-xs text-slate-500 mt-1">Set to 0 for no time limit</p>
+                        </div>
+                    </div>
+                </div>
+
                 <div className="space-y-4 mb-6">
+                    <h2 className="text-lg font-semibold text-slate-900">Questions</h2>
                     {questions.map((q) => (
                         <QuestionEditor
                             key={q.id || q.tempId}
                             question={q}
                             onUpdate={updateQuestion}
                             onDelete={handleDeleteQuestion}
-                            onSave={() => saveQuestion()}
+                            onSave={() => saveAll()}
                         />
                     ))}
                 </div>
@@ -215,7 +302,7 @@ const TestEditorPage: React.FC = () => {
                     >
                         + Add New Question
                     </button>
-                    <Link to="/dashboard" onClick={() => handleAutosave()}>
+                    <Link to="/dashboard" onClick={() => saveAll()}>
                         <button
                             className="w-full py-3 border border-slate-300 text-slate-700 hover:bg-slate-50 font-medium rounded-lg transition duration-200"
                         >

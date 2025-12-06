@@ -11,7 +11,7 @@ public class TestDto {
     private String testDescription;
     private LocalDateTime testIssueDate;
     private LocalDateTime testDueDate;
-    private Duration testDuration;
+    private Long testDuration;
     private boolean hasInfiniteTime;
     private SectionDto section;
     private SubjectDto subject;
@@ -63,11 +63,11 @@ public class TestDto {
         this.testDueDate = testDueDate;
     }
 
-    public Duration getTestDuration() {
+    public Long getTestDuration() {
         return testDuration;
     }
 
-    public void setTestDuration(Duration testDuration) {
+    public void setTestDuration(Long testDuration) {
         this.testDuration = testDuration;
     }
 

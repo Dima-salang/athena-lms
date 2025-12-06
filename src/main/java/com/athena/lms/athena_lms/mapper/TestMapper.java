@@ -14,8 +14,7 @@ public interface TestMapper {
     @Mapping(source = "teacher.id", target = "teacherId")
     @Mapping(source = "testIssueDate", target = "testIssueDate")
     @Mapping(source = "testDueDate", target = "testDueDate")
-    @Mapping(source = "testDuration", target = "testDuration")
-    @Mapping(source = "hasInfiniteTime", target = "hasInfiniteTime")
+    @Mapping(target = "testDuration", expression = "java(test.getTestDuration() != null ? test.getTestDuration().getSeconds() : null)")
     TestDto toDto(Test test);
 
     @Mapping(target = "subject", ignore = true) // Handled by service based on ID
@@ -23,7 +22,7 @@ public interface TestMapper {
     @Mapping(target = "teacher", ignore = true) // Handled by service based on ID
     @Mapping(target = "testIssueDate", source = "testIssueDate")
     @Mapping(target = "testDueDate", source = "testDueDate")
-    @Mapping(target = "testDuration", source = "testDuration")
+    @Mapping(target = "testDuration", expression = "java(testDto.getTestDuration() != null ? java.time.Duration.ofSeconds(testDto.getTestDuration()) : null)")
     @Mapping(target = "hasInfiniteTime", source = "hasInfiniteTime")
     Test toEntity(TestDto testDto);
 }

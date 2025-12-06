@@ -34,6 +34,11 @@ import com.athena.lms.athena_lms.repository.UserRepository;
 import com.athena.lms.athena_lms.repository.OptionRepository;
 import com.athena.lms.athena_lms.mapper.OptionMapper;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+
 @Service
 public class TestManagementService {
     private final UserRepository userRepository;
@@ -164,9 +169,45 @@ public class TestManagementService {
 
     // update test
 
-    // TO-DO: update test
+    public TestDto autosaveTest(Long id, TestDto testDto) {
+        Test existingTest = testRepository.findById(id).orElseThrow(() -> new RuntimeException("Test not found"));
+        System.out.println("Existing test: " + existingTest);
+
+        // Update fields
+        if (testDto.getTestName() != null)
+            existingTest.setTestName(testDto.getTestName());
+        if (testDto.getTestIssueDate() != null)
+            existingTest.setTestIssueDate(testDto.getTestIssueDate());
+        if (testDto.getTestDueDate() != null)
+            existingTest.setTestDueDate(testDto.getTestDueDate());
+        if (testDto.getTestDuration() != null) {
+            existingTest.setTestDuration(java.time.Duration.ofSeconds(testDto.getTestDuration()));
+            System.out.println("Test duration: " + testDto.getTestDuration());
+        } else {
+            existingTest.setHasInfiniteTime(true);
+        }
+
+        if (testDto.getSubjectId() != null) {
+            Subject subject = subjectRepository.findById(testDto.getSubject().getId()).orElse(null);
+            if (subject != null)
+                existingTest.setSubject(subject);
+        }
+
+        if (testDto.getSectionId() != null) {
+            Section section = sectionRepository.findById(testDto.getSectionId()).orElse(null);
+            if (section != null)
+                existingTest.setSection(section);
+        }
+
+        // save
+        Test savedTest = testRepository.save(existingTest);
+
+        return testMapper.toDto(savedTest);
+    }
+
     public TestDto updateTest(Long id, TestDto testDto) {
         Test existingTest = testRepository.findById(id).orElseThrow(() -> new RuntimeException("Test not found"));
+        System.out.println("Existing test: " + existingTest);
 
         // Update fields
         if (testDto.getTestName() != null)
@@ -176,7 +217,7 @@ public class TestManagementService {
         if (testDto.getTestDueDate() != null)
             existingTest.setTestDueDate(testDto.getTestDueDate());
         if (testDto.getTestDuration() != null)
-            existingTest.setTestDuration(testDto.getTestDuration());
+            existingTest.setTestDuration(java.time.Duration.ofSeconds(testDto.getTestDuration()));
 
         if (testDto.getSubjectId() != null) {
             Subject subject = subjectRepository.findById(testDto.getSubjectId()).orElse(null);
@@ -289,15 +330,18 @@ public class TestManagementService {
                 .toList();
     }
 
-    public List<TestDto> getTeacherTests(Long teacherId) {
+    public Page<TestDto> getTeacherTests(Long teacherId, int page, int size) {
         // validate the id
         User user = userRepository.findById(teacherId).orElse(null);
         if (user == null) {
             throw new RuntimeException("User not found");
         }
-        return testRepository.findByTeacherId(teacherId).stream()
-                .map(testMapper::toDto)
-                .toList();
+
+        Pageable pageable = PageRequest.of(page, size,
+                Sort.by("id").descending());
+
+        return testRepository.findByTeacherId(teacherId, pageable)
+                .map(testMapper::toDto);
     }
 
     public void deleteTest(Long id) {

@@ -7,4 +7,6 @@ import com.athena.lms.athena_lms.model.submission.Submission;
 
 public interface SubmissionRepository extends JpaRepository<Submission, Long> {
     List<Submission> findByTestId(Long testId);
+
+    Submission findFirstByTestIdAndStudentIdAndEndTimeIsNull(Long testId, Long studentId);
 }
