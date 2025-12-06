@@ -5,6 +5,7 @@ import com.athena.lms.athena_lms.model.Student;
 
 import jakarta.persistence.*;
 
+import java.time.Instant;
 import java.util.Date;
 
 @Entity
@@ -24,10 +25,11 @@ public class Submission {
 
     private Double totalScore;
     private Long timeTaken;
-    private Date startTime;
-    private Date endTime;
-    private Date createdAt;
-    private Date updatedAt;
+    private Instant startTime;
+    private Instant endTime;
+    private Instant createdAt;
+    private Instant updatedAt;
+    private Instant submittedAt;
     private int attempts;
 
     // getters and setters
@@ -71,35 +73,35 @@ public class Submission {
         this.timeTaken = timeTaken;
     }
 
-    public Date getStartTime() {
+    public Instant getStartTime() {
         return startTime;
     }
 
-    public void setStartTime(Date startTime) {
+    public void setStartTime(Instant startTime) {
         this.startTime = startTime;
     }
 
-    public Date getEndTime() {
+    public Instant getEndTime() {
         return endTime;
     }
 
-    public void setEndTime(Date endTime) {
+    public void setEndTime(Instant endTime) {
         this.endTime = endTime;
     }
 
-    public Date getCreatedAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
     }
 
-    public Date getUpdatedAt() {
+    public Instant getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(Date updatedAt) {
+    public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
     }
 
@@ -111,4 +113,11 @@ public class Submission {
         this.attempts = attempts;
     }
 
+    public Instant getSubmittedAt() {
+        return submittedAt;
+    }
+
+    public void setSubmittedAt(Instant submittedAt) {
+        this.submittedAt = submittedAt;
+    }
 }

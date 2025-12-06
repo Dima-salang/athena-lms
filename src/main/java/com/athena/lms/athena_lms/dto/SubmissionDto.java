@@ -1,14 +1,16 @@
 package com.athena.lms.athena_lms.dto;
 
 import java.util.Date;
+import java.time.Instant;
 
 public class SubmissionDto {
     private Long id;
     private TestDto test;
     private StudentDto student;
     private Double totalScore;
-    private Date startTime;
-    private Date endTime;
+    private Instant startTime;
+    private Instant endTime;
+    private Instant submittedAt;
     private int attempts;
 
     public Long getId() {
@@ -43,19 +45,19 @@ public class SubmissionDto {
         this.totalScore = totalScore;
     }
 
-    public Date getStartTime() {
+    public Instant getStartTime() {
         return startTime;
     }
 
-    public void setStartTime(Date startTime) {
+    public void setStartTime(Instant startTime) {
         this.startTime = startTime;
     }
 
-    public Date getEndTime() {
+    public Instant getEndTime() {
         return endTime;
     }
 
-    public void setEndTime(Date endTime) {
+    public void setEndTime(Instant endTime) {
         this.endTime = endTime;
     }
 
@@ -65,5 +67,13 @@ public class SubmissionDto {
 
     public void setAttempts(int attempts) {
         this.attempts = attempts;
+    }
+
+    public Instant getSubmittedAt() {
+        return submittedAt;
+    }
+
+    public void setSubmittedAt(Instant submittedAt) {
+        this.submittedAt = submittedAt;
     }
 }

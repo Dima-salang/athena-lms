@@ -2,15 +2,14 @@ package com.athena.lms.athena_lms.dto;
 
 import java.util.List;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public class TestDto {
     private Long id;
     private String testName;
     private String testDescription;
-    private LocalDateTime testIssueDate;
-    private LocalDateTime testDueDate;
+    private Instant testIssueDate;
+    private Instant testDueDate;
     private Long testDuration;
     private boolean hasInfiniteTime;
     private SectionDto section;
@@ -47,19 +46,19 @@ public class TestDto {
         this.testDescription = testDescription;
     }
 
-    public LocalDateTime getTestIssueDate() {
+    public Instant getTestIssueDate() {
         return testIssueDate;
     }
 
-    public void setTestIssueDate(LocalDateTime testIssueDate) {
+    public void setTestIssueDate(Instant testIssueDate) {
         this.testIssueDate = testIssueDate;
     }
 
-    public LocalDateTime getTestDueDate() {
+    public Instant getTestDueDate() {
         return testDueDate;
     }
 
-    public void setTestDueDate(LocalDateTime testDueDate) {
+    public void setTestDueDate(Instant testDueDate) {
         this.testDueDate = testDueDate;
     }
 

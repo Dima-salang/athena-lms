@@ -3,7 +3,7 @@ package com.athena.lms.athena_lms.model.tests;
 import jakarta.persistence.*;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 import com.athena.lms.athena_lms.model.Section;
@@ -11,6 +11,7 @@ import com.athena.lms.athena_lms.model.Subject;
 import com.athena.lms.athena_lms.model.Teacher;
 import com.athena.lms.athena_lms.model.questions.Question;
 
+// TODO - change TestIssueDate and TestDueDate to Instant
 @Entity
 public class Test {
     @Id
@@ -22,8 +23,8 @@ public class Test {
 
     @Column(length = 255)
     private String TestDescription;
-    private LocalDateTime TestIssueDate;
-    private LocalDateTime TestDueDate;
+    private Instant TestIssueDate;
+    private Instant TestDueDate;
     private Duration TestDuration;
     private boolean hasInfiniteTime;
 
@@ -70,19 +71,19 @@ public class Test {
         TestDescription = testDescription;
     }
 
-    public LocalDateTime getTestIssueDate() {
+    public Instant getTestIssueDate() {
         return TestIssueDate;
     }
 
-    public void setTestIssueDate(LocalDateTime testIssueDate) {
+    public void setTestIssueDate(Instant testIssueDate) {
         TestIssueDate = testIssueDate;
     }
 
-    public LocalDateTime getTestDueDate() {
+    public Instant getTestDueDate() {
         return TestDueDate;
     }
 
-    public void setTestDueDate(LocalDateTime testDueDate) {
+    public void setTestDueDate(Instant testDueDate) {
         TestDueDate = testDueDate;
     }
 

@@ -1,10 +1,14 @@
 package com.athena.lms.athena_lms.service.tests;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import com.athena.lms.athena_lms.repository.*;
+
+import ch.qos.logback.core.util.Duration;
+
 import com.athena.lms.athena_lms.mapper.SubmissionMapper;
 import com.athena.lms.athena_lms.mapper.StudentAnswerMapper;
 import com.athena.lms.athena_lms.dto.*;
@@ -115,9 +119,15 @@ public class SubmissionService {
         Submission submission = new Submission();
         submission.setTest(test);
         submission.setStudent(student);
-        submission.setStartTime(new Date());
-        submission.setCreatedAt(new Date());
-        submission.setUpdatedAt(new Date());
+
+        // make start time to now
+        submission.setStartTime(Instant.now());
+
+        // make end time to be start time + test duration
+        submission.setEndTime(Instant.now().plus(test.getTestDuration()));
+
+        submission.setCreatedAt(Instant.now());
+        submission.setUpdatedAt(Instant.now());
 
         return submissionMapper.toDto(submissionRepository.save(submission));
     }
@@ -131,8 +141,16 @@ public class SubmissionService {
         Submission submission = submissionRepository.findById(submissionId)
                 .orElseThrow(() -> new RuntimeException("Submission not found"));
 
-        submission.setEndTime(new Date());
-        submission.setUpdatedAt(new Date());
+        // get test
+        Test test = submission.getTest();
+
+        // TODO - change this to Instant
+        // check end time
+        if (submission.getSubmittedAt().isAfter(test.getTestDueDate())) {
+            throw new RuntimeException("Test has already ended");
+        }
+
+        submission.setUpdatedAt(Instant.now());
 
         // Save answers
         List<StudentAnswer> studentAnswers = new ArrayList<>();
