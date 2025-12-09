@@ -2,6 +2,7 @@ package com.athena.lms.athena_lms.controller;
 
 import java.util.List;
 
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -14,6 +15,8 @@ import com.athena.lms.athena_lms.service.auth.AuthService;
 import com.athena.lms.athena_lms.model.Admin;
 import com.athena.lms.athena_lms.model.Section;
 import com.athena.lms.athena_lms.model.Subject;
+import com.athena.lms.athena_lms.model.Teacher;
+import com.athena.lms.athena_lms.model.TeacherAssignment;
 import com.athena.lms.athena_lms.model.User;
 import com.athena.lms.athena_lms.model.tests.Test;
 import com.athena.lms.athena_lms.model.options.Option;
@@ -35,6 +38,11 @@ public class AdminController {
     @GetMapping("/users")
     public List<User> getAllUsers() {
         return adminService.getUsers();
+    }
+
+    @GetMapping("/teachers")
+    public List<Teacher> getAllTeachers() {
+        return adminService.getTeachers();
     }
 
     @GetMapping("/tests")
@@ -77,5 +85,25 @@ public class AdminController {
     public User createAdmin(@RequestBody Admin admin) {
         return authService.registerAdmin(admin);
     }
+
+
+    // create a teacher assignment
+    @PostMapping("register/teacher-assignment")
+    public void createTeacherAssignment(@RequestBody TeacherAssignment teacherAssignment) {
+        adminService.createOrUpdateTeacherAssignment(teacherAssignment);
+    }
+
+    @GetMapping("/teacher-assignments")
+    public List<TeacherAssignment> getAllTeacherAssignments() {
+        return adminService.getTeacherAssignments();
+    }
+
+    @DeleteMapping("/teacher-assignments")
+    public void deleteTeacherAssignment(@RequestParam Long id) {
+        adminService.deleteTeacherAssignment(id);
+    }
+
+
+
 
 }

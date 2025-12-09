@@ -23,11 +23,11 @@ public class TeacherAssignment {
     private Teacher teacher;
 
     @ManyToOne
-    @JoinColumn(name = "subject_id")
+    @JoinColumn(name = "subject_id", nullable = true)
     private Subject subject;
 
     @ManyToOne
-    @JoinColumn(name = "section_id")
+    @JoinColumn(name = "section_id", nullable = true)
     private Section section;
     
 }

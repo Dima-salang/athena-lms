@@ -6,7 +6,6 @@ import com.athena.lms.athena_lms.model.Student;
 import jakarta.persistence.*;
 
 import java.time.Instant;
-import java.util.Date;
 
 @Entity
 public class Submission {

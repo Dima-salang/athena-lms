@@ -15,12 +15,15 @@ import com.athena.lms.athena_lms.mapper.SubjectMapper;
 import com.athena.lms.athena_lms.model.Section;
 import com.athena.lms.athena_lms.model.Subject;
 import com.athena.lms.athena_lms.model.Teacher;
+import com.athena.lms.athena_lms.model.TeacherAssignment;
 import com.athena.lms.athena_lms.model.User;
 import com.athena.lms.athena_lms.repository.OptionRepository;
 import com.athena.lms.athena_lms.repository.SectionRepository;
 import com.athena.lms.athena_lms.repository.SubjectRepository;
+import com.athena.lms.athena_lms.repository.TeacherAssignmentRepository;
 import com.athena.lms.athena_lms.repository.TestRepository;
 import com.athena.lms.athena_lms.repository.UserRepository;
+import java.util.stream.Collectors;
 
 @Service
 public class AdminService {
@@ -32,10 +35,12 @@ public class AdminService {
     private final OptionRepository optionRepository;
     private final SectionMapper sectionMapper;
     private final SubjectMapper subjectMapper;
+    private final TeacherAssignmentRepository teacherAssignmentRepository;
 
     public AdminService(UserRepository userRepository, TestRepository testRepository,
             SectionRepository sectionRepository, SubjectRepository subjectRepository,
-            OptionRepository optionRepository, SectionMapper sectionMapper, SubjectMapper subjectMapper) {
+            OptionRepository optionRepository, SectionMapper sectionMapper, SubjectMapper subjectMapper,
+            TeacherAssignmentRepository teacherAssignmentRepository) {
         this.userRepository = userRepository;
         this.testRepository = testRepository;
         this.sectionRepository = sectionRepository;
@@ -43,6 +48,7 @@ public class AdminService {
         this.optionRepository = optionRepository;
         this.sectionMapper = sectionMapper;
         this.subjectMapper = subjectMapper;
+        this.teacherAssignmentRepository = teacherAssignmentRepository;
     }
 
     // TODO: make sure to include filters
@@ -56,6 +62,13 @@ public class AdminService {
 
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
+    }
+
+    public List<Teacher> getTeachers() {
+        List<User> teachers = userRepository.findAllByRole("TEACHER");
+        return teachers.stream()
+                .map(user -> (Teacher) user)
+                .collect(Collectors.toList());
     }
 
     // TESTS
@@ -116,6 +129,20 @@ public class AdminService {
 
     public void deleteSubject(Long id) {
         subjectRepository.deleteById(id);
+    }
+
+
+    // Teacher Assignment
+    public List<TeacherAssignment> getTeacherAssignments() {
+        return teacherAssignmentRepository.findAll();
+    }
+
+    public TeacherAssignment createOrUpdateTeacherAssignment(TeacherAssignment teacherAssignment) {
+        return teacherAssignmentRepository.save(teacherAssignment);
+    }
+
+    public void deleteTeacherAssignment(Long id) {
+        teacherAssignmentRepository.deleteById(id);
     }
 
 }

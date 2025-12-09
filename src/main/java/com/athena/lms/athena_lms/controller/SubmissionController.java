@@ -4,6 +4,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.athena.lms.athena_lms.service.tests.SubmissionService;
 import com.athena.lms.athena_lms.dto.StudentAnswerDto;
@@ -20,39 +21,40 @@ public class SubmissionController {
     }
 
     @PostMapping("/submit")
-    public SubmissionDto createOrUpdateSubmission(@RequestBody SubmissionDto submissionDto) {
-        return submissionService.createOrUpdateSubmission(submissionDto);
+    public ResponseEntity<SubmissionDto> createOrUpdateSubmission(@RequestBody SubmissionDto submissionDto) {
+        return ResponseEntity.ok(submissionService.createOrUpdateSubmission(submissionDto));
     }
 
     @DeleteMapping("/submit/{id}")
-    public void deleteSubmission(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteSubmission(@PathVariable Long id) {
         submissionService.deleteSubmission(id);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/submit/{testId}")
-    public List<SubmissionDto> getSubmissionsByTest(@PathVariable Long testId) {
-        return submissionService.getSubmissionsByTest(testId);
+    public ResponseEntity<List<SubmissionDto>> getSubmissionsByTest(@PathVariable Long testId) {
+        return ResponseEntity.ok(submissionService.getSubmissionsByTest(testId));
     }
 
     @PostMapping("/start/{testId}")
-    public SubmissionDto startTest(@PathVariable Long testId, java.security.Principal principal) {
-        return submissionService.startTest(testId, principal.getName());
+    public ResponseEntity<SubmissionDto> startTest(@PathVariable Long testId, java.security.Principal principal) {
+        return ResponseEntity.ok(submissionService.startTest(testId, principal.getName()));
     }
 
     @PostMapping("/submit/update-answers")
-    public List<StudentAnswerDto> createOrUpdateStudentAnswers(@RequestBody List<StudentAnswerDto> studentAnswerDtos) {
-        return submissionService.createOrUpdateStudentAnswers(studentAnswerDtos);
+    public ResponseEntity<List<StudentAnswerDto>> createOrUpdateStudentAnswers(@RequestBody List<StudentAnswerDto> studentAnswerDtos) {
+        return ResponseEntity.ok(submissionService.createOrUpdateStudentAnswers(studentAnswerDtos));
     }
 
     @PostMapping("/{submissionId}/finalize")
-    public SubmissionDto submitTest(@PathVariable Long submissionId,
+    public ResponseEntity<SubmissionDto> submitTest(@PathVariable Long submissionId,
             @RequestBody List<StudentAnswerDto> studentAnswerDtos) {
-        return submissionService.submitTest(submissionId, studentAnswerDtos);
+        return ResponseEntity.ok(submissionService.submitTest(submissionId, studentAnswerDtos));
     }
 
     @GetMapping("/{submissionId}/answers")
-    public List<StudentAnswerDto> getStudentAnswers(@PathVariable Long submissionId) {
-        return submissionService.getStudentAnswers(submissionId);
+    public ResponseEntity<List<StudentAnswerDto>> getStudentAnswers(@PathVariable Long submissionId) {
+        return ResponseEntity.ok(submissionService.getStudentAnswers(submissionId));
     }
 
 }

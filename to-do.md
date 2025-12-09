@@ -1,10 +1,17 @@
-
+DECEMBER 8, 2025
+- teacher assignments
+- all account managmenet in the admin
+- teacher management in the admin
+- student management in the admin
+- implement timer in the frontend
+- validate editing and creation of the test for the teacher
+    - verify whether a specific teacher assignment exists for that subject and section
 
 NOVEMBER 29, 2025
 - solve the issue of 404 in getting tests for the student dashboard - DONE
-- test starting
-- autosaving for students
-- test ending
+- test starting - DONE
+- autosaving for students - DONE
+- test ending - DONE
 - system configurations
 - enhance ui
 

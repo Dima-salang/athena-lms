@@ -8,12 +8,9 @@ import org.springframework.stereotype.Service;
 import com.athena.lms.athena_lms.dto.MultipleChoiceQuestionDto;
 import com.athena.lms.athena_lms.dto.EssayQuestionDto;
 import com.athena.lms.athena_lms.dto.IdentificationQuestionDto;
-import com.athena.lms.athena_lms.dto.OptionDto;
 import com.athena.lms.athena_lms.dto.QuestionDto;
-import com.athena.lms.athena_lms.dto.SectionDto;
 import com.athena.lms.athena_lms.dto.TestDto;
 import com.athena.lms.athena_lms.mapper.QuestionMapper;
-import com.athena.lms.athena_lms.mapper.SectionMapper;
 import com.athena.lms.athena_lms.mapper.TestMapper;
 import com.athena.lms.athena_lms.model.User;
 import com.athena.lms.athena_lms.model.options.Option;
@@ -46,7 +43,6 @@ public class TestManagementService {
     private final QuestionRepository questionRepository;
     private final SubjectRepository subjectRepository;
     private final SectionRepository sectionRepository;
-    private final OptionRepository optionRepository;
     private final TestMapper testMapper;
     private final QuestionMapper questionMapper;
     private final OptionMapper optionMapper;
@@ -64,7 +60,6 @@ public class TestManagementService {
         this.questionRepository = questionRepository;
         this.subjectRepository = subjectRepository;
         this.sectionRepository = sectionRepository;
-        this.optionRepository = optionRepository;
         this.testMapper = testMapper;
         this.questionMapper = questionMapper;
         this.optionMapper = optionMapper;

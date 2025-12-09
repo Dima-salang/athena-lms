@@ -1,0 +1,168 @@
+{
+  "workbench.colorTheme": "Tokyo Night",
+  // vim
+  "vim.leader": "<space>",
+  "vim.hlsearch": true,
+  "vim.useSystemClipboard": true,
+  // normal mode for vim 
+  "vim.normalModeKeyBindingsNonRecursive": [
+    // Navigate to any file (Quick Open) -> Space + f
+    // "f" for "find file" is a common mnemonic
+    {
+      "before": [
+        "<leader>",
+        "f"
+      ],
+      "commands": [
+        "workbench.action.quickOpen"
+      ]
+    },
+    // Alternative: Space + p (popularized by Sublime/VS Code defaults)
+    {
+      "before": [
+        "<leader>",
+        "p"
+      ],
+      "commands": [
+        "workbench.action.quickOpen"
+      ]
+    },
+    // Save file -> Space + w
+    {
+      "before": [
+        "<leader>",
+        "w"
+      ],
+      "commands": [
+        "workbench.action.files.save"
+      ]
+    },
+    // Close current buffer/tab -> Space + q
+    {
+      "before": [
+        "<leader>",
+        "q"
+      ],
+      "commands": [
+        "workbench.action.closeActiveEditor"
+      ]
+    },
+    // Clear search highlighting -> Space + space
+    {
+      "before": [
+        "<leader>",
+        "<space>"
+      ],
+      "commands": [
+        ":nohl"
+      ]
+    },
+    // Toggle Sidebar (Explorer) -> Space + e
+    {
+      "before": [
+        "<leader>",
+        "e"
+      ],
+      "commands": [
+        "workbench.action.toggleSidebarVisibility"
+      ]
+    },
+    // --- Window Splits (Essential for viewing code side-by-side) ---
+    // Split Vertically -> Space + v
+    {
+      "before": [
+        "<leader>",
+        "v"
+      ],
+      "commands": [
+        "workbench.action.splitEditorRight"
+      ]
+    },
+    // Split Horizontally -> Space + s
+    {
+      "before": [
+        "<leader>",
+        "s"
+      ],
+      "commands": [
+        "workbench.action.splitEditorDown"
+      ]
+    },
+    // Close Other Editors (Focus Mode) -> Space + o
+    {
+      "before": [
+        "<leader>",
+        "o"
+      ],
+      "commands": [
+        "workbench.action.closeOtherEditors"
+      ]
+    },
+    // --- Code Actions & Refactoring ---
+    // Rename Symbol -> Space + r + n
+    {
+      "before": [
+        "<leader>",
+        "r",
+        "n"
+      ],
+      "commands": [
+        "editor.action.rename"
+      ]
+    },
+    // Code Action / Quick Fix (The "Lightbulb") -> Space + c + a
+    {
+      "before": [
+        "<leader>",
+        "c",
+        "a"
+      ],
+      "commands": [
+        "editor.action.quickFix"
+      ]
+    },
+    // Go to References (Better than default shift+F12) -> g + r
+    {
+      "before": [
+        "g",
+        "r"
+      ],
+      "commands": [
+        "editor.action.goToReferences"
+      ]
+    },
+    // --- Navigation (Errors/Problems) ---
+    // Next Error/Warning -> ] + d
+    {
+      "before": [
+        "]",
+        "d"
+      ],
+      "commands": [
+        "editor.action.marker.next"
+      ]
+    },
+    // Previous Error/Warning -> [ + d
+    {
+      "before": [
+        "[",
+        "d"
+      ],
+      "commands": [
+        "editor.action.marker.prev"
+      ]
+    },
+    // --- Terminal Integration ---
+    // Toggle Terminal -> Space + t
+    {
+      "before": [
+        "<leader>",
+        "t"
+      ],
+      "commands": [
+        "workbench.action.terminal.toggleTerminal"
+      ]
+    }
+  ],
+  "files.autoSave": "afterDelay"
+}

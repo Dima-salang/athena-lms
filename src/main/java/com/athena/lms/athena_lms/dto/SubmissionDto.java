@@ -1,6 +1,5 @@
 package com.athena.lms.athena_lms.dto;
 
-import java.util.Date;
 import java.time.Instant;
 
 public class SubmissionDto {

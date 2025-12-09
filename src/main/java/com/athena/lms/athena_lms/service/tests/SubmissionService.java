@@ -7,17 +7,17 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import com.athena.lms.athena_lms.repository.*;
 
-import ch.qos.logback.core.util.Duration;
 
 import com.athena.lms.athena_lms.mapper.SubmissionMapper;
 import com.athena.lms.athena_lms.mapper.StudentAnswerMapper;
+import com.athena.exceptions.AccessDeniedException;
+import com.athena.exceptions.NotFoundException;
 import com.athena.lms.athena_lms.dto.*;
 import com.athena.lms.athena_lms.model.User;
 import com.athena.lms.athena_lms.model.Student;
 import com.athena.lms.athena_lms.model.submission.*;
 import com.athena.lms.athena_lms.model.options.Option;
 import com.athena.lms.athena_lms.model.tests.Test;
-import java.util.Date;
 
 @Service
 public class SubmissionService {
@@ -80,34 +80,24 @@ public class SubmissionService {
                 studentAnswerMapper.updateEntityFromDto(studentAnswerDto, studentAnswer);
             }
 
-            System.out.println("Option ID: " + studentAnswerDto.getOptionId());
-            System.out.println("Question ID: " + studentAnswerDto.getQuestion().getId());
-            System.out.println("StudentAnswer ID: " + studentAnswerDto.getId());
-            System.out.println("Submission ID: " + studentAnswerDto.getSubmission().getId());
-            System.out.println("Points: " + studentAnswerDto.getPoints());
-
             if (studentAnswerDto.getOptionId() != null) {
                 Option option = optionRepository.findById(studentAnswerDto.getOptionId()).orElse(null);
                 studentAnswer.setOption(option);
-                System.out.println("Option ID after setting: " + option.getId());
             }
             studentAnswers.add(studentAnswer);
         }
         List<StudentAnswer> savedStudentAnswers = studentAnswerRepository.saveAll(studentAnswers);
-        for (StudentAnswer savedStudentAnswer : savedStudentAnswers) {
-            System.out.println("Saved Student Answer ID: " + savedStudentAnswer.getId());
-        }
         return studentAnswerMapper.toDtoList(savedStudentAnswers);
     }
 
     public SubmissionDto startTest(Long testId, String username) {
         User user = userRepository.findByUsername(username);
         if (user == null || !(user instanceof Student)) {
-            throw new RuntimeException("User not found or not a student");
+            throw new AccessDeniedException("User not found or not a student");
         }
         Student student = (Student) user;
 
-        Test test = testRepository.findById(testId).orElseThrow(() -> new RuntimeException("Test not found"));
+        Test test = testRepository.findById(testId).orElseThrow(() -> new AccessDeniedException("Test not found"));
 
         // Check if submission already exists
         Submission existingSubmission = submissionRepository.findFirstByTestIdAndStudentIdAndEndTimeIsNull(testId,
@@ -139,7 +129,7 @@ public class SubmissionService {
 
     public SubmissionDto submitTest(Long submissionId, List<StudentAnswerDto> studentAnswerDtos) {
         Submission submission = submissionRepository.findById(submissionId)
-                .orElseThrow(() -> new RuntimeException("Submission not found"));
+                .orElseThrow(() -> new NotFoundException("Submission not found"));
 
         // get test
         Test test = submission.getTest();
@@ -157,7 +147,7 @@ public class SubmissionService {
         for (StudentAnswerDto dto : studentAnswerDtos) {
             StudentAnswer answer = studentAnswerMapper.toEntity(dto);
             Option option = optionRepository.findById(dto.getOptionId())
-                    .orElseThrow(() -> new RuntimeException("Option not found"));
+                    .orElseThrow(() -> new NotFoundException("Option not found"));
             answer.setOption(option);
             answer.setSubmission(submission);
             // Ensure question and option are set correctly if needed,
