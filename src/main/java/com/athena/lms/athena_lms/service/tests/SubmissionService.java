@@ -17,6 +17,9 @@ import com.athena.lms.athena_lms.model.Student;
 import com.athena.lms.athena_lms.model.submission.*;
 import com.athena.lms.athena_lms.model.options.Option;
 import com.athena.lms.athena_lms.model.tests.Test;
+import jakarta.persistence.EntityManager;
+import com.blazebit.persistence.CriteriaBuilder;
+import com.blazebit.persistence.CriteriaBuilderFactory;
 
 @Service
 public class SubmissionService {
@@ -27,11 +30,13 @@ public class SubmissionService {
     private final TestRepository testRepository;
     private final UserRepository userRepository;
     private final OptionRepository optionRepository;
+    private final CriteriaBuilderFactory cbf;
+    private final EntityManager em;
 
     public SubmissionService(SubmissionRepository submissionRepository,
             StudentAnswerRepository studentAnswerRepository, SubmissionMapper submissionMapper,
             StudentAnswerMapper studentAnswerMapper, TestRepository testRepository, UserRepository userRepository,
-            OptionRepository optionRepository) {
+            OptionRepository optionRepository, CriteriaBuilderFactory cbf, EntityManager em) {
         this.submissionRepository = submissionRepository;
         this.studentAnswerRepository = studentAnswerRepository;
         this.submissionMapper = submissionMapper;
@@ -39,6 +44,8 @@ public class SubmissionService {
         this.testRepository = testRepository;
         this.userRepository = userRepository;
         this.optionRepository = optionRepository;
+        this.cbf = cbf;
+        this.em = em;
     }
 
     public SubmissionDto createOrUpdateSubmission(SubmissionDto submissionDto) {
@@ -54,10 +61,29 @@ public class SubmissionService {
         submissionRepository.deleteById(submissionId);
     }
 
-    
-    public List<SubmissionDto> getSubmissionsByTest(Long testId) throws NotFoundException {
-        Test test = testRepository.findById(testId).orElseThrow(() -> new NotFoundException("Test not found"));
-        List<Submission> submissions = submissionRepository.findByTestId(test.getId());
+    public List<SubmissionDto> getSubmissionsByTest(Long testId, String search) throws NotFoundException {
+        // Verify test exists
+        if (!testRepository.existsById(testId)) {
+            throw new NotFoundException("Test not found");
+        }
+
+        CriteriaBuilder<Submission> cb = cbf.create(em, Submission.class);
+
+        cb.where("test.id").eq(testId);
+
+        if (search != null && !search.isEmpty()) {
+            cb.whereOr()
+                    .where("LOWER(student.firstName)").like(false).value("%" + search.toLowerCase() + "%").noEscape()
+                    .where("LOWER(student.lastName)").like(false).value("%" + search.toLowerCase() + "%").noEscape()
+                    .where("LOWER(student.username)").like(false).value("%" + search.toLowerCase() + "%").noEscape()
+                    .endOr();
+        }
+
+        // Order by submission time descending (most recent first)
+        cb.orderByDesc("createdAt");
+
+        List<Submission> submissions = cb.getResultList();
+
         // Map submissions to submissionDtos
         List<SubmissionDto> submissionDtos = new ArrayList<>();
         for (Submission submission : submissions) {
@@ -172,5 +198,11 @@ public class SubmissionService {
         // submission.setTotalScore(totalScore);
 
         return submissionMapper.toDto(submissionRepository.save(submission));
+    }
+
+    public SubmissionDto getSubmissionById(Long submissionId) {
+        Submission submission = submissionRepository.findById(submissionId)
+                .orElseThrow(() -> new NotFoundException("Submission not found"));
+        return submissionMapper.toDto(submission);
     }
 }

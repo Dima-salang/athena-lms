@@ -36,6 +36,10 @@ import com.athena.lms.athena_lms.repository.StudentAnswerRepository;
 import com.athena.lms.athena_lms.repository.SubmissionRepository;
 import com.athena.lms.athena_lms.repository.TestRepository;
 import com.athena.lms.athena_lms.repository.UserRepository;
+import jakarta.persistence.EntityManager;
+import com.blazebit.persistence.CriteriaBuilder;
+import com.blazebit.persistence.CriteriaBuilderFactory;
+import com.blazebit.persistence.RestrictionBuilder;
 
 @ExtendWith(MockitoExtension.class)
 public class SubmissionServiceTest {
@@ -63,6 +67,18 @@ public class SubmissionServiceTest {
 
     @InjectMocks
     private SubmissionService submissionService;
+
+    @Mock
+    private CriteriaBuilderFactory cbf;
+
+    @Mock
+    private EntityManager em;
+
+    @Mock
+    private CriteriaBuilder<Submission> cb;
+    
+    @Mock
+    private RestrictionBuilder rb;
 
     private Submission submission;
     private SubmissionDto submissionDto;
@@ -146,11 +162,20 @@ public class SubmissionServiceTest {
         List<Submission> submissions = new ArrayList<>();
         submissions.add(submission);
 
-        when(testRepository.findById(100L)).thenReturn(Optional.of(testEntity));
+        when(cbf.create(eq(em), eq(Submission.class))).thenReturn(cb);   // IMPORTANT
+
+        when(cb.where("test.id")).thenReturn(rb);
+        when(rb.eq(100L)).thenReturn(cb);
+
+        when(cb.orderByDesc("createdAt")).thenReturn(cb);
+
+        when(cb.getResultList()).thenReturn(submissions);
+
+        when(testRepository.existsById(100L)).thenReturn(true);
         when(submissionRepository.findByTestId(100L)).thenReturn(submissions);
         when(submissionMapper.toDto(any(Submission.class))).thenReturn(submissionDto);
 
-        List<SubmissionDto> results = submissionService.getSubmissionsByTest(100L);
+        List<SubmissionDto> results = submissionService.getSubmissionsByTest(100L, "");
 
         assertNotNull(results);
         assertEquals(1, results.size());
@@ -159,10 +184,19 @@ public class SubmissionServiceTest {
 
     @Test
     void getSubmissionsByTest_NoSubmissions_ReturnsEmptyList() {
-        when(testRepository.findById(100L)).thenReturn(Optional.of(testEntity));
+        when(testRepository.existsById(100L)).thenReturn(true);
         when(submissionRepository.findByTestId(100L)).thenReturn(new ArrayList<>());
 
-        List<SubmissionDto> results = submissionService.getSubmissionsByTest(100L);
+        when(cbf.create(eq(em), eq(Submission.class))).thenReturn(cb);   // IMPORTANT
+
+        when(cb.where("test.id")).thenReturn(rb);
+        when(rb.eq(100L)).thenReturn(cb);
+
+        when(cb.orderByDesc("createdAt")).thenReturn(cb);
+
+        when(cb.getResultList()).thenReturn(new ArrayList<>());
+
+        List<SubmissionDto> results = submissionService.getSubmissionsByTest(100L, "");
 
         assertNotNull(results);
         assertTrue(results.isEmpty());
@@ -172,10 +206,10 @@ public class SubmissionServiceTest {
 
     @Test
     void getSubmissionsByTest_TestNotFound_ThrowsNotFoundException() {
-        when(testRepository.findById(100L)).thenReturn(Optional.empty());
+        when(testRepository.existsById(100L)).thenReturn(false);
 
         assertThrows(NotFoundException.class, () -> {
-            submissionService.getSubmissionsByTest(100L);
+            submissionService.getSubmissionsByTest(100L, "");
         });
     }
 

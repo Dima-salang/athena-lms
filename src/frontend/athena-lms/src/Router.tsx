@@ -15,6 +15,8 @@ import TeacherAssignmentManagementPage from './pages/TeacherAssignmentManagement
 import UserManagementPage from './pages/UserManagementPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import TakeTestPage from './pages/TakeTestPage';
+import TestSubmissionsPage from './pages/TestSubmissionsPage';
+import SubmissionDetailPage from './pages/SubmissionDetailPage';
 
 
 
@@ -80,6 +82,22 @@ const router = createBrowserRouter([
                 element: (
                     <ProtectedRoute allowedRoles={['ROLE_TEACHER']}>
                         <TestEditorPage />
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: 'teacher/test/:testId/submissions',
+                element: (
+                    <ProtectedRoute allowedRoles={['ROLE_TEACHER']}>
+                        <TestSubmissionsPage />
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: 'teacher/submission/:submissionId',
+                element: (
+                    <ProtectedRoute allowedRoles={['ROLE_TEACHER']}>
+                        <SubmissionDetailPage />
                     </ProtectedRoute>
                 ),
             },

@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import com.athena.lms.athena_lms.model.options.Option;
@@ -26,7 +25,6 @@ import com.athena.lms.athena_lms.repository.SubjectRepository;
 import com.athena.lms.athena_lms.repository.TeacherAssignmentRepository;
 import com.athena.lms.athena_lms.repository.TestRepository;
 import com.athena.lms.athena_lms.repository.UserRepository;
-import java.util.stream.Collectors;
 
 import com.blazebit.persistence.CriteriaBuilderFactory;
 import com.blazebit.persistence.PagedList;
@@ -65,7 +63,6 @@ public class AdminService {
         this.em = em;
     }
 
-    // TODO: make sure to include filters
     public Page<User> getUsers(String role, String search, Pageable pageable) {
         CriteriaBuilder<User> cb = cbf.create(em, User.class);
 
@@ -85,6 +82,9 @@ public class AdminService {
 
         PagedList<User> pagedList = cb.page(pageable.getPageNumber() * pageable.getPageSize(), pageable.getPageSize())
                 .getResultList();
+
+        // print users
+        pagedList.forEach(user -> System.out.println(user));
 
         return new PageImpl<>(pagedList, pageable, pagedList.getTotalSize());
     }

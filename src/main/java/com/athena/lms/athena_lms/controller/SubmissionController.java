@@ -32,8 +32,9 @@ public class SubmissionController {
     }
 
     @GetMapping("/submit/{testId}")
-    public ResponseEntity<List<SubmissionDto>> getSubmissionsByTest(@PathVariable Long testId) {
-        return ResponseEntity.ok(submissionService.getSubmissionsByTest(testId));
+    public ResponseEntity<List<SubmissionDto>> getSubmissionsByTest(@PathVariable Long testId,
+            @RequestParam(required = false) String search) {
+        return ResponseEntity.ok(submissionService.getSubmissionsByTest(testId, search));
     }
 
     @PostMapping("/start/{testId}")
@@ -42,7 +43,8 @@ public class SubmissionController {
     }
 
     @PostMapping("/submit/update-answers")
-    public ResponseEntity<List<StudentAnswerDto>> createOrUpdateStudentAnswers(@RequestBody List<StudentAnswerDto> studentAnswerDtos) {
+    public ResponseEntity<List<StudentAnswerDto>> createOrUpdateStudentAnswers(
+            @RequestBody List<StudentAnswerDto> studentAnswerDtos) {
         return ResponseEntity.ok(submissionService.createOrUpdateStudentAnswers(studentAnswerDtos));
     }
 
@@ -57,4 +59,8 @@ public class SubmissionController {
         return ResponseEntity.ok(submissionService.getStudentAnswers(submissionId));
     }
 
+    @GetMapping("/{submissionId}")
+    public ResponseEntity<SubmissionDto> getSubmission(@PathVariable Long submissionId) {
+        return ResponseEntity.ok(submissionService.getSubmissionById(submissionId));
+    }
 }

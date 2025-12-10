@@ -124,15 +124,26 @@ const DashboardPage: React.FC = () => {
                                                 <span className="inline-block px-3 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full whitespace-nowrap">
                                                     {test.subject?.name || 'General'}
                                                 </span>
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation()
-                                                        navigate(`/test/${test.id}/edit`)
-                                                    }}
-                                                    className="px-3 py-1.5 text-xs font-medium text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors flex items-center gap-1 border border-slate-200 hover:border-blue-200"
-                                                >
-                                                    <span>✎ Edit</span>
-                                                </button>
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation()
+                                                            navigate(`/teacher/test/${test.id}/submissions`)
+                                                        }}
+                                                        className="px-3 py-1.5 text-xs font-medium text-slate-600 hover:text-green-600 hover:bg-green-50 rounded-md transition-colors flex items-center gap-1 border border-slate-200 hover:border-green-200"
+                                                    >
+                                                        <span>📊 Submissions</span>
+                                                    </button>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation()
+                                                            navigate(`/test/${test.id}/edit`)
+                                                        }}
+                                                        className="px-3 py-1.5 text-xs font-medium text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors flex items-center gap-1 border border-slate-200 hover:border-blue-200"
+                                                    >
+                                                        <span>✎ Edit</span>
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

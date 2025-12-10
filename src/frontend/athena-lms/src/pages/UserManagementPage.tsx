@@ -17,7 +17,7 @@ const UserManagementPage: React.FC = () => {
     // Pagination State
     const [currentPage, setCurrentPage] = useState(0)
     const [totalPages, setTotalPages] = useState(0)
-    const [pageSize] = useState(10) // Default page size
+    const [pageSize] = useState(100) // Default page size
 
     // Edit Modal State
     const [showEditModal, setShowEditModal] = useState(false)
@@ -143,8 +143,8 @@ const UserManagementPage: React.FC = () => {
                                 key={role}
                                 onClick={() => setFilter(role)}
                                 className={`px-4 py-2 rounded-lg font-medium transition whitespace-nowrap ${filter === role
-                                        ? "bg-blue-100 text-blue-700"
-                                        : "text-slate-600 hover:bg-slate-100"
+                                    ? "bg-blue-100 text-blue-700"
+                                    : "text-slate-600 hover:bg-slate-100"
                                     }`}
                             >
                                 {role === "ALL" ? "All Users" : role.charAt(0) + role.slice(1).toLowerCase() + "s"}
@@ -194,8 +194,8 @@ const UserManagementPage: React.FC = () => {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm">
                                                 <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.role === 'ADMIN' ? 'bg-purple-100 text-purple-800' :
-                                                        user.role === 'TEACHER' ? 'bg-blue-100 text-blue-800' :
-                                                            'bg-green-100 text-green-800'
+                                                    user.role === 'TEACHER' ? 'bg-blue-100 text-blue-800' :
+                                                        'bg-green-100 text-green-800'
                                                     }`}>
                                                     {user.role}
                                                 </span>
@@ -226,8 +226,8 @@ const UserManagementPage: React.FC = () => {
                                 onClick={handlePreviousPage}
                                 disabled={currentPage === 0}
                                 className={`px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium transition ${currentPage === 0
-                                        ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-                                        : "bg-white text-slate-700 hover:bg-slate-50"
+                                    ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+                                    : "bg-white text-slate-700 hover:bg-slate-50"
                                     }`}
                             >
                                 Previous
@@ -239,8 +239,8 @@ const UserManagementPage: React.FC = () => {
                                 onClick={handleNextPage}
                                 disabled={currentPage >= totalPages - 1}
                                 className={`px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium transition ${currentPage >= totalPages - 1
-                                        ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-                                        : "bg-white text-slate-700 hover:bg-slate-50"
+                                    ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+                                    : "bg-white text-slate-700 hover:bg-slate-50"
                                     }`}
                             >
                                 Next

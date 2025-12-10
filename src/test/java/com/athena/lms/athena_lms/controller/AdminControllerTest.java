@@ -87,9 +87,15 @@ public class AdminControllerTest {
     @Test
     @WithMockUser(username = "admin_user", roles = "ADMIN")
     public void testGetAllUsers() throws Exception {
-        mockMvc.perform(get("/api/admin/users"))
+        // use the filtering to get all users
+        // params are role, search, and pageable
+
+        mockMvc.perform(get("/api/admin/users")
+                .param("page", "0")
+                .param("size", "10"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(4)); // 4 due to automatic initial admin creation at startup
+                .andExpect(jsonPath("$.content.length()").value(4)); // 4 due to automatic initial admin creation at
+                                                                     // startup
     }
 
     @Test
@@ -162,7 +168,7 @@ public class AdminControllerTest {
                 .andExpect(status().isBadRequest());
     }
 
-    // create user 
+    // create user
     @Test
     @WithMockUser(username = "admin_user", roles = "ADMIN")
     public void testCreateUser() throws Exception {

@@ -282,3 +282,15 @@ export const createTeacherAssignment = async (assignment: Omit<TeacherAssignment
 export const deleteTeacherAssignment = async (id: number): Promise<void> => {
     await axios.delete(`${API_BASE_URL}/admin/teacher-assignments`, { params: { id } });
 };
+
+export const getSubmissionsByTest = async (testId: number, search?: string): Promise<Submission[]> => {
+    const response = await axios.get(`${API_BASE_URL}/student/submissions/submit/${testId}`, {
+        params: { search }
+    });
+    return response.data;
+};
+
+export const getSubmission = async (submissionId: number): Promise<Submission> => {
+    const response = await axios.get(`${API_BASE_URL}/student/submissions/${submissionId}`);
+    return response.data;
+};
