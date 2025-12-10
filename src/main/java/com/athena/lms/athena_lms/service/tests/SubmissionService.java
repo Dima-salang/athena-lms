@@ -7,7 +7,6 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import com.athena.lms.athena_lms.repository.*;
 
-
 import com.athena.lms.athena_lms.mapper.SubmissionMapper;
 import com.athena.lms.athena_lms.mapper.StudentAnswerMapper;
 import com.athena.exceptions.AccessDeniedException;
@@ -55,8 +54,10 @@ public class SubmissionService {
         submissionRepository.deleteById(submissionId);
     }
 
-    public List<SubmissionDto> getSubmissionsByTest(Long testId) {
-        List<Submission> submissions = submissionRepository.findByTestId(testId);
+    
+    public List<SubmissionDto> getSubmissionsByTest(Long testId) throws NotFoundException {
+        Test test = testRepository.findById(testId).orElseThrow(() -> new NotFoundException("Test not found"));
+        List<Submission> submissions = submissionRepository.findByTestId(test.getId());
         // Map submissions to submissionDtos
         List<SubmissionDto> submissionDtos = new ArrayList<>();
         for (Submission submission : submissions) {
@@ -134,13 +135,14 @@ public class SubmissionService {
         // get test
         Test test = submission.getTest();
 
-        // TODO - change this to Instant
+        Instant now = Instant.now();
         // check end time
-        if (submission.getSubmittedAt().isAfter(test.getTestDueDate())) {
+        if (test.getTestDueDate() != null && now.isAfter(test.getTestDueDate())) {
             throw new RuntimeException("Test has already ended");
         }
 
-        submission.setUpdatedAt(Instant.now());
+        submission.setUpdatedAt(now);
+        submission.setSubmittedAt(now);
 
         // Save answers
         List<StudentAnswer> studentAnswers = new ArrayList<>();

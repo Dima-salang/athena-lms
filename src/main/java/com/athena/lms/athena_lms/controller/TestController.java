@@ -2,6 +2,8 @@ package com.athena.lms.athena_lms.controller;
 
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 
 import com.athena.lms.athena_lms.dto.QuestionDto;
@@ -24,11 +26,6 @@ public class TestController {
     @PostMapping
     public ResponseEntity<TestDto> createTest(@RequestBody TestDto testDto, Principal principal) {
         TestDto createdTest = testManagementService.createTest(testDto, principal.getName());
-        System.err.println("Created test: " + createdTest);
-        System.err.println("Created test: " + createdTest.getQuestions());
-        System.err.println("Created test: " + createdTest.getSection());
-        System.err.println("Created test <Section ID>: " + createdTest.getSection().getId());
-        System.err.println("Created test: " + createdTest.getId());
         return ResponseEntity.ok(createdTest);
     }
 
@@ -67,10 +64,9 @@ public class TestController {
     @GetMapping("{teacherId}/tests")
     public ResponseEntity<org.springframework.data.domain.Page<TestDto>> getTeacherTests(
             @PathVariable Long teacherId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size) {
+            Pageable pageable) {
         try {
-            return ResponseEntity.ok(testManagementService.getTeacherTests(teacherId, page, size));
+            return ResponseEntity.ok(testManagementService.getTeacherTests(teacherId, pageable));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(null);
         }

@@ -64,8 +64,6 @@ public class TestControllerTest {
         System.err.println("Teacher ID: " + teacher.getId());
         System.err.println("Teacher Username: " + teacher.getUsername());
 
-
-
         // We can set IDs or embedded objects depending on DTO structure.
         // For this test, we might rely on the service creating them if names are
         // provided,
@@ -77,7 +75,7 @@ public class TestControllerTest {
         testDto.setSection(section);
         testDto.setTeacherId(teacher.getId());
 
-        mockMvc.perform(post("/api/tests")
+        mockMvc.perform(post("/api/teacher/tests")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(testDto)))
                 .andExpect(status().isOk());
@@ -117,7 +115,7 @@ public class TestControllerTest {
         // Controller expects a List
         java.util.List<QuestionDto> questions = java.util.Collections.singletonList(questionDto);
 
-        mockMvc.perform(post("/api/tests/questions")
+        mockMvc.perform(post("/api/teacher/tests/questions")
                 .param("testId", test.getId().toString())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(questions)))
@@ -156,7 +154,7 @@ public class TestControllerTest {
         java.util.List<QuestionDto> questions = java.util.Arrays.asList(q1, q2);
 
         // Endpoint is /api/tests/questions for bulk too
-        mockMvc.perform(post("/api/tests/questions")
+        mockMvc.perform(post("/api/teacher/tests/questions")
                 .param("testId", test.getId().toString())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(questions)))
@@ -182,7 +180,7 @@ public class TestControllerTest {
         userRepository.save(student);
 
         try {
-            mockMvc.perform(post("/api/tests")
+            mockMvc.perform(post("/api/teacher/tests")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(testDto)))
                     .andExpect(status().isInternalServerError());
@@ -195,7 +193,7 @@ public class TestControllerTest {
         TestDto testDto = new TestDto();
         testDto.setTestName("No Auth Test");
 
-        mockMvc.perform(post("/api/tests")
+        mockMvc.perform(post("/api/teacher/tests")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(testDto)))
                 .andExpect(status().isUnauthorized());

@@ -20,12 +20,12 @@ const SectionManagementPage: React.FC = () => {
 
   const fetchData = async () => {
     try {
-      const [fetchedSections, fetchedTeachers] = await Promise.all([
+      const [fetchedSections, fetchedTeachersRes] = await Promise.all([
         getSections(),
-        getAllTeachers()
+        getAllTeachers(0, 100)
       ])
       setSections(fetchedSections)
-      setTeachers(fetchedTeachers)
+      setTeachers(fetchedTeachersRes.content)
     } catch (err) {
       setError("Failed to fetch data")
     }

@@ -325,15 +325,12 @@ public class TestManagementService {
                 .toList();
     }
 
-    public Page<TestDto> getTeacherTests(Long teacherId, int page, int size) {
+    public Page<TestDto> getTeacherTests(Long teacherId, Pageable pageable) {
         // validate the id
         User user = userRepository.findById(teacherId).orElse(null);
         if (user == null) {
             throw new RuntimeException("User not found");
         }
-
-        Pageable pageable = PageRequest.of(page, size,
-                Sort.by("id").descending());
 
         return testRepository.findByTeacherId(teacherId, pageable)
                 .map(testMapper::toDto);

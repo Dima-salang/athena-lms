@@ -7,19 +7,19 @@ import com.athena.lms.athena_lms.model.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import jakarta.transaction.Transactional;
 import com.athena.lms.athena_lms.repository.*;
+import com.athena.lms.athena_lms.service.admin.AdminService;
+import com.athena.exceptions.*;
+import org.junit.jupiter.api.Assertions;
 
 @SpringBootTest(properties = { "spring.datasource.url=jdbc:h2:mem:testdb",
         "spring.jpa.hibernate.ddl-auto=create-drop" })
@@ -41,6 +41,9 @@ public class AdminControllerTest {
 
     @Autowired
     private SubjectRepository subjectRepository;
+
+    @Autowired
+    private AdminService adminService;
 
     @BeforeEach
     public void setUp() {
@@ -86,7 +89,7 @@ public class AdminControllerTest {
     public void testGetAllUsers() throws Exception {
         mockMvc.perform(get("/api/admin/users"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(3));
+                .andExpect(jsonPath("$.length()").value(4)); // 4 due to automatic initial admin creation at startup
     }
 
     @Test
@@ -157,6 +160,45 @@ public class AdminControllerTest {
                 .content(objectMapper.writeValueAsString(subject))
                 .with(csrf()))
                 .andExpect(status().isBadRequest());
+    }
+
+    // create user 
+    @Test
+    @WithMockUser(username = "admin_user", roles = "ADMIN")
+    public void testCreateUser() throws Exception {
+        User user = new User();
+        user.setUsername("user_user");
+        user.setPassword("password");
+        user.setFirstName("User");
+        user.setLastName("User");
+        user.setRole("USER");
+        mockMvc.perform(post("/api/admin/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(user))
+                .with(csrf()))
+                .andExpect(status().isOk());
+    }
+
+    // create user with duplicate username
+    @Test
+    @WithMockUser(username = "admin_user", roles = "ADMIN")
+    public void testCreateUserWithDuplicateUsername() throws Exception {
+        User user = new User();
+        user.setUsername("admin_user");
+        user.setPassword("password");
+        user.setFirstName("User");
+        user.setLastName("User");
+        user.setRole("USER");
+        mockMvc.perform(post("/api/admin/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(user))
+                .with(csrf()))
+                .andExpect(status().isBadRequest());
+
+        // expect throws a DuplicateNameException
+        Assertions.assertThrows(DuplicateNameException.class, () -> {
+            adminService.createUser(user);
+        });
     }
 
 }

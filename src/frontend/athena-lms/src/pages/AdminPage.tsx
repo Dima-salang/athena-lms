@@ -80,6 +80,36 @@ const AdminPage: React.FC = () => {
             </div>
           </div>
 
+          {/* Manage Teacher Assignments Card */}
+          <div
+            onClick={() => navigate("/admin/teacher-assignments")}
+            className="group bg-white rounded-lg shadow-md p-8 cursor-pointer hover:shadow-lg transition border border-slate-200 hover:border-orange-300"
+          >
+            <div className="mb-4 w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center group-hover:bg-orange-200 transition">
+              <span className="text-2xl">👨‍🏫</span>
+            </div>
+            <h2 className="text-xl font-bold text-slate-900 mb-2">Teacher Assignments</h2>
+            <p className="text-slate-600">Assign teachers to specific subjects and sections.</p>
+            <div className="mt-6 flex items-center text-orange-600 font-semibold group-hover:gap-2 transition-all">
+              Manage Assignments <span className="ml-2">→</span>
+            </div>
+          </div>
+
+          {/* Manage Users Card */}
+          <div
+            onClick={() => navigate("/admin/users")}
+            className="group bg-white rounded-lg shadow-md p-8 cursor-pointer hover:shadow-lg transition border border-slate-200 hover:border-indigo-300"
+          >
+            <div className="mb-4 w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center group-hover:bg-indigo-200 transition">
+              <span className="text-2xl">👥</span>
+            </div>
+            <h2 className="text-xl font-bold text-slate-900 mb-2">Manage Users</h2>
+            <p className="text-slate-600">View and manage all users (Teachers, Students, Admins).</p>
+            <div className="mt-6 flex items-center text-indigo-600 font-semibold group-hover:gap-2 transition-all">
+              Manage Users <span className="ml-2">→</span>
+            </div>
+          </div>
+
           {/* Create Admin Card */}
           <div
             onClick={() => setShowCreateAdminModal(true)}
@@ -99,8 +129,8 @@ const AdminPage: React.FC = () => {
 
       {/* Create Admin Modal */}
       {showCreateAdminModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
             <h2 className="text-2xl font-bold text-slate-900 mb-4">Create New Admin</h2>
 
             {error && (

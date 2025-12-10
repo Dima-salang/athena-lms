@@ -3,6 +3,9 @@ package com.athena.lms.athena_lms.service.admin;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import com.athena.lms.athena_lms.model.options.Option;
@@ -25,6 +28,12 @@ import com.athena.lms.athena_lms.repository.TestRepository;
 import com.athena.lms.athena_lms.repository.UserRepository;
 import java.util.stream.Collectors;
 
+import com.blazebit.persistence.CriteriaBuilderFactory;
+import com.blazebit.persistence.PagedList;
+import com.blazebit.persistence.CriteriaBuilder;
+import jakarta.persistence.EntityManager;
+import org.springframework.data.domain.PageImpl;
+
 @Service
 public class AdminService {
 
@@ -36,11 +45,14 @@ public class AdminService {
     private final SectionMapper sectionMapper;
     private final SubjectMapper subjectMapper;
     private final TeacherAssignmentRepository teacherAssignmentRepository;
+    private final CriteriaBuilderFactory cbf;
+    private final EntityManager em;
 
     public AdminService(UserRepository userRepository, TestRepository testRepository,
             SectionRepository sectionRepository, SubjectRepository subjectRepository,
             OptionRepository optionRepository, SectionMapper sectionMapper, SubjectMapper subjectMapper,
-            TeacherAssignmentRepository teacherAssignmentRepository) {
+            TeacherAssignmentRepository teacherAssignmentRepository,
+            CriteriaBuilderFactory cbf, EntityManager em) {
         this.userRepository = userRepository;
         this.testRepository = testRepository;
         this.sectionRepository = sectionRepository;
@@ -49,14 +61,38 @@ public class AdminService {
         this.sectionMapper = sectionMapper;
         this.subjectMapper = subjectMapper;
         this.teacherAssignmentRepository = teacherAssignmentRepository;
+        this.cbf = cbf;
+        this.em = em;
     }
 
     // TODO: make sure to include filters
-    public List<User> getUsers() {
-        return userRepository.findAll();
+    public Page<User> getUsers(String role, String search, Pageable pageable) {
+        CriteriaBuilder<User> cb = cbf.create(em, User.class);
+
+        if (role != null && !role.isEmpty() && !"ALL".equalsIgnoreCase(role)) {
+            cb.where("role").eq(role);
+        }
+
+        if (search != null && !search.isEmpty()) {
+            cb.whereOr()
+                    .where("LOWER(firstName)").like(false).value("%" + search.toLowerCase() + "%").noEscape()
+                    .where("LOWER(lastName)").like(false).value("%" + search.toLowerCase() + "%").noEscape()
+                    .where("LOWER(username)").like(false).value("%" + search.toLowerCase() + "%").noEscape()
+                    .endOr();
+        }
+
+        cb.orderByAsc("id"); // Default ordering
+
+        PagedList<User> pagedList = cb.page(pageable.getPageNumber() * pageable.getPageSize(), pageable.getPageSize())
+                .getResultList();
+
+        return new PageImpl<>(pagedList, pageable, pagedList.getTotalSize());
     }
 
     public void createUser(User user) {
+        if (userRepository.existsByUsername(user.getUsername())) {
+            throw new DuplicateNameException("Username already exists");
+        }
         userRepository.save(user);
     }
 
@@ -64,11 +100,9 @@ public class AdminService {
         userRepository.deleteById(id);
     }
 
-    public List<Teacher> getTeachers() {
-        List<User> teachers = userRepository.findAllByRole("TEACHER");
-        return teachers.stream()
-                .map(user -> (Teacher) user)
-                .collect(Collectors.toList());
+    public Page<User> getTeachers(Pageable pageable) {
+        Page<User> teachers = userRepository.findAllByRole("TEACHER", pageable);
+        return teachers;
     }
 
     // TESTS
@@ -131,13 +165,17 @@ public class AdminService {
         subjectRepository.deleteById(id);
     }
 
-
     // Teacher Assignment
-    public List<TeacherAssignment> getTeacherAssignments() {
-        return teacherAssignmentRepository.findAll();
+    public Page<TeacherAssignment> getTeacherAssignments(Pageable pageable) {
+        return teacherAssignmentRepository.findAll(pageable);
     }
 
     public TeacherAssignment createOrUpdateTeacherAssignment(TeacherAssignment teacherAssignment) {
+        if (teacherAssignmentRepository.existsByTeacherIdAndSubjectIdAndSectionId(
+                teacherAssignment.getTeacher().getId(), teacherAssignment.getSubject().getId(),
+                teacherAssignment.getSection().getId())) {
+            throw new DuplicateNameException("Teacher assignment already exists");
+        }
         return teacherAssignmentRepository.save(teacherAssignment);
     }
 

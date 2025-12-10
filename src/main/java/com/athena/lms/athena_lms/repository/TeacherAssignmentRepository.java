@@ -1,5 +1,7 @@
 package com.athena.lms.athena_lms.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.athena.lms.athena_lms.model.Section;
@@ -11,7 +13,8 @@ public interface TeacherAssignmentRepository extends JpaRepository<TeacherAssign
     TeacherAssignment findByTeacher(Teacher teacher);
     TeacherAssignment findBySubject(Subject subject);
     TeacherAssignment findBySection(Section section);
-
+    Page<TeacherAssignment> findAll(Pageable pageable);
+    boolean existsByTeacherIdAndSubjectIdAndSectionId(Long teacherId, Long subjectId, Long sectionId);
 
     
 }

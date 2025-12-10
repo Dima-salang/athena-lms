@@ -2,20 +2,15 @@ package com.athena.lms.athena_lms.controller;
 
 import java.util.List;
 
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-
+import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import com.athena.lms.athena_lms.service.admin.AdminService;
 import com.athena.lms.athena_lms.service.auth.AuthService;
 import com.athena.lms.athena_lms.model.Admin;
 import com.athena.lms.athena_lms.model.Section;
 import com.athena.lms.athena_lms.model.Subject;
-import com.athena.lms.athena_lms.model.Teacher;
 import com.athena.lms.athena_lms.model.TeacherAssignment;
 import com.athena.lms.athena_lms.model.User;
 import com.athena.lms.athena_lms.model.tests.Test;
@@ -36,48 +31,59 @@ public class AdminController {
     }
 
     @GetMapping("/users")
-    public List<User> getAllUsers() {
-        return adminService.getUsers();
+    public ResponseEntity<Page<User>> getAllUsers(
+            @RequestParam(required = false) String role,
+            @RequestParam(required = false) String search,
+            Pageable pageable) {
+        return ResponseEntity.ok(adminService.getUsers(role, search, pageable));
     }
 
     @GetMapping("/teachers")
-    public List<Teacher> getAllTeachers() {
-        return adminService.getTeachers();
+    public ResponseEntity<Page<User>> getAllTeachers(Pageable pageable) {
+        return ResponseEntity.ok(adminService.getTeachers(pageable));
     }
 
     @GetMapping("/tests")
-    public List<Test> getAllTests() {
-        return adminService.getTests();
+    public ResponseEntity<List<Test>> getAllTests() {
+        return ResponseEntity.ok(adminService.getTests());
     }
 
     @GetMapping("/options")
-    public List<Option> getAllOptions() {
-        return adminService.getOptions();
+    public ResponseEntity<List<Option>> getAllOptions() {
+        return ResponseEntity.ok(adminService.getOptions());
     }
 
     @GetMapping("/sections")
-    public List<SectionDto> getAllSections() {
-        return adminService.getSections();
+    public ResponseEntity<List<SectionDto>> getAllSections() {
+        return ResponseEntity.ok(adminService.getSections());
     }
 
     @GetMapping("/subjects")
-    public List<SubjectDto> getAllSubjects() {
-        return adminService.getSubjects();
+    public ResponseEntity<List<SubjectDto>> getAllSubjects() {
+        return ResponseEntity.ok(adminService.getSubjects());
     }
 
     @PostMapping("/users")
-    public void createUser(@RequestBody User user) {
+    public ResponseEntity<Void> createUser(@RequestBody User user) {
         adminService.createUser(user);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/users/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+        adminService.deleteUser(id);
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/sections")
-    public void createOrUpdateSection(@RequestBody Section section, @RequestParam(required = false) Long teacherId) {
-        adminService.createOrUpdateSection(section, teacherId);
+    public ResponseEntity<SectionDto> createOrUpdateSection(@RequestBody Section section,
+            @RequestParam(required = false) Long teacherId) {
+        return ResponseEntity.ok(adminService.createOrUpdateSection(section, teacherId));
     }
 
     @PostMapping("/subjects")
-    public void createOrUpdateSubject(@RequestBody Subject subject) {
-        adminService.createOrUpdateSubject(subject);
+    public ResponseEntity<SubjectDto> createOrUpdateSubject(@RequestBody Subject subject) {
+        return ResponseEntity.ok(adminService.createOrUpdateSubject(subject));
     }
 
     // create another admin account
@@ -86,24 +92,21 @@ public class AdminController {
         return authService.registerAdmin(admin);
     }
 
-
     // create a teacher assignment
     @PostMapping("register/teacher-assignment")
-    public void createTeacherAssignment(@RequestBody TeacherAssignment teacherAssignment) {
-        adminService.createOrUpdateTeacherAssignment(teacherAssignment);
+    public ResponseEntity<TeacherAssignment> createTeacherAssignment(@RequestBody TeacherAssignment teacherAssignment) {
+        return ResponseEntity.ok(adminService.createOrUpdateTeacherAssignment(teacherAssignment));
     }
 
     @GetMapping("/teacher-assignments")
-    public List<TeacherAssignment> getAllTeacherAssignments() {
-        return adminService.getTeacherAssignments();
+    public ResponseEntity<Page<TeacherAssignment>> getAllTeacherAssignments(Pageable pageable) {
+        return ResponseEntity.ok(adminService.getTeacherAssignments(pageable));
     }
 
     @DeleteMapping("/teacher-assignments")
-    public void deleteTeacherAssignment(@RequestParam Long id) {
+    public ResponseEntity<Void> deleteTeacherAssignment(@RequestParam Long id) {
         adminService.deleteTeacherAssignment(id);
+        return ResponseEntity.ok().build();
     }
-
-
-
 
 }

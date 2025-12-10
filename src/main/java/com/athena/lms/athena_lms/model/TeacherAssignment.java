@@ -11,7 +11,7 @@ import jakarta.persistence.UniqueConstraint;
 
 @Entity
 @Table(uniqueConstraints = {
-    @UniqueConstraint(columnNames = {"teacher_id", "subject_id", "section_id"})
+        @UniqueConstraint(columnNames = { "teacher_id", "subject_id", "section_id" })
 })
 public class TeacherAssignment {
     @Id
@@ -29,5 +29,36 @@ public class TeacherAssignment {
     @ManyToOne
     @JoinColumn(name = "section_id", nullable = true)
     private Section section;
-    
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Teacher getTeacher() {
+        return teacher;
+    }
+
+    public void setTeacher(Teacher teacher) {
+        this.teacher = teacher;
+    }
+
+    public Subject getSubject() {
+        return subject;
+    }
+
+    public void setSubject(Subject subject) {
+        this.subject = subject;
+    }
+
+    public Section getSection() {
+        return section;
+    }
+
+    public void setSection(Section section) {
+        this.section = section;
+    }
 }

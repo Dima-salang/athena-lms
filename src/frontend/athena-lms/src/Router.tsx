@@ -11,6 +11,8 @@ import TestEditorPage from './pages/TestEditorPage';
 import AdminPage from './pages/AdminPage';
 import SectionManagementPage from './pages/SectionManagementPage';
 import SubjectManagementPage from './pages/SubjectManagementPage';
+import TeacherAssignmentManagementPage from './pages/TeacherAssignmentManagementPage';
+import UserManagementPage from './pages/UserManagementPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import TakeTestPage from './pages/TakeTestPage';
 
@@ -102,6 +104,22 @@ const router = createBrowserRouter([
                 element: (
                     <ProtectedRoute allowedRoles={['ROLE_ADMIN']}>
                         <SubjectManagementPage />
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: 'admin/teacher-assignments',
+                element: (
+                    <ProtectedRoute allowedRoles={['ROLE_ADMIN']}>
+                        <TeacherAssignmentManagementPage />
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: 'admin/users',
+                element: (
+                    <ProtectedRoute allowedRoles={['ROLE_ADMIN']}>
+                        <UserManagementPage />
                     </ProtectedRoute>
                 ),
             },

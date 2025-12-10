@@ -8,7 +8,23 @@ export interface User {
     lastName: string;
     username: string;
     password?: string; // Add password for registration
+    role?: string;
 }
+
+export const getAllUsers = async (page: number = 0, size: number = 100, role?: string, search?: string): Promise<PaginatedResponse<User>> => {
+    const response = await axios.get(`${API_BASE_URL}/admin/users`, {
+        params: { page, size, role, search }
+    });
+    return response.data;
+};
+
+export const deleteUser = async (id: number): Promise<void> => {
+    await axios.delete(`${API_BASE_URL}/admin/users/${id}`);
+};
+
+export const updateUser = async (user: User): Promise<void> => {
+    await axios.post(`${API_BASE_URL}/admin/users`, user);
+};
 
 export interface Teacher extends User { }
 
@@ -25,12 +41,11 @@ export interface Section {
 
 // ... (keep other interfaces)
 
-export const getAllTeachers = async (): Promise<Teacher[]> => {
-    const response = await axios.get(`${API_BASE_URL}/admin/users`);
-    // Filter for teachers, assuming role is available or backend filters. 
-    // Since /admin/users returns all users, we might need to filter on frontend if backend doesn't support filtering.
-    // However, for now, let's assume we filter here.
-    return response.data.filter((user: any) => user.role === 'TEACHER');
+export const getAllTeachers = async (page: number = 0, size: number = 100): Promise<PaginatedResponse<Teacher>> => {
+    const response = await axios.get(`${API_BASE_URL}/admin/teachers`, {
+        params: { page, size }
+    });
+    return response.data;
 };
 
 export const createSection = async (section: Omit<Section, 'id' | 'adviserName'>, teacherId?: number): Promise<void> => {
@@ -42,6 +57,20 @@ export interface Subject {
     name: string;
     description: string;
 }
+
+export interface TeacherAssignment {
+    id: number;
+    teacher: Teacher;
+    section: Section;
+    subject: Subject;
+}
+
+export const getAllTeacherAssignments = async (page: number = 0, size: number = 5): Promise<PaginatedResponse<TeacherAssignment>> => {
+    const response = await axios.get(`${API_BASE_URL}/admin/teacher-assignments`, {
+        params: { page, size }
+    });
+    return response.data;
+};
 
 export interface Question {
     id: number;
@@ -246,3 +275,10 @@ export const createAdmin = async (admin: User): Promise<User> => {
 
 
 
+export const createTeacherAssignment = async (assignment: Omit<TeacherAssignment, 'id'>): Promise<void> => {
+    await axios.post(`${API_BASE_URL}/admin/register/teacher-assignment`, assignment);
+};
+
+export const deleteTeacherAssignment = async (id: number): Promise<void> => {
+    await axios.delete(`${API_BASE_URL}/admin/teacher-assignments`, { params: { id } });
+};
