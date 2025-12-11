@@ -1,9 +1,16 @@
+DECEMBER 12, 2025
+- implement autosaving for the timer as well
+- fix the autosaving not preserving the answers when page refreshed
+- fix the viewing of the submissions where the student answer is red even if the answer is correct
+- fix true false question not displaying the true or false question because we are now using the correct answer instead of options
+
+
 DECEMBER 8, 2025
 - teacher assignments
-- all account managmenet in the admin
-- teacher management in the admin
-- student management in the admin
-- implement timer in the frontend
+- all account managmenet in the admin - DONE
+- teacher management in the admin - DONE
+- student management in the admin - DONE
+- implement timer in the frontend - DONE
 - validate editing and creation of the test for the teacher
     - verify whether a specific teacher assignment exists for that subject and section
 

@@ -112,43 +112,76 @@ const SubmissionDetailPage: React.FC = () => {
 
                                 {/* Multiple Choice / True False - Show Options */}
                                 {(question.questionType === "MULTIPLE_CHOICE" || question.questionType === "TRUE_FALSE") && (
-                                    <div className="space-y-2 mt-4">
-                                        {(question as any).options && (question as any).options.map((option: any) => {
-                                            const isSelected = studentAnswer?.optionId === option.id
-                                            const isCorrect = option.isCorrect
+                                    <div className="space-y-4 mt-4">
+                                        {/* Student's Answer Display */}
+                                        {studentAnswer?.optionId && (
+                                            <div className="p-4 rounded-lg bg-slate-100 border-2 border-slate-300">
+                                                <span className="block text-xs font-semibold text-slate-600 uppercase mb-2">
+                                                    Student's Answer
+                                                </span>
+                                                <div className="text-slate-900 font-medium">
+                                                    {(question as any).options?.find((opt: any) => opt.id === studentAnswer.optionId)?.optionText || "Unknown"}
+                                                </div>
+                                            </div>
+                                        )}
 
-                                            return (
-                                                <div
-                                                    key={option.id}
-                                                    className={`p-4 rounded-lg border-2 transition ${isSelected && isCorrect
-                                                            ? "bg-green-50 border-green-500"
-                                                            : isSelected && !isCorrect
-                                                                ? "bg-red-50 border-red-500"
-                                                                : isCorrect
-                                                                    ? "bg-blue-50 border-blue-300"
-                                                                    : "bg-slate-50 border-slate-200"
-                                                        }`}
-                                                >
-                                                    <div className="flex items-center justify-between">
-                                                        <span className="text-slate-900 font-medium">
-                                                            {option.optionText}
-                                                        </span>
-                                                        <div className="flex gap-2">
-                                                            {isSelected && (
-                                                                <span className="px-2 py-1 text-xs font-semibold rounded bg-slate-700 text-white">
-                                                                    Student's Answer
-                                                                </span>
-                                                            )}
-                                                            {isCorrect && (
-                                                                <span className="px-2 py-1 text-xs font-semibold rounded bg-green-600 text-white">
-                                                                    Correct Answer
-                                                                </span>
-                                                            )}
-                                                        </div>
+                                        {/* Correct Answer Display */}
+                                        {(() => {
+                                            const correctOption = (question as any).options?.find((opt: any) => opt.isCorrect);
+                                            return correctOption ? (
+                                                <div className="p-4 rounded-lg bg-green-100 border-2 border-green-500">
+                                                    <span className="block text-xs font-semibold text-green-700 uppercase mb-2">
+                                                        Correct Answer
+                                                    </span>
+                                                    <div className="text-green-900 font-medium">
+                                                        {correctOption.optionText}
                                                     </div>
                                                 </div>
-                                            )
-                                        })}
+                                            ) : null;
+                                        })()}
+
+                                        {/* All Options List */}
+                                        <div className="space-y-2">
+                                            <span className="block text-xs font-semibold text-slate-500 uppercase mb-2">
+                                                All Options
+                                            </span>
+                                            {(question as any).options && (question as any).options.map((option: any) => {
+                                                const isSelected = studentAnswer?.optionId === option.id
+                                                const isCorrect = option.isCorrect
+
+                                                return (
+                                                    <div
+                                                        key={option.id}
+                                                        className={`p-4 rounded-lg border-2 transition ${isSelected && isCorrect
+                                                                ? "bg-green-50 border-green-500"
+                                                                : isSelected && !isCorrect
+                                                                    ? "bg-red-50 border-red-500"
+                                                                    : isCorrect
+                                                                        ? "bg-blue-50 border-blue-300"
+                                                                        : "bg-slate-50 border-slate-200"
+                                                            }`}
+                                                    >
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-slate-900 font-medium">
+                                                                {option.optionText}
+                                                            </span>
+                                                            <div className="flex gap-2">
+                                                                {isSelected && (
+                                                                    <span className="px-2 py-1 text-xs font-semibold rounded bg-slate-700 text-white">
+                                                                        Selected
+                                                                    </span>
+                                                                )}
+                                                                {isCorrect && (
+                                                                    <span className="px-2 py-1 text-xs font-semibold rounded bg-green-600 text-white">
+                                                                        ✓ Correct
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )
+                                            })}
+                                        </div>
                                     </div>
                                 )}
 

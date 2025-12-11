@@ -34,13 +34,15 @@ public class SubmissionService {
     private final TestRepository testRepository;
     private final UserRepository userRepository;
     private final OptionRepository optionRepository;
+    private final QuestionRepository questionRepository;
     private final CriteriaBuilderFactory cbf;
     private final EntityManager em;
 
     public SubmissionService(SubmissionRepository submissionRepository,
             StudentAnswerRepository studentAnswerRepository, SubmissionMapper submissionMapper,
             StudentAnswerMapper studentAnswerMapper, TestRepository testRepository, UserRepository userRepository,
-            OptionRepository optionRepository, CriteriaBuilderFactory cbf, EntityManager em) {
+            OptionRepository optionRepository, QuestionRepository questionRepository,
+            CriteriaBuilderFactory cbf, EntityManager em) {
         this.submissionRepository = submissionRepository;
         this.studentAnswerRepository = studentAnswerRepository;
         this.submissionMapper = submissionMapper;
@@ -48,6 +50,7 @@ public class SubmissionService {
         this.testRepository = testRepository;
         this.userRepository = userRepository;
         this.optionRepository = optionRepository;
+        this.questionRepository = questionRepository;
         this.cbf = cbf;
         this.em = em;
     }
@@ -104,17 +107,40 @@ public class SubmissionService {
         for (StudentAnswerDto studentAnswerDto : studentAnswerDtos) {
             StudentAnswer studentAnswer;
             if (studentAnswerDto.getId() == null) {
-                studentAnswer = studentAnswerMapper.toEntity(studentAnswerDto);
-                studentAnswer.setId(null);
+                // Create new answer - don't use mapper to avoid transient entities
+                studentAnswer = new StudentAnswer();
+                studentAnswer.setTextAnswer(studentAnswerDto.getTextAnswer());
+                studentAnswer.setPoints(studentAnswerDto.getPoints());
             } else {
-                studentAnswer = studentAnswerRepository.findById(studentAnswerDto.getId()).orElse(null);
-                studentAnswerMapper.updateEntityFromDto(studentAnswerDto, studentAnswer);
+                // Update existing answer
+                studentAnswer = studentAnswerRepository.findById(studentAnswerDto.getId())
+                        .orElseThrow(() -> new NotFoundException("Student answer not found"));
+                studentAnswer.setTextAnswer(studentAnswerDto.getTextAnswer());
+                studentAnswer.setPoints(studentAnswerDto.getPoints());
+            }
+
+            // Fetch and set managed entities from database
+            if (studentAnswerDto.getSubmission() != null && studentAnswerDto.getSubmission().getId() != null) {
+                Submission submission = submissionRepository.findById(studentAnswerDto.getSubmission().getId())
+                        .orElseThrow(() -> new NotFoundException("Submission not found"));
+                studentAnswer.setSubmission(submission);
+            }
+
+            if (studentAnswerDto.getQuestion() != null && studentAnswerDto.getQuestion().getId() != null) {
+                Question question = questionRepository.findById(studentAnswerDto.getQuestion().getId())
+                        .orElseThrow(() -> new NotFoundException("Question not found"));
+                studentAnswer.setQuestion(question);
             }
 
             if (studentAnswerDto.getOptionId() != null) {
-                Option option = optionRepository.findById(studentAnswerDto.getOptionId()).orElse(null);
+                Option option = optionRepository.findById(studentAnswerDto.getOptionId())
+                        .orElseThrow(() -> new NotFoundException("Option not found"));
                 studentAnswer.setOption(option);
+            } else {
+                // Clear option if null (for text-based answers)
+                studentAnswer.setOption(null);
             }
+
             studentAnswers.add(studentAnswer);
         }
         List<StudentAnswer> savedStudentAnswers = studentAnswerRepository.saveAll(studentAnswers);
@@ -177,7 +203,20 @@ public class SubmissionService {
         // Save answers
         List<StudentAnswer> studentAnswers = new ArrayList<>();
         for (StudentAnswerDto dto : studentAnswerDtos) {
-            StudentAnswer answer = studentAnswerMapper.toEntity(dto);
+            // Create new answer - don't use mapper to avoid transient entities
+            StudentAnswer answer = new StudentAnswer();
+            answer.setTextAnswer(dto.getTextAnswer());
+            answer.setPoints(dto.getPoints());
+
+            // Set the submission (already managed)
+            answer.setSubmission(submission);
+
+            // Fetch and set managed Question entity
+            if (dto.getQuestion() != null && dto.getQuestion().getId() != null) {
+                Question question = questionRepository.findById(dto.getQuestion().getId())
+                        .orElseThrow(() -> new NotFoundException("Question not found"));
+                answer.setQuestion(question);
+            }
 
             // Only fetch option if optionId is not null (for MCQ/TrueFalse with options)
             if (dto.getOptionId() != null) {
@@ -186,7 +225,6 @@ public class SubmissionService {
                 answer.setOption(option);
             }
 
-            answer.setSubmission(submission);
             studentAnswers.add(answer);
         }
         studentAnswerRepository.saveAll(studentAnswers);
@@ -204,18 +242,22 @@ public class SubmissionService {
             if (question instanceof MultipleChoiceQuestion) {
                 MultipleChoiceQuestion multipleChoiceQuestion = (MultipleChoiceQuestion) question;
                 Option option = answer.getOption();
-                if (option.getId() == multipleChoiceQuestion.getCorrectOptionId()) {
-                    // get the full points for the question
-                    double mcqFullPoints = multipleChoiceQuestion.getFullPoints();
-
-                    // add it to the total score
-                    totalScore += mcqFullPoints;
-
-                    // set the points for the student answer
-                    answer.setPoints(mcqFullPoints);
-                } else {
-                    // we set the points to 0.0 if the answer is wrong
+                if (option == null) {
                     answer.setPoints(0.0);
+                } else {
+                    if (option.getId() == multipleChoiceQuestion.getCorrectOptionId()) {
+                        // get the full points for the question
+                        double mcqFullPoints = multipleChoiceQuestion.getFullPoints();
+
+                        // add it to the total score
+                        totalScore += mcqFullPoints;
+
+                        // set the points for the student answer
+                        answer.setPoints(mcqFullPoints);
+                    } else {
+                        // we set the points to 0.0 if the answer is wrong
+                        answer.setPoints(0.0);
+                    }
                 }
             } else if (question instanceof IdentificationQuestion) {
                 IdentificationQuestion identificationQuestion = (IdentificationQuestion) question;
