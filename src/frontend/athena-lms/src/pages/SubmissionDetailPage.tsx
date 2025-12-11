@@ -85,43 +85,100 @@ const SubmissionDetailPage: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Answers List */}
+                {/* Questions and Answers */}
                 <div className="space-y-6">
-                    {answers.map((answer, index) => (
-                        <div key={answer.id || index} className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
-                            <div className="flex justify-between items-start mb-4">
-                                <h3 className="text-lg font-medium text-slate-900">
-                                    Question {index + 1}
-                                </h3>
-                                <span className={`px-2 py-1 text-xs font-semibold rounded-full ${(answer.points || 0) > 0 ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-                                    }`}>
-                                    {answer.points || 0} / {answer.question.fullPoints} Points
-                                </span>
-                            </div>
+                    {submission.test.questions && submission.test.questions.map((question, index) => {
+                        const studentAnswer = answers.find(a => a.question.id === question.id)
 
-                            <div className="mb-4 text-slate-700 text-lg">
-                                {answer.question.questionText}
-                            </div>
-
-                            <div className="space-y-2">
-                                <div className="p-4 rounded-lg bg-slate-50 border border-slate-200">
-                                    <span className="block text-xs font-semibold text-slate-500 uppercase mb-1">Student Answer</span>
-                                    <div className="text-slate-900 font-medium">
-                                        {answer.textAnswer || (answer.optionId ? "Option Selected (ID: " + answer.optionId + ")" : "No Answer")}
-                                        {/* Ideally we map optionId to option text if we have the full question options */}
-                                    </div>
+                        return (
+                            <div key={question.id} className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+                                <div className="flex justify-between items-start mb-4">
+                                    <h3 className="text-lg font-medium text-slate-900">
+                                        Question {index + 1}
+                                    </h3>
+                                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${(studentAnswer?.points || 0) > 0 ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                                        }`}>
+                                        {studentAnswer?.points || 0} / {question.fullPoints} Points
+                                    </span>
                                 </div>
 
-                                {/* 
-                                   To show correct answer, we'd need to know it. 
-                                   The Question object from studentAnswer might not have the correct answer exposed to students,
-                                   but for teachers we prefer to see it. 
-                                   Assuming we can access it or infer it.
-                                   If questionType is MCQ, we need to know which option is correct.
-                                */}
+                                <div className="mb-4 text-slate-700 text-lg">
+                                    {question.questionText}
+                                </div>
+
+                                <div className="mb-2 text-xs font-semibold text-slate-500 uppercase">
+                                    Type: {question.questionType}
+                                </div>
+
+                                {/* Multiple Choice / True False - Show Options */}
+                                {(question.questionType === "MULTIPLE_CHOICE" || question.questionType === "TRUE_FALSE") && (
+                                    <div className="space-y-2 mt-4">
+                                        {(question as any).options && (question as any).options.map((option: any) => {
+                                            const isSelected = studentAnswer?.optionId === option.id
+                                            const isCorrect = option.isCorrect
+
+                                            return (
+                                                <div
+                                                    key={option.id}
+                                                    className={`p-4 rounded-lg border-2 transition ${isSelected && isCorrect
+                                                            ? "bg-green-50 border-green-500"
+                                                            : isSelected && !isCorrect
+                                                                ? "bg-red-50 border-red-500"
+                                                                : isCorrect
+                                                                    ? "bg-blue-50 border-blue-300"
+                                                                    : "bg-slate-50 border-slate-200"
+                                                        }`}
+                                                >
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="text-slate-900 font-medium">
+                                                            {option.optionText}
+                                                        </span>
+                                                        <div className="flex gap-2">
+                                                            {isSelected && (
+                                                                <span className="px-2 py-1 text-xs font-semibold rounded bg-slate-700 text-white">
+                                                                    Student's Answer
+                                                                </span>
+                                                            )}
+                                                            {isCorrect && (
+                                                                <span className="px-2 py-1 text-xs font-semibold rounded bg-green-600 text-white">
+                                                                    Correct Answer
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
+                                )}
+
+                                {/* Identification / Essay - Show Text Answer */}
+                                {(question.questionType === "IDENTIFICATION" || question.questionType === "ESSAY") && (
+                                    <div className="mt-4 space-y-3">
+                                        <div className="p-4 rounded-lg bg-slate-50 border border-slate-200">
+                                            <span className="block text-xs font-semibold text-slate-500 uppercase mb-2">
+                                                Student's Answer
+                                            </span>
+                                            <div className="text-slate-900 font-medium whitespace-pre-wrap">
+                                                {studentAnswer?.textAnswer || "No Answer Provided"}
+                                            </div>
+                                        </div>
+
+                                        {question.questionType === "IDENTIFICATION" && (question as any).correctAnswer && (
+                                            <div className="p-4 rounded-lg bg-blue-50 border border-blue-300">
+                                                <span className="block text-xs font-semibold text-blue-700 uppercase mb-2">
+                                                    Correct Answer
+                                                </span>
+                                                <div className="text-blue-900 font-medium">
+                                                    {(question as any).correctAnswer}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
-                        </div>
-                    ))}
+                        )
+                    })}
                 </div>
             </main>
         </div>

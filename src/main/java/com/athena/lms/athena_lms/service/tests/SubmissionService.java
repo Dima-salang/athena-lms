@@ -14,8 +14,12 @@ import com.athena.exceptions.NotFoundException;
 import com.athena.lms.athena_lms.dto.*;
 import com.athena.lms.athena_lms.model.User;
 import com.athena.lms.athena_lms.model.Student;
+import com.athena.lms.athena_lms.model.questions.MultipleChoiceQuestion;
+import com.athena.lms.athena_lms.model.questions.Question;
+import com.athena.lms.athena_lms.model.questions.TrueFalseQuestion;
 import com.athena.lms.athena_lms.model.submission.*;
 import com.athena.lms.athena_lms.model.options.Option;
+import com.athena.lms.athena_lms.model.questions.IdentificationQuestion;
 import com.athena.lms.athena_lms.model.tests.Test;
 import jakarta.persistence.EntityManager;
 import com.blazebit.persistence.CriteriaBuilder;
@@ -174,30 +178,77 @@ public class SubmissionService {
         List<StudentAnswer> studentAnswers = new ArrayList<>();
         for (StudentAnswerDto dto : studentAnswerDtos) {
             StudentAnswer answer = studentAnswerMapper.toEntity(dto);
-            Option option = optionRepository.findById(dto.getOptionId())
-                    .orElseThrow(() -> new NotFoundException("Option not found"));
-            answer.setOption(option);
+
+            // Only fetch option if optionId is not null (for MCQ/TrueFalse with options)
+            if (dto.getOptionId() != null) {
+                Option option = optionRepository.findById(dto.getOptionId())
+                        .orElseThrow(() -> new NotFoundException("Option not found"));
+                answer.setOption(option);
+            }
+
             answer.setSubmission(submission);
-            // Ensure question and option are set correctly if needed,
-            // but mapper should handle ID to entity if configured,
-            // or we might need to fetch them if mapper is simple.
-            // Assuming mapper handles basic mapping.
-            // We might need to set Question and Option entities manually if mapper only
-            // maps IDs.
-            // Let's trust mapper for now or check if we need to fetch.
-            // Actually, for safety, let's just save.
             studentAnswers.add(answer);
         }
         studentAnswerRepository.saveAll(studentAnswers);
 
-        // Calculate score (Simple auto-grade for MCQ/Identification)
-        // double totalScore = 0;
-        // for (StudentAnswer answer : studentAnswers) {
-        // Logic to grade...
-        // }
-        // submission.setTotalScore(totalScore);
+        calculateScore(submission);
 
         return submissionMapper.toDto(submissionRepository.save(submission));
+    }
+
+    private void calculateScore(Submission submission) {
+        double totalScore = 0;
+        List<StudentAnswer> studentAnswers = studentAnswerRepository.findBySubmissionId(submission.getId());
+        for (StudentAnswer answer : studentAnswers) {
+            Question question = answer.getQuestion();
+            if (question instanceof MultipleChoiceQuestion) {
+                MultipleChoiceQuestion multipleChoiceQuestion = (MultipleChoiceQuestion) question;
+                Option option = answer.getOption();
+                if (option.getId() == multipleChoiceQuestion.getCorrectOptionId()) {
+                    // get the full points for the question
+                    double mcqFullPoints = multipleChoiceQuestion.getFullPoints();
+
+                    // add it to the total score
+                    totalScore += mcqFullPoints;
+
+                    // set the points for the student answer
+                    answer.setPoints(mcqFullPoints);
+                } else {
+                    // we set the points to 0.0 if the answer is wrong
+                    answer.setPoints(0.0);
+                }
+            } else if (question instanceof IdentificationQuestion) {
+                IdentificationQuestion identificationQuestion = (IdentificationQuestion) question;
+                String textAnswer = answer.getTextAnswer();
+                if (textAnswer.equals(identificationQuestion.getCorrectAnswer())) {
+                    // get the full points for the question
+                    double identificationFullPoints = identificationQuestion.getFullPoints();
+
+                    // add it to the total score
+                    totalScore += identificationFullPoints;
+
+                    // set the points for the student answer
+                    answer.setPoints(identificationFullPoints);
+                } else {
+                    answer.setPoints(0.0);
+                }
+            } else if (question instanceof TrueFalseQuestion) {
+                TrueFalseQuestion trueFalseQuestion = (TrueFalseQuestion) question;
+                if (answer.getTextAnswer().equals(trueFalseQuestion.getCorrectAnswer())) {
+                    // get the full points for the question
+                    double trueFalseFullPoints = trueFalseQuestion.getFullPoints();
+
+                    // add it to the total score
+                    totalScore += trueFalseFullPoints;
+
+                    // set the points for the student answer
+                    answer.setPoints(trueFalseFullPoints);
+                } else {
+                    answer.setPoints(0.0);
+                }
+            }
+        }
+        submission.setTotalScore(totalScore);
     }
 
     public SubmissionDto getSubmissionById(Long submissionId) {

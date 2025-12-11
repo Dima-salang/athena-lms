@@ -44,7 +44,7 @@ public class TestControllerTest {
     public void setup() {
         // Create a teacher
         Teacher teacher = new Teacher();
-        teacher.setUsername("teacher1");
+        teacher.setUsername("teacher_test");
         teacher.setPassword("password");
         teacher.setFirstName("John");
         teacher.setLastName("Doe");
@@ -53,9 +53,9 @@ public class TestControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "teacher1", roles = "TEACHER")
+    @WithMockUser(username = "teacher_test", roles = "TEACHER")
     public void testCreateTest_AssignsTeacherAutomatically() throws Exception {
-        Teacher teacher = (Teacher) userRepository.findByUsername("teacher1");
+        Teacher teacher = (Teacher) userRepository.findByUsername("teacher_test");
         TestDto testDto = new TestDto();
         testDto.setTestName("Math Test");
         testDto.setTestDescription("Midterm Exam");
@@ -88,11 +88,11 @@ public class TestControllerTest {
 
         assertNotNull(savedTest);
         assertNotNull(savedTest.getTeacher());
-        assertEquals("teacher1", savedTest.getTeacher().getUsername());
+        assertEquals("teacher_test", savedTest.getTeacher().getUsername());
     }
 
     @Test
-    @WithMockUser(username = "teacher1", roles = "TEACHER")
+    @WithMockUser(username = "teacher_test", roles = "TEACHER")
     public void testCreateQuestion_Success() throws Exception {
         // Create a test first
         com.athena.lms.athena_lms.model.tests.Test test = new com.athena.lms.athena_lms.model.tests.Test();
@@ -100,7 +100,7 @@ public class TestControllerTest {
         test.setTestDescription("Test for Questions");
         test.setTestDuration(java.time.Duration.ofHours(1));
 
-        Teacher teacher = (Teacher) userRepository.findByUsername("teacher1");
+        Teacher teacher = (Teacher) userRepository.findByUsername("teacher_test");
         test.setTeacher(teacher);
         test = testRepository.save(test);
 
@@ -129,13 +129,13 @@ public class TestControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "teacher1", roles = "TEACHER")
+    @WithMockUser(username = "teacher_test", roles = "TEACHER")
     public void testBulkCreateQuestions_Success() throws Exception {
         // Create a test first
         com.athena.lms.athena_lms.model.tests.Test test = new com.athena.lms.athena_lms.model.tests.Test();
         test.setTestName("Bulk Question Test");
         test.setTestDuration(java.time.Duration.ofHours(1));
-        Teacher teacher = (Teacher) userRepository.findByUsername("teacher1");
+        Teacher teacher = (Teacher) userRepository.findByUsername("teacher_test");
         test.setTeacher(teacher);
         test = testRepository.save(test);
 

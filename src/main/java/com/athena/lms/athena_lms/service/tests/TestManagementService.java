@@ -10,6 +10,7 @@ import com.athena.lms.athena_lms.dto.EssayQuestionDto;
 import com.athena.lms.athena_lms.dto.IdentificationQuestionDto;
 import com.athena.lms.athena_lms.dto.QuestionDto;
 import com.athena.lms.athena_lms.dto.TestDto;
+import com.athena.lms.athena_lms.dto.TrueFalseQuestionDto;
 import com.athena.lms.athena_lms.mapper.QuestionMapper;
 import com.athena.lms.athena_lms.mapper.TestMapper;
 import com.athena.lms.athena_lms.model.User;
@@ -22,6 +23,7 @@ import com.athena.lms.athena_lms.model.questions.EssayQuestion;
 import com.athena.lms.athena_lms.model.questions.IdentificationQuestion;
 import com.athena.lms.athena_lms.model.questions.Question;
 import com.athena.lms.athena_lms.model.questions.QuestionType;
+import com.athena.lms.athena_lms.model.questions.TrueFalseQuestion;
 import com.athena.lms.athena_lms.model.tests.Test;
 import com.athena.lms.athena_lms.repository.QuestionRepository;
 import com.athena.lms.athena_lms.repository.SubjectRepository;
@@ -515,6 +517,12 @@ public class TestManagementService {
 
             identificationQuestion.setCorrectAnswer(identificationQuestionDto.getCorrectAnswer());
             return identificationQuestion;
+        } else if (question instanceof TrueFalseQuestion) {
+            TrueFalseQuestion trueFalseQuestion = (TrueFalseQuestion) question;
+            TrueFalseQuestionDto trueFalseQuestionDto = (TrueFalseQuestionDto) questionDto;
+
+            trueFalseQuestion.setCorrectAnswer(trueFalseQuestionDto.getCorrectAnswer());
+            return trueFalseQuestion;
         }
         return question;
     }
