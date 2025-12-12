@@ -11,8 +11,7 @@ import {
     getStudentAnswers,
     type Test,
     type Submission,
-    type StudentAnswer,
-    type MultipleChoiceQuestion
+    type StudentAnswer
 } from "../services/api"
 
 const TakeTestPage: React.FC = () => {
@@ -271,7 +270,7 @@ const TakeTestPage: React.FC = () => {
 
                                     {question.questionType === 'MULTIPLE_CHOICE' && (
                                         <div className="space-y-3">
-                                            {(question as MultipleChoiceQuestion).options?.map((option) => (
+                                            {question.options?.map((option) => (
                                                 <label key={option.id} className="flex items-center gap-3 p-3 border rounded-lg hover:bg-slate-50 cursor-pointer transition">
                                                     <input
                                                         type="radio"

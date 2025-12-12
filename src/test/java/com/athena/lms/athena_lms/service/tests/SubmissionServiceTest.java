@@ -64,6 +64,9 @@ public class SubmissionServiceTest {
     private OptionRepository optionRepository;
 
     @Mock
+    private com.athena.lms.athena_lms.repository.QuestionRepository questionRepository;
+
+    @Mock
     private CriteriaBuilderFactory cbf;
 
     @Mock
@@ -108,6 +111,9 @@ public class SubmissionServiceTest {
         studentAnswerDto = new StudentAnswerDto();
         studentAnswerDto.setId(1L);
         studentAnswerDto.setOptionId(10L);
+        com.athena.lms.athena_lms.dto.QuestionDto qDto = new com.athena.lms.athena_lms.dto.QuestionDto();
+        qDto.setId(100L);
+        studentAnswerDto.setQuestion(qDto);
     }
 
     @Test
@@ -210,7 +216,6 @@ public class SubmissionServiceTest {
         Option option = new Option();
         option.setId(10L);
 
-        when(studentAnswerMapper.toEntity(any(StudentAnswerDto.class))).thenReturn(newEntity);
         when(optionRepository.findById(10L)).thenReturn(Optional.of(option));
         when(studentAnswerRepository.saveAll(anyList())).thenReturn(List.of(newEntity));
         when(studentAnswerMapper.toDtoList(anyList())).thenReturn(dtos);
@@ -219,7 +224,6 @@ public class SubmissionServiceTest {
 
         assertNotNull(results);
         assertEquals(1, results.size());
-        verify(studentAnswerMapper).toEntity(newAnswerDto);
         verify(optionRepository).findById(10L); // Verify option was looked up
         verify(studentAnswerRepository).saveAll(anyList());
     }
@@ -234,6 +238,9 @@ public class SubmissionServiceTest {
         doNothing().when(studentAnswerMapper).updateEntityFromDto(any(StudentAnswerDto.class),
                 any(StudentAnswer.class));
         when(optionRepository.findById(10L)).thenReturn(Optional.of(option));
+        // Fix: mock questionRepository as well since DTO has question ID
+        when(questionRepository.findById(100L)).thenReturn(Optional.of(new Question()));
+
         when(studentAnswerRepository.saveAll(anyList())).thenReturn(List.of(studentAnswer));
         when(studentAnswerMapper.toDtoList(anyList())).thenReturn(dtos);
 
@@ -295,7 +302,8 @@ public class SubmissionServiceTest {
     void startTest_Success_NewSubmission() {
         when(userRepository.findByUsername("student1")).thenReturn(student);
         when(testRepository.findById(100L)).thenReturn(Optional.of(testEntity));
-        when(submissionRepository.findFirstByTestIdAndStudentIdAndEndTimeIsNull(100L, 1L)).thenReturn(null);
+        // Fix: use submittedAt instead of endTime
+        when(submissionRepository.findFirstByTestIdAndStudentIdAndSubmittedAtIsNull(100L, 1L)).thenReturn(null);
 
         Submission savedSubmission = new Submission();
         savedSubmission.setId(500L);
@@ -313,7 +321,8 @@ public class SubmissionServiceTest {
     void startTest_Success_ResumingExisting() {
         when(userRepository.findByUsername("student1")).thenReturn(student);
         when(testRepository.findById(100L)).thenReturn(Optional.of(testEntity));
-        when(submissionRepository.findFirstByTestIdAndStudentIdAndEndTimeIsNull(100L, 1L)).thenReturn(submission);
+        // Fix: use submittedAt instead of endTime
+        when(submissionRepository.findFirstByTestIdAndStudentIdAndSubmittedAtIsNull(100L, 1L)).thenReturn(submission);
         when(submissionMapper.toDto(submission)).thenReturn(submissionDto);
 
         SubmissionDto result = submissionService.startTest(100L, "student1");
@@ -377,10 +386,11 @@ public class SubmissionServiceTest {
         // Test due date is future (set in setUp)
         when(submissionRepository.findById(1L)).thenReturn(Optional.of(submission));
 
-        // Create a multiple choice question with correct answer
-        com.athena.lms.athena_lms.model.questions.MultipleChoiceQuestion mcqQuestion = new com.athena.lms.athena_lms.model.questions.MultipleChoiceQuestion();
+        // Create a multiple choice question with correct answer ID 10
+        Question mcqQuestion = new Question();
         mcqQuestion.setId(100L);
         mcqQuestion.setFullPoints(10.0);
+        mcqQuestion.setQuestionType(QuestionType.MULTIPLE_CHOICE);
         mcqQuestion.setCorrectOptionId(10L);
 
         // Create student answer
@@ -393,8 +403,8 @@ public class SubmissionServiceTest {
 
         List<StudentAnswerDto> answersToSubmit = List.of(studentAnswerDto);
 
-        when(studentAnswerMapper.toEntity(any(StudentAnswerDto.class))).thenReturn(studentAnswer);
         when(optionRepository.findById(10L)).thenReturn(Optional.of(option));
+        when(questionRepository.findById(100L)).thenReturn(Optional.of(mcqQuestion));
         when(studentAnswerRepository.saveAll(anyList())).thenReturn(List.of(studentAnswer));
 
         // Mock for calculateScore
@@ -445,7 +455,7 @@ public class SubmissionServiceTest {
 
         List<StudentAnswerDto> answers = List.of(studentAnswerDto); // has optionId 10
 
-        when(studentAnswerMapper.toEntity(any(StudentAnswerDto.class))).thenReturn(new StudentAnswer());
+        when(questionRepository.findById(100L)).thenReturn(Optional.of(new Question()));
         when(optionRepository.findById(10L)).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () -> {
@@ -478,9 +488,10 @@ public class SubmissionServiceTest {
         when(submissionRepository.findById(1L)).thenReturn(Optional.of(submission));
 
         // Create a multiple choice question with correct answer ID 10
-        MultipleChoiceQuestion mcqQuestion = new MultipleChoiceQuestion();
+        Question mcqQuestion = new Question();
         mcqQuestion.setId(100L);
         mcqQuestion.setFullPoints(10.0);
+        mcqQuestion.setQuestionType(QuestionType.MULTIPLE_CHOICE);
         mcqQuestion.setCorrectOptionId(10L);
 
         // Student selects wrong option (ID 11)
@@ -493,8 +504,8 @@ public class SubmissionServiceTest {
 
         List<StudentAnswerDto> answersToSubmit = List.of(studentAnswerDto);
 
-        when(studentAnswerMapper.toEntity(any(StudentAnswerDto.class))).thenReturn(studentAnswer);
         when(optionRepository.findById(10L)).thenReturn(Optional.of(wrongOption));
+        when(questionRepository.findById(100L)).thenReturn(Optional.of(mcqQuestion));
         when(studentAnswerRepository.saveAll(anyList())).thenReturn(List.of(studentAnswer));
         when(studentAnswerRepository.findBySubmissionId(1L)).thenReturn(List.of(studentAnswer));
         when(submissionRepository.save(submission)).thenReturn(submission);
@@ -512,9 +523,10 @@ public class SubmissionServiceTest {
         when(submissionRepository.findById(1L)).thenReturn(Optional.of(submission));
 
         // Create identification question
-        IdentificationQuestion idQuestion = new IdentificationQuestion();
+        Question idQuestion = new Question();
         idQuestion.setId(101L);
         idQuestion.setFullPoints(15.0);
+        idQuestion.setQuestionType(QuestionType.IDENTIFICATION);
         idQuestion.setCorrectAnswer("Paris");
 
         // Student provides correct answer
@@ -524,8 +536,11 @@ public class SubmissionServiceTest {
 
         List<StudentAnswerDto> answersToSubmit = List.of(studentAnswerDto);
 
-        when(studentAnswerMapper.toEntity(any(StudentAnswerDto.class))).thenReturn(studentAnswer);
-        // No option mocking needed - optionId is null
+        // Mock question lookup (using ID 100 for DTO even though question has 101L,
+        // need to match setup or modify DTO)
+        // DTO in setup has question ID 100.
+        when(questionRepository.findById(100L)).thenReturn(Optional.of(idQuestion)); // Use 100L to match DTO
+
         when(studentAnswerRepository.saveAll(anyList())).thenReturn(List.of(studentAnswer));
         when(studentAnswerRepository.findBySubmissionId(1L)).thenReturn(List.of(studentAnswer));
         when(submissionRepository.save(submission)).thenReturn(submission);
@@ -543,9 +558,10 @@ public class SubmissionServiceTest {
     void submitTest_IdentificationWrongAnswer() {
         when(submissionRepository.findById(1L)).thenReturn(Optional.of(submission));
 
-        com.athena.lms.athena_lms.model.questions.IdentificationQuestion idQuestion = new com.athena.lms.athena_lms.model.questions.IdentificationQuestion();
+        Question idQuestion = new Question();
         idQuestion.setId(101L);
         idQuestion.setFullPoints(15.0);
+        idQuestion.setQuestionType(QuestionType.IDENTIFICATION);
         idQuestion.setCorrectAnswer("Paris");
 
         StudentAnswer studentAnswer = new StudentAnswer();
@@ -554,8 +570,8 @@ public class SubmissionServiceTest {
 
         List<StudentAnswerDto> answersToSubmit = List.of(studentAnswerDto);
 
-        when(studentAnswerMapper.toEntity(any(StudentAnswerDto.class))).thenReturn(studentAnswer);
-        // No option mocking needed - optionId is null
+        when(questionRepository.findById(100L)).thenReturn(Optional.of(idQuestion)); // Match DTO ID
+
         when(studentAnswerRepository.saveAll(anyList())).thenReturn(List.of(studentAnswer));
         when(studentAnswerRepository.findBySubmissionId(1L)).thenReturn(List.of(studentAnswer));
         when(submissionRepository.save(submission)).thenReturn(submission);
@@ -573,9 +589,10 @@ public class SubmissionServiceTest {
     void submitTest_TrueFalseCorrectAnswer() {
         when(submissionRepository.findById(1L)).thenReturn(Optional.of(submission));
 
-        com.athena.lms.athena_lms.model.questions.TrueFalseQuestion tfQuestion = new com.athena.lms.athena_lms.model.questions.TrueFalseQuestion();
+        Question tfQuestion = new Question();
         tfQuestion.setId(102L);
         tfQuestion.setFullPoints(5.0);
+        tfQuestion.setQuestionType(QuestionType.TRUE_FALSE);
         tfQuestion.setCorrectAnswer("True");
 
         StudentAnswer studentAnswer = new StudentAnswer();
@@ -584,8 +601,8 @@ public class SubmissionServiceTest {
 
         List<StudentAnswerDto> answersToSubmit = List.of(studentAnswerDto);
 
-        when(studentAnswerMapper.toEntity(any(StudentAnswerDto.class))).thenReturn(studentAnswer);
-        // No option mocking needed - optionId is null
+        when(questionRepository.findById(100L)).thenReturn(Optional.of(tfQuestion)); // Match DTO ID
+
         when(studentAnswerRepository.saveAll(anyList())).thenReturn(List.of(studentAnswer));
         when(studentAnswerRepository.findBySubmissionId(1L)).thenReturn(List.of(studentAnswer));
         when(submissionRepository.save(submission)).thenReturn(submission);
@@ -603,9 +620,10 @@ public class SubmissionServiceTest {
     void submitTest_TrueFalseWrongAnswer() {
         when(submissionRepository.findById(1L)).thenReturn(Optional.of(submission));
 
-        com.athena.lms.athena_lms.model.questions.TrueFalseQuestion tfQuestion = new com.athena.lms.athena_lms.model.questions.TrueFalseQuestion();
+        Question tfQuestion = new Question();
         tfQuestion.setId(102L);
         tfQuestion.setFullPoints(5.0);
+        tfQuestion.setQuestionType(QuestionType.TRUE_FALSE);
         tfQuestion.setCorrectAnswer("True");
 
         StudentAnswer studentAnswer = new StudentAnswer();
@@ -614,8 +632,8 @@ public class SubmissionServiceTest {
 
         List<StudentAnswerDto> answersToSubmit = List.of(studentAnswerDto);
 
-        when(studentAnswerMapper.toEntity(any(StudentAnswerDto.class))).thenReturn(studentAnswer);
-        // No option mocking needed - optionId is null
+        when(questionRepository.findById(100L)).thenReturn(Optional.of(tfQuestion)); // Match DTO ID
+
         when(studentAnswerRepository.saveAll(anyList())).thenReturn(List.of(studentAnswer));
         when(studentAnswerRepository.findBySubmissionId(1L)).thenReturn(List.of(studentAnswer));
         when(submissionRepository.save(submission)).thenReturn(submission);
@@ -634,9 +652,10 @@ public class SubmissionServiceTest {
         when(submissionRepository.findById(1L)).thenReturn(Optional.of(submission));
 
         // MCQ - Correct
-        com.athena.lms.athena_lms.model.questions.MultipleChoiceQuestion mcqQuestion = new com.athena.lms.athena_lms.model.questions.MultipleChoiceQuestion();
+        Question mcqQuestion = new Question();
         mcqQuestion.setId(100L);
         mcqQuestion.setFullPoints(10.0);
+        mcqQuestion.setQuestionType(QuestionType.MULTIPLE_CHOICE);
         mcqQuestion.setCorrectOptionId(10L);
 
         StudentAnswer mcqAnswer = new StudentAnswer();
@@ -646,9 +665,10 @@ public class SubmissionServiceTest {
         mcqAnswer.setOption(correctOption);
 
         // Identification - Wrong
-        com.athena.lms.athena_lms.model.questions.IdentificationQuestion idQuestion = new com.athena.lms.athena_lms.model.questions.IdentificationQuestion();
+        Question idQuestion = new Question();
         idQuestion.setId(101L);
         idQuestion.setFullPoints(15.0);
+        idQuestion.setQuestionType(QuestionType.IDENTIFICATION);
         idQuestion.setCorrectAnswer("Paris");
 
         StudentAnswer idAnswer = new StudentAnswer();
@@ -656,19 +676,44 @@ public class SubmissionServiceTest {
         idAnswer.setTextAnswer("London");
 
         // TrueFalse - Correct
-        com.athena.lms.athena_lms.model.questions.TrueFalseQuestion tfQuestion = new com.athena.lms.athena_lms.model.questions.TrueFalseQuestion();
+        Question tfQuestion = new Question();
         tfQuestion.setId(102L);
         tfQuestion.setFullPoints(5.0);
+        tfQuestion.setQuestionType(QuestionType.TRUE_FALSE);
         tfQuestion.setCorrectAnswer("True");
 
         StudentAnswer tfAnswer = new StudentAnswer();
         tfAnswer.setQuestion(tfQuestion);
         tfAnswer.setTextAnswer("True");
 
-        List<StudentAnswerDto> answersToSubmit = List.of(studentAnswerDto);
+        StudentAnswerDto mcqDto = new StudentAnswerDto();
+        mcqDto.setOptionId(10L);
+        com.athena.lms.athena_lms.dto.QuestionDto mcqQDto = new com.athena.lms.athena_lms.dto.QuestionDto();
+        mcqQDto.setId(100L);
+        mcqDto.setQuestion(mcqQDto);
 
-        when(studentAnswerMapper.toEntity(any(StudentAnswerDto.class))).thenReturn(mcqAnswer);
+        StudentAnswerDto idDto = new StudentAnswerDto();
+        idDto.setTextAnswer("London");
+        com.athena.lms.athena_lms.dto.QuestionDto idQDto = new com.athena.lms.athena_lms.dto.QuestionDto();
+        idQDto.setId(101L);
+        idDto.setQuestion(idQDto);
+
+        StudentAnswerDto tfDto = new StudentAnswerDto();
+        tfDto.setTextAnswer("True");
+        com.athena.lms.athena_lms.dto.QuestionDto tfQDto = new com.athena.lms.athena_lms.dto.QuestionDto();
+        tfQDto.setId(102L);
+        tfDto.setQuestion(tfQDto);
+
+        List<StudentAnswerDto> answersToSubmit = List.of(mcqDto, idDto, tfDto);
+
+        // removed mapper mock
         when(optionRepository.findById(anyLong())).thenReturn(Optional.of(correctOption));
+
+        // Fix: mock questionRepository for all questions
+        when(questionRepository.findById(100L)).thenReturn(Optional.of(mcqQuestion));
+        when(questionRepository.findById(101L)).thenReturn(Optional.of(idQuestion));
+        when(questionRepository.findById(102L)).thenReturn(Optional.of(tfQuestion));
+
         when(studentAnswerRepository.saveAll(anyList())).thenReturn(List.of(mcqAnswer, idAnswer, tfAnswer));
         when(studentAnswerRepository.findBySubmissionId(1L)).thenReturn(List.of(mcqAnswer, idAnswer, tfAnswer));
         when(submissionRepository.save(submission)).thenReturn(submission);

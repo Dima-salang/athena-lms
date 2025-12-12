@@ -7,7 +7,6 @@ import {
     getTestById,
     type Test,
     type Question,
-    type MultipleChoiceQuestion,
     createOrUpdateQuestions,
     deleteQuestion as deleteQuestionApi,
     autosaveTest,
@@ -76,9 +75,19 @@ const TestEditorPage: React.FC = () => {
             const questionsToSave = questions
                 .filter((q) => q.isDirty)
                 .map((q) => {
-                    const tempId = q.tempId || (q.id < 0 ? q.id : undefined)
-                    return { ...q, tempId }
-                })
+                    const tempId = q.tempId || (q.id < 0 ? q.id : undefined);
+                    let cleanedQuestion = { ...q, tempId };
+
+                    // Clean up incompatible fields based on question type
+                    if (q.questionType === "IDENTIFICATION" || q.questionType === "TRUE_FALSE" || q.questionType === "ESSAY") {
+                        // Remove MCQ-specific fields
+                        delete (cleanedQuestion as any).options;
+                        delete (cleanedQuestion as any).correctOptionId;
+                    }
+
+                    console.log("Question to save:", cleanedQuestion);
+                    return cleanedQuestion;
+                });
 
             if (questionsToSave.length === 0) {
                 setIsDirty(false)
@@ -108,36 +117,49 @@ const TestEditorPage: React.FC = () => {
 
                         if (savedQ) {
                             const newQ = { ...localQ, id: savedQ.id, isDirty: false }
-                            // ... (keep existing complex logic for MCQ options mapping if needed, simplified here for brevity as it was correct before)
-                            // Re-applying the logic from previous version to ensure no regression
+
+                            // Preserve correctAnswer for IDENTIFICATION and TRUE_FALSE since backend might not return it correctly
+                            if (localQ.questionType === "IDENTIFICATION" || localQ.questionType === "TRUE_FALSE") {
+                                console.log("Preserving correctAnswer for", localQ.questionType);
+                                console.log("Local correctAnswer:", (localQ as any).correctAnswer);
+                                console.log("Saved correctAnswer from backend:", (savedQ as any).correctAnswer);
+                                (newQ as any).correctAnswer = (localQ as any).correctAnswer;
+                                console.log("Final newQ correctAnswer:", (newQ as any).correctAnswer);
+                            }
+
                             if (localQ.questionType === "MULTIPLE_CHOICE") {
-                                const mcQuestion = localQ as MultipleChoiceQuestion
-                                const savedMcQuestion = savedQ as MultipleChoiceQuestion
                                 let updatedOptions: any[] | undefined = undefined
 
-                                if (mcQuestion.options && savedMcQuestion.options) {
+                                if (localQ.options && savedQ.options) {
                                     const savedOptionsMap = new Map<number, any>()
-                                    savedMcQuestion.options.forEach((o: any) => {
+                                    savedQ.options.forEach((o: any) => {
                                         if (o.tempId) savedOptionsMap.set(o.tempId, o)
+                                        // Also map by ID if available (for updates)
+                                        if (o.id) savedOptionsMap.set(o.id, o)
                                     })
 
-                                    updatedOptions = mcQuestion.options.map((localO) => {
+                                    updatedOptions = localQ.options.map((localO) => {
+                                        // Try to find by tempId
                                         if (localO.tempId && savedOptionsMap.has(localO.tempId)) {
                                             return { ...localO, id: savedOptionsMap.get(localO.tempId).id }
+                                        }
+                                        // Try to find by ID (if updating existing option)
+                                        if (localO.id && savedOptionsMap.has(localO.id)) {
+                                            // Ensure ID is preserved/confirmed
+                                            return { ...localO, id: savedOptionsMap.get(localO.id).id }
                                         }
                                         return localO
                                     })
 
-                                    const newMcQ = newQ as MultipleChoiceQuestion
-                                    if (newMcQ.correctOptionId && newMcQ.correctOptionId < 0) {
-                                        if (savedOptionsMap.has(newMcQ.correctOptionId)) {
-                                            newMcQ.correctOptionId = savedOptionsMap.get(newMcQ.correctOptionId).id
+                                    if (newQ.correctOptionId && newQ.correctOptionId < 0) {
+                                        if (savedOptionsMap.has(newQ.correctOptionId)) {
+                                            newQ.correctOptionId = savedOptionsMap.get(newQ.correctOptionId).id
                                         }
                                     }
                                 }
 
                                 if (updatedOptions) {
-                                    ; (newQ as MultipleChoiceQuestion).options = updatedOptions
+                                    newQ.options = updatedOptions
                                 }
                             }
                             return newQ
@@ -178,7 +200,7 @@ const TestEditorPage: React.FC = () => {
 
     const addQuestion = () => {
         const tempId = -Date.now()
-        const newQuestion: MultipleChoiceQuestion = {
+        const newQuestion: Question = {
             id: tempId,
             tempId: tempId,
             test: { id: Number(testId) } as Test,
@@ -193,7 +215,6 @@ const TestEditorPage: React.FC = () => {
                 { optionText: "", tempId: tempId - 3 },
                 { optionText: "", tempId: tempId - 4 },
             ],
-            questionAnswer: "",
             correctAnswer: "",
             isDirty: true,
         }

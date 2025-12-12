@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import type { Question, MultipleChoiceQuestion, TrueFalseQuestion, IdentificationQuestion, EssayQuestion } from "../services/api"
+import type { Question } from "../services/api"
 
 interface QuestionEditorProps {
     question: Question
@@ -19,17 +19,18 @@ const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onUpdate, onD
     }, [question])
 
     const handleChange = (field: string, value: any) => {
-        const updated = { ...localQuestion, [field]: value } as Question
-        setLocalQuestion(updated)
-        onUpdate(updated)
+        console.log(`handleChange called: field="${field}", value=`, value);
+        const updated = { ...localQuestion, [field]: value } as Question;
+        console.log("Updated question object:", updated);
+        setLocalQuestion(updated);
+        onUpdate(updated);
     }
 
     const handleOptionChange = (index: number, value: string) => {
-        if (localQuestion.questionType === "MULTIPLE_CHOICE") {
-            const mcQuestion = localQuestion as MultipleChoiceQuestion
-            const newOptions = [...mcQuestion.options]
+        if (localQuestion.questionType === "MULTIPLE_CHOICE" && localQuestion.options) {
+            const newOptions = [...localQuestion.options]
             newOptions[index] = { ...newOptions[index], optionText: value }
-            const updated = { ...mcQuestion, options: newOptions }
+            const updated = { ...localQuestion, options: newOptions }
             setLocalQuestion(updated)
             onUpdate(updated)
         }
@@ -37,18 +38,17 @@ const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onUpdate, onD
 
     const addOption = () => {
         if (localQuestion.questionType === "MULTIPLE_CHOICE") {
-            const mcQuestion = localQuestion as MultipleChoiceQuestion
-            const updated = { ...mcQuestion, options: [...mcQuestion.options, { optionText: "", tempId: -Date.now() }] }
+            const currentOptions = localQuestion.options || [];
+            const updated = { ...localQuestion, options: [...currentOptions, { optionText: "", tempId: -Date.now() }] }
             setLocalQuestion(updated)
             onUpdate(updated)
         }
     }
 
     const removeOption = (index: number) => {
-        if (localQuestion.questionType === "MULTIPLE_CHOICE") {
-            const mcQuestion = localQuestion as MultipleChoiceQuestion
-            const newOptions = mcQuestion.options.filter((_, i) => i !== index)
-            const updated = { ...mcQuestion, options: newOptions }
+        if (localQuestion.questionType === "MULTIPLE_CHOICE" && localQuestion.options) {
+            const newOptions = localQuestion.options.filter((_, i) => i !== index)
+            const updated = { ...localQuestion, options: newOptions }
             setLocalQuestion(updated)
             onUpdate(updated)
         }
@@ -115,12 +115,12 @@ const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onUpdate, onD
                     <div>
                         <label className="block text-sm font-medium text-slate-700 mb-3">Options</label>
                         <div className="space-y-3">
-                            {(localQuestion as MultipleChoiceQuestion).options?.map((option, index) => (
+                            {localQuestion.options?.map((option, index) => (
                                 <div key={option.id || option.tempId || index} className="flex gap-3 items-start">
                                     <input
                                         type="radio"
                                         name={`correct-${localQuestion.id}`}
-                                        checked={(localQuestion as MultipleChoiceQuestion).correctOptionId === (option.id || option.tempId)}
+                                        checked={localQuestion.correctOptionId === (option.id || option.tempId)}
                                         onChange={() => {
                                             const updated = {
                                                 ...localQuestion,
@@ -165,8 +165,8 @@ const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onUpdate, onD
                     <div>
                         <label className="block text-sm font-medium text-slate-700 mb-2">Correct Answer</label>
                         <select
-                            value={(localQuestion as TrueFalseQuestion).trueFalseAnswer}
-                            onChange={(e) => handleChange("trueFalseAnswer", e.target.value)}
+                            value={localQuestion.correctAnswer || ""}
+                            onChange={(e) => handleChange("correctAnswer", e.target.value)}
                             className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                         >
                             <option value="">Select Answer</option>
@@ -181,8 +181,11 @@ const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onUpdate, onD
                         <label className="block text-sm font-medium text-slate-700 mb-2">Correct Answer</label>
                         <input
                             type="text"
-                            value={(localQuestion as IdentificationQuestion).correctAnswer || ""}
-                            onChange={(e) => handleChange("correctAnswer", e.target.value)}
+                            value={localQuestion.correctAnswer || ""}
+                            onChange={(e) => {
+                                console.log("Identification correctAnswer changed to:", e.target.value);
+                                handleChange("correctAnswer", e.target.value);
+                            }}
                             placeholder="Enter the correct answer"
                             className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                         />
@@ -193,8 +196,8 @@ const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onUpdate, onD
                     <div>
                         <label className="block text-sm font-medium text-slate-700 mb-2">Model Answer / Key Points (Optional)</label>
                         <textarea
-                            value={(localQuestion as EssayQuestion).questionAnswer || ""}
-                            onChange={(e) => handleChange("questionAnswer", e.target.value)}
+                            value={localQuestion.correctAnswer || ""}
+                            onChange={(e) => handleChange("correctAnswer", e.target.value)}
                             rows={4}
                             placeholder="Enter a model answer or key points for grading reference..."
                             className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"

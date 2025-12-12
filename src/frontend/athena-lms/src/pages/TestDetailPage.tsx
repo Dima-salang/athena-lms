@@ -3,7 +3,7 @@
 import type React from "react"
 import { useEffect, useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
-import { getTestById, type Test, type MultipleChoiceQuestion, type TrueFalseQuestion } from "../services/api"
+import { getTestById, type Test } from "../services/api"
 
 const TestDetailPage: React.FC = () => {
   const { testId } = useParams<{ testId: string }>()
@@ -139,8 +139,8 @@ const TestDetailPage: React.FC = () => {
                     <div className="space-y-2">
                       <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-3">Options:</p>
                       <ul className="space-y-2">
-                        {(q as MultipleChoiceQuestion).options?.map((opt, i) => {
-                          const isCorrect = (q as MultipleChoiceQuestion).correctAnswer === opt.optionText
+                        {q.options?.map((opt, i) => {
+                          const isCorrect = q.correctAnswer === opt.optionText
                           return (
                             <li
                               key={i}
@@ -173,8 +173,8 @@ const TestDetailPage: React.FC = () => {
                       <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide mb-3">
                         Correct Answer:
                       </p>
-                      <div className="inline-block px-4 py-2 bg-green-100 text-green-700 font-semibold rounded-lg">
-                        {(q as TrueFalseQuestion).trueFalseAnswer === "true" ? "True" : "False"}
+                      <div className="inline-block px-4 py-2 bg-green-100 text-green-700 font-semibold rounded-lg capitalize">
+                        {q.correctAnswer || "Not set"}
                       </div>
                     </div>
                   )}
@@ -185,7 +185,7 @@ const TestDetailPage: React.FC = () => {
                         Correct Answer:
                       </p>
                       <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-green-800 font-medium">
-                        {(q as any).correctAnswer || "No answer set"}
+                        {q.correctAnswer || "No answer set"}
                       </div>
                     </div>
                   )}

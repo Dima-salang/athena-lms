@@ -16,7 +16,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.athena.lms.athena_lms.dto.MultipleChoiceQuestionDto;
 import com.athena.lms.athena_lms.dto.QuestionDto;
 import com.athena.lms.athena_lms.dto.TestDto;
 import com.athena.lms.athena_lms.mapper.QuestionMapper;
@@ -24,7 +23,6 @@ import com.athena.lms.athena_lms.mapper.TestMapper;
 import com.athena.lms.athena_lms.model.Section;
 import com.athena.lms.athena_lms.model.Student;
 import com.athena.lms.athena_lms.model.Teacher;
-import com.athena.lms.athena_lms.model.questions.MultipleChoiceQuestion;
 import com.athena.lms.athena_lms.model.questions.Question;
 import com.athena.lms.athena_lms.model.tests.Test;
 import com.athena.lms.athena_lms.repository.QuestionRepository;
@@ -134,11 +132,13 @@ public class TestManagementServiceTest {
     void createQuestion_Success() {
         when(testRepository.findById(1L)).thenReturn(Optional.of(testEntity));
 
-        MultipleChoiceQuestion qEntity = new MultipleChoiceQuestion();
+        Question qEntity = new Question();
         qEntity.setQuestionText("Q1");
+        qEntity.setQuestionType(com.athena.lms.athena_lms.model.questions.QuestionType.MULTIPLE_CHOICE);
 
-        MultipleChoiceQuestionDto qDto = new MultipleChoiceQuestionDto();
+        QuestionDto qDto = new QuestionDto();
         qDto.setQuestionText("Q1");
+        qDto.setQuestionType("MULTIPLE_CHOICE");
 
         when(questionMapper.toEntity(any(QuestionDto.class))).thenReturn(qEntity);
         when(questionRepository.saveAll(anyList())).thenReturn(List.of(qEntity));
@@ -159,7 +159,7 @@ public class TestManagementServiceTest {
         when(testRepository.findById(99L)).thenReturn(Optional.empty());
 
         List<QuestionDto> questions = new ArrayList<>();
-        questions.add(new MultipleChoiceQuestionDto());
+        questions.add(new QuestionDto());
 
         assertThrows(RuntimeException.class, () -> {
             testManagementService.createQuestions(questions, 99L);

@@ -2,15 +2,13 @@ package com.athena.lms.athena_lms.service.tests;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.time.Instant;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
-import com.athena.lms.athena_lms.dto.MultipleChoiceQuestionDto;
-import com.athena.lms.athena_lms.dto.EssayQuestionDto;
-import com.athena.lms.athena_lms.dto.IdentificationQuestionDto;
 import com.athena.lms.athena_lms.dto.QuestionDto;
 import com.athena.lms.athena_lms.dto.TestDto;
-import com.athena.lms.athena_lms.dto.TrueFalseQuestionDto;
 import com.athena.lms.athena_lms.mapper.QuestionMapper;
 import com.athena.lms.athena_lms.mapper.TestMapper;
 import com.athena.lms.athena_lms.model.User;
@@ -18,25 +16,27 @@ import com.athena.lms.athena_lms.model.options.Option;
 import com.athena.lms.athena_lms.model.Subject;
 import com.athena.lms.athena_lms.model.Section;
 import com.athena.lms.athena_lms.model.Teacher;
-import com.athena.lms.athena_lms.model.questions.MultipleChoiceQuestion;
-import com.athena.lms.athena_lms.model.questions.EssayQuestion;
-import com.athena.lms.athena_lms.model.questions.IdentificationQuestion;
 import com.athena.lms.athena_lms.model.questions.Question;
 import com.athena.lms.athena_lms.model.questions.QuestionType;
-import com.athena.lms.athena_lms.model.questions.TrueFalseQuestion;
 import com.athena.lms.athena_lms.model.tests.Test;
 import com.athena.lms.athena_lms.repository.QuestionRepository;
 import com.athena.lms.athena_lms.repository.SubjectRepository;
 import com.athena.lms.athena_lms.repository.SectionRepository;
 import com.athena.lms.athena_lms.repository.TestRepository;
 import com.athena.lms.athena_lms.repository.UserRepository;
+import com.blazebit.persistence.CriteriaBuilderFactory;
+import com.blazebit.persistence.PagedList;
+import com.blazebit.persistence.CriteriaBuilder;
+
+import jakarta.persistence.EntityManager;
+
 import com.athena.lms.athena_lms.repository.OptionRepository;
+import com.athena.lms.athena_lms.repository.StudentAnswerRepository;
 import com.athena.lms.athena_lms.mapper.OptionMapper;
 
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 
 @Service
 public class TestManagementService {
@@ -45,26 +45,36 @@ public class TestManagementService {
     private final QuestionRepository questionRepository;
     private final SubjectRepository subjectRepository;
     private final SectionRepository sectionRepository;
+    private final StudentAnswerRepository studentAnswerRepository;
     private final TestMapper testMapper;
     private final QuestionMapper questionMapper;
     private final OptionMapper optionMapper;
+    private final CriteriaBuilderFactory cbf;
+    private final EntityManager em;
 
     public TestManagementService(UserRepository userRepository, TestRepository testRepository,
             QuestionRepository questionRepository,
             SubjectRepository subjectRepository,
             SectionRepository sectionRepository,
             OptionRepository optionRepository,
+            StudentAnswerRepository studentAnswerRepository,
             TestMapper testMapper,
             QuestionMapper questionMapper,
-            OptionMapper optionMapper) {
+            OptionMapper optionMapper,
+            CriteriaBuilderFactory cbf,
+            EntityManager em) {
+
         this.userRepository = userRepository;
         this.testRepository = testRepository;
         this.questionRepository = questionRepository;
         this.subjectRepository = subjectRepository;
         this.sectionRepository = sectionRepository;
+        this.studentAnswerRepository = studentAnswerRepository;
         this.testMapper = testMapper;
         this.questionMapper = questionMapper;
         this.optionMapper = optionMapper;
+        this.cbf = cbf;
+        this.em = em;
     }
 
     public TestDto createTest(TestDto testDto, String username) {
@@ -143,9 +153,8 @@ public class TestManagementService {
                     question.setId(null);
                 }
 
-                if (question instanceof MultipleChoiceQuestion) {
-                    MultipleChoiceQuestion multipleChoiceQuestion = (MultipleChoiceQuestion) question;
-                    List<Option> options = multipleChoiceQuestion.getOptions();
+                if (question.getQuestionType() == QuestionType.MULTIPLE_CHOICE) {
+                    List<Option> options = question.getOptions();
                     if (options != null) {
                         for (Option option : options) {
                             option.setQuestion(question);
@@ -159,6 +168,9 @@ public class TestManagementService {
                 }
             }
         }
+
+        test.setCreatedAt(Instant.now());
+        test.setUpdatedAt(Instant.now());
 
         Test savedTest = testRepository.save(test);
         return testMapper.toDto(savedTest);
@@ -197,6 +209,7 @@ public class TestManagementService {
         }
 
         // save
+        existingTest.setUpdatedAt(Instant.now());
         Test savedTest = testRepository.save(existingTest);
 
         return testMapper.toDto(savedTest);
@@ -260,19 +273,13 @@ public class TestManagementService {
                         question.setFullPoints(questionDto.getFullPoints());
                         question.setCorrectPoints(questionDto.getCorrectPoints());
                         // Update specific fields based on type
-                        if (question instanceof MultipleChoiceQuestion
-                                && questionDto instanceof com.athena.lms.athena_lms.dto.MultipleChoiceQuestionDto) {
-                            ((MultipleChoiceQuestion) question).setCorrectAnswer(
-                                    ((com.athena.lms.athena_lms.dto.MultipleChoiceQuestionDto) questionDto)
-                                            .getCorrectAnswer());
-                            // Options update is tricky. Replace all?
-                            // Let's clear and re-add or update.
-                            // Simpler to clear and re-add for now to avoid complex diffing.
-                            // But we need to handle Option entities.
-                            // Let's leave options update for a moment or do a simple replace.
+                        if (question.getQuestionType() == QuestionType.MULTIPLE_CHOICE) {
+                            question.setCorrectAnswer(questionDto.getCorrectAnswer());
+                            question.setCorrectOptionId(questionDto.getCorrectOptionId());
+
+                            // Options update: simple replace for now
                             final Question finalQuestion = question;
-                            List<Option> newOptions = ((com.athena.lms.athena_lms.dto.MultipleChoiceQuestionDto) questionDto)
-                                    .getOptions()
+                            List<Option> newOptions = questionDto.getOptions()
                                     .stream()
                                     .map(o -> {
                                         Option opt = new Option();
@@ -282,10 +289,11 @@ public class TestManagementService {
                                         return opt;
                                     }).toList();
                             // We need to delete old options?
-                            // JPA might handle orphan removal if configured, but we didn't check
-                            // configuration.
-                            // Let's just update the list if possible.
-                            ((MultipleChoiceQuestion) question).setOptions(newOptions);
+                            // For simplicity, update list reference
+                            question.setOptions(newOptions);
+                        } else if (question.getQuestionType() == QuestionType.IDENTIFICATION
+                                || question.getQuestionType() == QuestionType.TRUE_FALSE) {
+                            question.setCorrectAnswer(questionDto.getCorrectAnswer());
                         }
                     }
                 } else {
@@ -295,10 +303,9 @@ public class TestManagementService {
                 question.setTest(existingTest);
 
                 // Ensure options have relationships set for new questions too
-                if (question instanceof MultipleChoiceQuestion) {
-                    MultipleChoiceQuestion mcq = (MultipleChoiceQuestion) question;
-                    if (mcq.getOptions() != null) {
-                        for (Option option : mcq.getOptions()) {
+                if (question.getQuestionType() == QuestionType.MULTIPLE_CHOICE) {
+                    if (question.getOptions() != null) {
+                        for (Option option : question.getOptions()) {
                             option.setQuestion(question);
                             option.setTest(existingTest);
                         }
@@ -312,6 +319,7 @@ public class TestManagementService {
             // For autosave, usually we just save what's there. Deletion might be explicit.
             questionRepository.saveAll(updatedQuestions);
         }
+        existingTest.setUpdatedAt(Instant.now());
 
         return testMapper.toDto(testRepository.save(existingTest));
     }
@@ -327,15 +335,36 @@ public class TestManagementService {
                 .toList();
     }
 
-    public Page<TestDto> getTeacherTests(Long teacherId, Pageable pageable) {
+    public Page<TestDto> getTeacherTests(Long teacherId, Pageable pageable, String search) {
         // validate the id
         User user = userRepository.findById(teacherId).orElse(null);
         if (user == null) {
             throw new RuntimeException("User not found");
         }
 
-        return testRepository.findByTeacherId(teacherId, pageable)
-                .map(testMapper::toDto);
+        List<Test> tests = testRepository.findByTeacherId(teacherId);
+
+        CriteriaBuilder<Test> cb = cbf.create(em, Test.class).where("teacher.id").eq(teacherId);
+
+        if (search != null && !search.isEmpty()) {
+            String searchPattern = "%" + search + "%";
+            cb.whereOr()
+                    .where("LOWER(TestName)").like(false).value(searchPattern).noEscape()
+                    .where("LOWER(TestDescription)").like(false).value(searchPattern).noEscape()
+                    .where("LOWER(section.name)").like(false).value(searchPattern).noEscape()
+                    .where("LOWER(subject.name)").like(false).value(searchPattern).noEscape()
+                    .endOr();
+        }
+
+        cb.orderByDesc("createdAt")
+                .orderByDesc("id");
+
+        PagedList<Test> pagedList = cb.page(pageable.getPageNumber() * pageable.getPageSize(), pageable.getPageSize())
+                .getResultList();
+
+        return new PageImpl<>(pagedList.stream()
+                .map(testMapper::toDto)
+                .toList(), pageable, pagedList.getTotalSize());
     }
 
     public void deleteTest(Long id) {
@@ -372,10 +401,9 @@ public class TestManagementService {
                 question.setId(null);
             }
 
-            if (question instanceof MultipleChoiceQuestion) {
-                MultipleChoiceQuestion mcq = (MultipleChoiceQuestion) question;
-                if (mcq.getOptions() != null) {
-                    for (Option option : mcq.getOptions()) {
+            if (question.getQuestionType() == QuestionType.MULTIPLE_CHOICE) {
+                if (question.getOptions() != null) {
+                    for (Option option : question.getOptions()) {
                         option.setQuestion(question);
                         option.setTest(test);
                         // Handle negative Option IDs
@@ -454,18 +482,16 @@ public class TestManagementService {
     }
 
     private Question handleSpecificQuestions(Question question, QuestionDto questionDto, Test test) {
-        if (question instanceof MultipleChoiceQuestion && questionDto instanceof MultipleChoiceQuestionDto) {
-            MultipleChoiceQuestion mcq = (MultipleChoiceQuestion) question;
-            MultipleChoiceQuestionDto mcqDto = (MultipleChoiceQuestionDto) questionDto;
-
-            mcq.setCorrectAnswer(mcqDto.getCorrectAnswer());
-            mcq.setCorrectOptionId(mcqDto.getCorrectOptionId());
+        // Set common type-specific fields
+        if (question.getQuestionType() == QuestionType.MULTIPLE_CHOICE) {
+            question.setCorrectAnswer(questionDto.getCorrectAnswer());
+            question.setCorrectOptionId(questionDto.getCorrectOptionId());
 
             // Sync options
-            if (mcqDto.getOptions() != null) {
+            if (questionDto.getOptions() != null) {
                 java.util.Map<Long, Option> existingOptionsMap = new java.util.HashMap<>();
-                if (mcq.getOptions() != null) {
-                    for (Option opt : mcq.getOptions()) {
+                if (question.getOptions() != null) {
+                    for (Option opt : question.getOptions()) {
                         if (opt.getId() != null) {
                             existingOptionsMap.put(opt.getId(), opt);
                         }
@@ -473,7 +499,7 @@ public class TestManagementService {
                 }
 
                 List<Option> updatedOptions = new ArrayList<>();
-                for (com.athena.lms.athena_lms.dto.OptionDto optDto : mcqDto.getOptions()) {
+                for (com.athena.lms.athena_lms.dto.OptionDto optDto : questionDto.getOptions()) {
                     Option option = null;
                     if (optDto.getId() != null && optDto.getId() > 0) {
                         option = existingOptionsMap.get(optDto.getId());
@@ -497,32 +523,17 @@ public class TestManagementService {
                     updatedOptions.add(option);
                 }
 
-                if (mcq.getOptions() == null) {
-                    mcq.setOptions(new ArrayList<>());
+                if (question.getOptions() == null) {
+                    question.setOptions(new ArrayList<>());
                 }
-                mcq.getOptions().clear();
-                mcq.getOptions().addAll(updatedOptions);
-                return mcq;
-
+                question.getOptions().clear();
+                question.getOptions().addAll(updatedOptions);
             }
-        } else if (question instanceof EssayQuestion) {
-            EssayQuestion essayQuestion = (EssayQuestion) question;
-            EssayQuestionDto essayQuestionDto = (EssayQuestionDto) questionDto;
-
-            essayQuestion.setPoints(essayQuestionDto.getPoints());
-            return essayQuestion;
-        } else if (question instanceof IdentificationQuestion) {
-            IdentificationQuestion identificationQuestion = (IdentificationQuestion) question;
-            IdentificationQuestionDto identificationQuestionDto = (IdentificationQuestionDto) questionDto;
-
-            identificationQuestion.setCorrectAnswer(identificationQuestionDto.getCorrectAnswer());
-            return identificationQuestion;
-        } else if (question instanceof TrueFalseQuestion) {
-            TrueFalseQuestion trueFalseQuestion = (TrueFalseQuestion) question;
-            TrueFalseQuestionDto trueFalseQuestionDto = (TrueFalseQuestionDto) questionDto;
-
-            trueFalseQuestion.setCorrectAnswer(trueFalseQuestionDto.getCorrectAnswer());
-            return trueFalseQuestion;
+        } else if (question.getQuestionType() == QuestionType.IDENTIFICATION
+                || question.getQuestionType() == QuestionType.TRUE_FALSE) {
+            question.setCorrectAnswer(questionDto.getCorrectAnswer());
+        } else if (question.getQuestionType() == QuestionType.ESSAY) {
+            // Essay logic if any
         }
         return question;
     }
@@ -532,7 +543,11 @@ public class TestManagementService {
         questionRepository.save(question);
     }
 
+    @org.springframework.transaction.annotation.Transactional
     public void deleteQuestion(Long id) {
+        // First delete all student answers associated with this question
+        studentAnswerRepository.deleteByQuestionId(id);
+        // Then delete the question
         questionRepository.deleteById(id);
     }
 

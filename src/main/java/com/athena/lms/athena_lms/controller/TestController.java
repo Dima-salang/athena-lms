@@ -64,10 +64,12 @@ public class TestController {
     @GetMapping("{teacherId}/tests")
     public ResponseEntity<org.springframework.data.domain.Page<TestDto>> getTeacherTests(
             @PathVariable Long teacherId,
+            @RequestParam(required = false) String search,
             Pageable pageable) {
         try {
-            return ResponseEntity.ok(testManagementService.getTeacherTests(teacherId, pageable));
+            return ResponseEntity.ok(testManagementService.getTeacherTests(teacherId, pageable, search));
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.badRequest().body(null);
         }
     }

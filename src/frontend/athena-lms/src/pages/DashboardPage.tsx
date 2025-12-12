@@ -11,6 +11,7 @@ const DashboardPage: React.FC = () => {
     const [page, setPage] = useState(0)
     const [totalPages, setTotalPages] = useState(0)
     const [loading, setLoading] = useState(true)
+    const [searchTerm, setSearchTerm] = useState("")
 
     const [error, setError] = useState<string | null>(null)
     const navigate = useNavigate()
@@ -21,7 +22,7 @@ const DashboardPage: React.FC = () => {
             try {
                 const user = await getCurrentUser()
                 if (user && user.id) {
-                    const response = await getTeacherTests(user.id, page, 5)
+                    const response = await getTeacherTests(user.id, page, 5, searchTerm)
                     if (response && response.content) {
                         setTests(response.content)
                         setTotalPages(response.page.totalPages)
@@ -37,8 +38,12 @@ const DashboardPage: React.FC = () => {
                 setLoading(false)
             }
         }
-        fetchTests()
-    }, [page])
+        const timeoutId = setTimeout(() => {
+            fetchTests()
+        }, 300)
+
+        return () => clearTimeout(timeoutId)
+    }, [page, searchTerm])
 
     const handleLogout = () => {
         logout()
@@ -83,10 +88,32 @@ const DashboardPage: React.FC = () => {
                     </div>
 
                     <div className="lg:col-span-2">
-                        <div className="mb-6 flex justify-between items-end">
+                        <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
                             <div>
                                 <h2 className="text-xl font-bold text-slate-900">Available Tests</h2>
                                 <p className="text-slate-600 text-sm mt-1">Manage and view your created tests</p>
+                            </div>
+                            <div className="relative w-full sm:w-64">
+                                <input
+                                    type="text"
+                                    placeholder="Search tests..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-sm"
+                                />
+                                <svg
+                                    className="absolute left-3 top-2.5 h-4 w-4 text-slate-400"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                                    />
+                                </svg>
                             </div>
                         </div>
 
@@ -111,12 +138,20 @@ const DashboardPage: React.FC = () => {
                                                     {test.testName}
                                                 </h3>
                                                 <p className="text-slate-600 text-sm mt-1 line-clamp-2">{test.testDescription}</p>
-                                                <div className="flex gap-4 mt-3 text-xs text-slate-600">
+                                                <div className="flex flex-wrap gap-4 mt-3 text-xs text-slate-600">
                                                     <span className="inline-flex items-center">
                                                         <span className="font-medium">Subject:</span>&nbsp;{test.subject?.name || 'N/A'}
                                                     </span>
                                                     <span className="inline-flex items-center">
                                                         <span className="font-medium">Section:</span>&nbsp;{test.section?.name || 'N/A'}
+                                                    </span>
+                                                    <span className="inline-flex items-center text-slate-500">
+                                                        <span className="font-medium">Created:</span>&nbsp;
+                                                        {test.createdAt ? new Date(test.createdAt).toLocaleDateString() : 'N/A'}
+                                                    </span>
+                                                    <span className="inline-flex items-center text-slate-500">
+                                                        <span className="font-medium">Updated:</span>&nbsp;
+                                                        {test.updatedAt ? new Date(test.updatedAt).toLocaleDateString() : 'N/A'}
                                                     </span>
                                                 </div>
                                             </div>

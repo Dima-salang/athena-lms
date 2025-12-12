@@ -14,12 +14,10 @@ import com.athena.exceptions.NotFoundException;
 import com.athena.lms.athena_lms.dto.*;
 import com.athena.lms.athena_lms.model.User;
 import com.athena.lms.athena_lms.model.Student;
-import com.athena.lms.athena_lms.model.questions.MultipleChoiceQuestion;
 import com.athena.lms.athena_lms.model.questions.Question;
-import com.athena.lms.athena_lms.model.questions.TrueFalseQuestion;
+import com.athena.lms.athena_lms.model.questions.QuestionType;
 import com.athena.lms.athena_lms.model.submission.*;
 import com.athena.lms.athena_lms.model.options.Option;
-import com.athena.lms.athena_lms.model.questions.IdentificationQuestion;
 import com.athena.lms.athena_lms.model.tests.Test;
 import jakarta.persistence.EntityManager;
 import com.blazebit.persistence.CriteriaBuilder;
@@ -156,8 +154,8 @@ public class SubmissionService {
 
         Test test = testRepository.findById(testId).orElseThrow(() -> new AccessDeniedException("Test not found"));
 
-        // Check if submission already exists
-        Submission existingSubmission = submissionRepository.findFirstByTestIdAndStudentIdAndEndTimeIsNull(testId,
+        // Check if submission already exists (not yet submitted)
+        Submission existingSubmission = submissionRepository.findFirstByTestIdAndStudentIdAndSubmittedAtIsNull(testId,
                 student.getId());
         if (existingSubmission != null) {
             return submissionMapper.toDto(existingSubmission);
@@ -239,52 +237,34 @@ public class SubmissionService {
         List<StudentAnswer> studentAnswers = studentAnswerRepository.findBySubmissionId(submission.getId());
         for (StudentAnswer answer : studentAnswers) {
             Question question = answer.getQuestion();
-            if (question instanceof MultipleChoiceQuestion) {
-                MultipleChoiceQuestion multipleChoiceQuestion = (MultipleChoiceQuestion) question;
+            if (question.getQuestionType() == QuestionType.MULTIPLE_CHOICE) {
                 Option option = answer.getOption();
                 if (option == null) {
                     answer.setPoints(0.0);
                 } else {
-                    if (option.getId() == multipleChoiceQuestion.getCorrectOptionId()) {
-                        // get the full points for the question
-                        double mcqFullPoints = multipleChoiceQuestion.getFullPoints();
-
-                        // add it to the total score
-                        totalScore += mcqFullPoints;
-
-                        // set the points for the student answer
-                        answer.setPoints(mcqFullPoints);
+                    // Use equals for Long comparison
+                    if (option.getId() != null && option.getId().equals(question.getCorrectOptionId())) {
+                        double fullPoints = question.getFullPoints();
+                        totalScore += fullPoints;
+                        answer.setPoints(fullPoints);
                     } else {
-                        // we set the points to 0.0 if the answer is wrong
                         answer.setPoints(0.0);
                     }
                 }
-            } else if (question instanceof IdentificationQuestion) {
-                IdentificationQuestion identificationQuestion = (IdentificationQuestion) question;
+            } else if (question.getQuestionType() == QuestionType.IDENTIFICATION) {
                 String textAnswer = answer.getTextAnswer();
-                if (textAnswer.equals(identificationQuestion.getCorrectAnswer())) {
-                    // get the full points for the question
-                    double identificationFullPoints = identificationQuestion.getFullPoints();
-
-                    // add it to the total score
-                    totalScore += identificationFullPoints;
-
-                    // set the points for the student answer
-                    answer.setPoints(identificationFullPoints);
+                if (textAnswer != null && textAnswer.equals(question.getCorrectAnswer())) {
+                    double fullPoints = question.getFullPoints();
+                    totalScore += fullPoints;
+                    answer.setPoints(fullPoints);
                 } else {
                     answer.setPoints(0.0);
                 }
-            } else if (question instanceof TrueFalseQuestion) {
-                TrueFalseQuestion trueFalseQuestion = (TrueFalseQuestion) question;
-                if (answer.getTextAnswer().equals(trueFalseQuestion.getCorrectAnswer())) {
-                    // get the full points for the question
-                    double trueFalseFullPoints = trueFalseQuestion.getFullPoints();
-
-                    // add it to the total score
-                    totalScore += trueFalseFullPoints;
-
-                    // set the points for the student answer
-                    answer.setPoints(trueFalseFullPoints);
+            } else if (question.getQuestionType() == QuestionType.TRUE_FALSE) {
+                if (answer.getTextAnswer() != null && answer.getTextAnswer().equals(question.getCorrectAnswer())) {
+                    double fullPoints = question.getFullPoints();
+                    totalScore += fullPoints;
+                    answer.setPoints(fullPoints);
                 } else {
                     answer.setPoints(0.0);
                 }

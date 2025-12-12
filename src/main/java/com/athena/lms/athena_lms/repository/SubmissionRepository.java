@@ -9,4 +9,6 @@ public interface SubmissionRepository extends JpaRepository<Submission, Long> {
     List<Submission> findByTestId(Long testId);
 
     Submission findFirstByTestIdAndStudentIdAndEndTimeIsNull(Long testId, Long studentId);
+
+    Submission findFirstByTestIdAndStudentIdAndSubmittedAtIsNull(Long testId, Long studentId);
 }

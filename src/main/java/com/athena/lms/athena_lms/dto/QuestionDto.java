@@ -1,16 +1,7 @@
 package com.athena.lms.athena_lms.dto;
 
 import java.util.List;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "questionType", visible = true)
-@JsonSubTypes({
-        @JsonSubTypes.Type(value = MultipleChoiceQuestionDto.class, name = "MULTIPLE_CHOICE"),
-        @JsonSubTypes.Type(value = TrueFalseQuestionDto.class, name = "TRUE_FALSE"),
-        @JsonSubTypes.Type(value = IdentificationQuestionDto.class, name = "IDENTIFICATION"),
-        @JsonSubTypes.Type(value = EssayQuestionDto.class, name = "ESSAY")
-})
 public class QuestionDto {
     private Long id;
     private Long tempId;
@@ -22,6 +13,10 @@ public class QuestionDto {
     private Long testId;
     private double fullPoints;
     private double correctPoints;
+
+    // New consolidated fields
+    private String correctAnswer;
+    private Long correctOptionId;
 
     // getters and setters
 
@@ -103,5 +98,21 @@ public class QuestionDto {
 
     public void setCorrectPoints(double correctPoints) {
         this.correctPoints = correctPoints;
+    }
+
+    public String getCorrectAnswer() {
+        return correctAnswer;
+    }
+
+    public void setCorrectAnswer(String correctAnswer) {
+        this.correctAnswer = correctAnswer;
+    }
+
+    public Long getCorrectOptionId() {
+        return correctOptionId;
+    }
+
+    public void setCorrectOptionId(Long correctOptionId) {
+        this.correctOptionId = correctOptionId;
     }
 }

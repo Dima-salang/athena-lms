@@ -82,26 +82,10 @@ export interface Question {
     fullPoints: number;
     correctPoints: number;
     isDirty?: boolean;
-}
-
-export interface EssayQuestion extends Question {
-    questionAnswer: string;
-    points: number;
-}
-
-export interface MultipleChoiceQuestion extends Question {
-    options: Partial<Option>[];
-    questionAnswer: string;
-    correctAnswer: string;
-    correctOptionId?: number;
-}
-
-export interface TrueFalseQuestion extends Question {
-    trueFalseAnswer: string;
-}
-
-export interface IdentificationQuestion extends Question {
-    correctAnswer: string;
+    // Consolidated fields for all question types
+    options?: Partial<Option>[];
+    correctAnswer?: string; // Replaces field from subclasses
+    correctOptionId?: number; // For MCQ
 }
 
 export interface Option {
@@ -123,6 +107,8 @@ export interface Test {
     section: Section;
     subject: Subject;
     questions: Question[];
+    createdAt?: string;
+    updatedAt?: string;
 }
 
 export interface StudentAnswer {
@@ -153,9 +139,9 @@ export interface PaginatedResponse<T> {
     };
 }
 
-export const getTeacherTests = async (teacherId: number, page: number = 0, size: number = 5): Promise<PaginatedResponse<Test>> => {
+export const getTeacherTests = async (teacherId: number, page: number = 0, size: number = 5, search?: string): Promise<PaginatedResponse<Test>> => {
     const response = await axios.get(`${API_BASE_URL}/teacher/tests/${teacherId}/tests`, {
-        params: { page, size }
+        params: { page, size, search }
     });
     return response.data;
 };

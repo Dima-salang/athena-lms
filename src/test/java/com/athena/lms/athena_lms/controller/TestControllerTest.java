@@ -1,9 +1,7 @@
 package com.athena.lms.athena_lms.controller;
 
-import com.athena.lms.athena_lms.dto.MultipleChoiceQuestionDto;
-import com.athena.lms.athena_lms.dto.QuestionDto;
 import com.athena.lms.athena_lms.dto.TestDto;
-import com.athena.lms.athena_lms.dto.TrueFalseQuestionDto;
+import com.athena.lms.athena_lms.dto.QuestionDto;
 import com.athena.lms.athena_lms.model.Teacher;
 import com.athena.lms.athena_lms.repository.TestRepository;
 import com.athena.lms.athena_lms.repository.UserRepository;
@@ -104,13 +102,13 @@ public class TestControllerTest {
         test.setTeacher(teacher);
         test = testRepository.save(test);
 
-        MultipleChoiceQuestionDto questionDto = new MultipleChoiceQuestionDto();
+        QuestionDto questionDto = new QuestionDto();
         questionDto.setQuestionText("What is 2+2?");
         questionDto.setQuestionNumber("1");
         questionDto.setFullPoints(1);
         questionDto.setCorrectPoints(1);
-        questionDto.setQuestionType("MULTIPLE_CHOICE"); // String in DTO usually, or enum if mapped
-        questionDto.setCorrectAnswer("4");
+        questionDto.setQuestionType("MULTIPLE_CHOICE");
+        questionDto.setCorrectAnswer("4"); // Or correctOptionId/options if testing that specific logic
 
         // Controller expects a List
         java.util.List<QuestionDto> questions = java.util.Collections.singletonList(questionDto);
@@ -139,13 +137,13 @@ public class TestControllerTest {
         test.setTeacher(teacher);
         test = testRepository.save(test);
 
-        MultipleChoiceQuestionDto q1 = new MultipleChoiceQuestionDto();
+        QuestionDto q1 = new QuestionDto();
         q1.setQuestionText("Q1");
         q1.setQuestionNumber("1");
         q1.setQuestionType("MULTIPLE_CHOICE");
         q1.setCorrectAnswer("A");
 
-        TrueFalseQuestionDto q2 = new TrueFalseQuestionDto();
+        QuestionDto q2 = new QuestionDto();
         q2.setQuestionText("Q2");
         q2.setQuestionNumber("2");
         q2.setQuestionType("TRUE_FALSE");

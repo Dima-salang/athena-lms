@@ -27,6 +27,8 @@ public class Test {
     private Instant TestDueDate;
     private Duration TestDuration;
     private boolean hasInfiniteTime;
+    private Instant createdAt;
+    private Instant updatedAt;
 
     @ManyToOne
     @JoinColumn(name = "section_id")
@@ -133,6 +135,22 @@ public class Test {
 
     public void setQuestions(List<Question> questions) {
         this.questions = questions;
+    }
+    
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Instant updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
 }
