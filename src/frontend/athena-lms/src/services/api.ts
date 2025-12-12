@@ -223,8 +223,10 @@ export const getAllSections = async (): Promise<Section[]> => {
     return response.data;
 };
 
-export const getTestsBySection = async (sectionId: number): Promise<Test[]> => {
-    const response = await axios.get(`${API_BASE_URL}/student/tests/section/${sectionId}`);
+export const getTestsBySection = async (sectionId: number, page: number = 0, size: number = 5, search?: string): Promise<PaginatedResponse<Test>> => {
+    const response = await axios.get(`${API_BASE_URL}/student/tests/section/${sectionId}`, {
+        params: { page, size, search }
+    });
     return response.data;
 };
 

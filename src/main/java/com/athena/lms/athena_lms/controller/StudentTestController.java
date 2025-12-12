@@ -2,6 +2,9 @@ package com.athena.lms.athena_lms.controller;
 
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 
 import com.athena.lms.athena_lms.dto.TestDto;
@@ -17,9 +20,10 @@ public class StudentTestController {
     }
 
     @GetMapping("/section/{sectionId}")
-    public ResponseEntity<List<TestDto>> getTestBySection(@PathVariable Long sectionId) {
-        System.err.println("Section ID: " + sectionId);
-        return ResponseEntity.ok(testManagementService.getTestsBySection(sectionId));
+    public ResponseEntity<Page<TestDto>> getTestBySection(@PathVariable Long sectionId,
+            @RequestParam(required = false) String search,
+            Pageable pageable) {
+        return ResponseEntity.ok(testManagementService.getTestsBySection(sectionId, pageable, search));
     }
 
     @GetMapping("/subject/{subjectId}")

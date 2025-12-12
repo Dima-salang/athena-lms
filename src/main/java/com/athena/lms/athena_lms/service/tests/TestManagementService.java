@@ -3,7 +3,6 @@ package com.athena.lms.athena_lms.service.tests;
 import java.util.ArrayList;
 import java.util.List;
 import java.time.Instant;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -342,8 +341,6 @@ public class TestManagementService {
             throw new RuntimeException("User not found");
         }
 
-        List<Test> tests = testRepository.findByTeacherId(teacherId);
-
         CriteriaBuilder<Test> cb = cbf.create(em, Test.class).where("teacher.id").eq(teacherId);
 
         if (search != null && !search.isEmpty()) {
@@ -371,13 +368,27 @@ public class TestManagementService {
         testRepository.deleteById(id);
     }
 
-    public List<TestDto> getTestsBySection(Long sectionId) {
-        System.err.println("Section ID: " + sectionId);
-        List<Test> tests = testRepository.findBySectionId(sectionId);
-        System.err.println("Tests: " + tests.stream().map(test -> test.getId()).toList());
-        return tests.stream()
+    public Page<TestDto> getTestsBySection(Long sectionId, Pageable pageable, String search) {
+        CriteriaBuilder<Test> cb = cbf.create(em, Test.class).where("section.id").eq(sectionId);
+
+        if (search != null && !search.isEmpty()) {
+            String searchPattern = "%" + search + "%";
+            cb.whereOr()
+                    .where("LOWER(TestName)").like(false).value(searchPattern).noEscape()
+                    .where("LOWER(TestDescription)").like(false).value(searchPattern).noEscape()
+                    .where("LOWER(subject.name)").like(false).value(searchPattern).noEscape()
+                    .endOr();
+        }
+
+        cb.orderByDesc("createdAt")
+                .orderByDesc("id");
+
+        PagedList<Test> pagedList = cb.page(pageable.getPageNumber() * pageable.getPageSize(), pageable.getPageSize())
+                .getResultList();
+
+        return new PageImpl<>(pagedList.stream()
                 .map(testMapper::toDto)
-                .toList();
+                .toList(), pageable, pagedList.getTotalSize());
     }
 
     public List<TestDto> getTestsBySubject(Long subjectId) {
@@ -421,6 +432,7 @@ public class TestManagementService {
             test.setQuestions(new java.util.ArrayList<>());
         }
         test.getQuestions().addAll(savedQuestions);
+        test.setUpdatedAt(Instant.now());
         testRepository.save(test); // Optional if cascading, but ensures update
 
         return savedQuestions.stream()
@@ -474,6 +486,7 @@ public class TestManagementService {
             test.setQuestions(new ArrayList<>());
         }
         test.getQuestions().addAll(savedQuestions);
+        test.setUpdatedAt(Instant.now());
         testRepository.save(test); // Optional if cascading, but ensures update
 
         return savedQuestions.stream()
