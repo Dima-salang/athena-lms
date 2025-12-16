@@ -28,6 +28,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/tests/**").hasRole("TEACHER")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/students/**").hasRole("STUDENT")
+                        .requestMatchers("/api/student/submissions/**").hasAnyRole("STUDENT", "TEACHER")
                         .anyRequest().authenticated())
                 .formLogin(form -> form
                         .loginProcessingUrl("/api/auth/login")

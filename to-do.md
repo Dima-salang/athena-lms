@@ -1,11 +1,13 @@
 DECEMBER 16, 2025
 - implement not being able to take the test if the test has already been submitted - DONE
-- implement submissions and grades for the student dashboard - DONE
-- implement being able to set the grade for the submission view for the teacher
-- implement being able to set the grade for the essay in the submission view for the teacher
-- implement being able to set the grade for every question for the teacher
-- implement recalculate score for all submissions by a specific test
-- implement scheduling of the tests for the teacher
+- implement submissions and grades for the student dashboard
+- implement being able to set the grade for the submission view for the teacher - DONE
+- implement being able to set the grade for the essay in the submission view for the teacher - DONE
+- implement being able to set the grade for every question for the teacher - DONE
+- implement recalculate score for all submissions by a specific test - DONE
+- implement manual override of score for a student answer - DONE
+- implement manual override of score for a submission - DONE 
+- implement scheduling of the tests for the teacher - DONE
 
 
 

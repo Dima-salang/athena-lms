@@ -251,6 +251,24 @@ export const submitTest = async (submissionId: number, answers: StudentAnswer[])
     return response.data;
 };
 
+export const manualSetStudentAnswerScore = async (studentAnswerId: number, score: number): Promise<void> => {
+    await axios.post(`${API_BASE_URL}/student/submissions/student-answers/${studentAnswerId}/score`, score, {
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    });
+};
+
+export const recalculateSubmission = async (submissionId: number, autoGrade: boolean = false): Promise<void> => {
+    await axios.post(`${API_BASE_URL}/student/submissions/${submissionId}/recalculate`, null, {
+        params: { autoGrade }
+    });
+};
+
+export const autoGradeTest = async (testId: number): Promise<void> => {
+    await axios.post(`${API_BASE_URL}/student/submissions/test/${testId}/recalculate`);
+};
+
 export const updateAnswers = async (answers: StudentAnswer[]): Promise<StudentAnswer[]> => {
     const response = await axios.post(`${API_BASE_URL}/student/submissions/submit/update-answers`, answers);
     return response.data;

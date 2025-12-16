@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react"
 import { useParams, useNavigate } from "react-router-dom"
-import { getSubmissionsByTest, type Submission } from "../services/api"
+import { getSubmissionsByTest, autoGradeTest, type Submission } from "../services/api"
 import { format } from "date-fns"
 
 const TestSubmissionsPage: React.FC = () => {
@@ -57,6 +57,26 @@ const TestSubmissionsPage: React.FC = () => {
             </header>
 
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div className="flex justify-end mb-4">
+                    <button
+                        onClick={async () => {
+                            if (!testId) return;
+                            if (!confirm("Are you sure you want to auto-grade ALL submissions for this test? This will overwrite manual scores.")) return;
+                            try {
+                                setLoading(true);
+                                await autoGradeTest(Number(testId));
+                                fetchSubmissions();
+                            } catch (e) {
+                                console.error(e);
+                                setError("Failed to auto-grade all submissions");
+                                setLoading(false);
+                            }
+                        }}
+                        className="px-4 py-2 bg-purple-600 text-white hover:bg-purple-700 rounded-lg transition"
+                    >
+                        Auto-Grade All Submissions
+                    </button>
+                </div>
                 <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6 mb-6">
                     <div className="mb-6">
                         <label htmlFor="search" className="block text-sm font-medium text-slate-700 mb-1">
@@ -148,8 +168,8 @@ const TestSubmissionsPage: React.FC = () => {
                         </div>
                     )}
                 </div>
-            </main>
-        </div>
+            </main >
+        </div >
     )
 }
 

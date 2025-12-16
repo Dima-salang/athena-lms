@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react"
 import { useParams, useNavigate } from "react-router-dom"
-import { getSubmission, getStudentAnswers, type Submission, type StudentAnswer } from "../services/api"
+import { getSubmission, getStudentAnswers, manualSetStudentAnswerScore, recalculateSubmission, type Submission, type StudentAnswer } from "../services/api"
 import { format } from "date-fns"
 
 const SubmissionDetailPage: React.FC = () => {
@@ -58,12 +58,51 @@ const SubmissionDetailPage: React.FC = () => {
                     <h1 className="text-xl font-bold text-slate-900">
                         Submission Details
                     </h1>
-                    <button
-                        onClick={() => navigate(-1)}
-                        className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition"
-                    >
-                        Back
-                    </button>
+
+                    <div className="flex gap-2">
+                        <button
+                            onClick={async () => {
+                                if (!submissionId) return;
+                                try {
+                                    setLoading(true);
+                                    await recalculateSubmission(Number(submissionId));
+                                    // reload
+                                    window.location.reload();
+                                } catch (e) {
+                                    console.error(e);
+                                    setError("Failed to recalculate");
+                                    setLoading(false);
+                                }
+                            }}
+                            className="px-4 py-2 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg transition"
+                        >
+                            Recalculate Total
+                        </button>
+                        <button
+                            onClick={async () => {
+                                if (!submissionId) return;
+                                if (!confirm("Are you sure? This will overwrite manual scores with auto-graded values.")) return;
+                                try {
+                                    setLoading(true);
+                                    await recalculateSubmission(Number(submissionId), true); // true for autoGrade
+                                    window.location.reload();
+                                } catch (e) {
+                                    console.error(e);
+                                    setError("Failed to auto-grade");
+                                    setLoading(false);
+                                }
+                            }}
+                            className="px-4 py-2 bg-purple-100 text-purple-700 hover:bg-purple-200 rounded-lg transition"
+                        >
+                            Auto-Grade
+                        </button>
+                        <button
+                            onClick={() => navigate(-1)}
+                            className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition"
+                        >
+                            Back
+                        </button>
+                    </div>
                 </div>
             </header>
 
@@ -99,6 +138,39 @@ const SubmissionDetailPage: React.FC = () => {
                                         }`}>
                                         {studentAnswer?.points || 0} / {question.fullPoints} Points
                                     </span>
+                                    <div className="flex items-center gap-2">
+                                        <div className="flex items-center bg-slate-100 rounded-lg border border-slate-200 overflow-hidden">
+                                            <span className="px-2 text-xs font-semibold text-slate-500 uppercase">Score</span>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max={question.fullPoints}
+                                                defaultValue={studentAnswer?.points || 0}
+                                                onBlur={async (e) => {
+                                                    const newScore = Number(e.target.value);
+                                                    if (studentAnswer && studentAnswer.id && !isNaN(newScore)) {
+                                                        if (newScore < 0 || newScore > question.fullPoints) {
+                                                            alert(`Score must be between 0 and ${question.fullPoints}`);
+                                                            e.target.value = String(studentAnswer.points || 0);
+                                                            return;
+                                                        }
+                                                        try {
+                                                            await manualSetStudentAnswerScore(studentAnswer.id, newScore);
+                                                            // update local state to reflect change? or reload?
+                                                            // For now simple ui update implies success.
+                                                        } catch (err) {
+                                                            console.error("Failed to update score", err);
+                                                            alert("Failed to update score");
+                                                        }
+                                                    }
+                                                }}
+                                                className="w-16 px-2 py-1 text-sm font-semibold text-right outline-none focus:bg-white transition"
+                                            />
+                                            <span className="px-2 text-sm text-slate-500 font-medium border-l border-slate-200">
+                                                / {question.fullPoints}
+                                            </span>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div className="mb-4 text-slate-700 text-lg">

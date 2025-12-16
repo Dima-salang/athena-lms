@@ -389,7 +389,11 @@ public class TestManagementService {
     }
 
     public Page<TestDto> getTestsBySection(Long sectionId, Pageable pageable, String search) {
+
         CriteriaBuilder<Test> cb = cbf.create(em, Test.class).where("section.id").eq(sectionId);
+
+        Instant now = Instant.now();
+        cb.where("TestIssueDate").le(now);
 
         if (search != null && !search.isEmpty()) {
             String searchPattern = "%" + search + "%";
@@ -401,7 +405,6 @@ public class TestManagementService {
         }
 
         // rank the tests by due date priority
-        Instant now = Instant.now();
 
         cb.orderByAsc(
                 "CASE WHEN TestDueDate >= :now THEN 0 ELSE 1 END");

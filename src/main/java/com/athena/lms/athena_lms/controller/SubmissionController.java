@@ -68,4 +68,28 @@ public class SubmissionController {
     public ResponseEntity<List<SubmissionDto>> getMySubmissions(java.security.Principal principal) {
         return ResponseEntity.ok(submissionService.getStudentSubmissions(principal.getName()));
     }
+
+    @PostMapping("/student-answers/{studentAnswerId}/score")
+    public ResponseEntity<Void> manualSetStudentAnswerScore(@PathVariable Long studentAnswerId,
+            @RequestBody Double score) {
+        submissionService.manualSetStudentAnswerScore(studentAnswerId, score);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{submissionId}/recalculate")
+    public ResponseEntity<Void> recalculateSubmission(@PathVariable Long submissionId,
+            @RequestParam(required = false, defaultValue = "false") boolean autoGrade) {
+        if (autoGrade) {
+            submissionService.autoGradeSubmission(submissionId);
+        } else {
+            submissionService.recalculateSubmissionTotal(submissionId);
+        }
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/test/{testId}/recalculate")
+    public ResponseEntity<Void> recalculateTestSubmissions(@PathVariable Long testId) {
+        submissionService.autoGradeTestSubmissions(testId);
+        return ResponseEntity.ok().build();
+    }
 }
