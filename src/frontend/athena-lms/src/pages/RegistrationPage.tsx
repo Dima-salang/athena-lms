@@ -5,23 +5,6 @@ import { useState, useEffect } from "react"
 import { registerStudent, registerTeacher } from "../services/authApi"
 import { getAllSections, type Section, type Student, type Teacher } from "../services/api"
 import { Link } from "react-router-dom"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 
 const RegistrationPage: React.FC = () => {
   const [firstName, setFirstName] = useState("")
@@ -30,7 +13,7 @@ const RegistrationPage: React.FC = () => {
   const [password, setPassword] = useState("")
   const [userType, setUserType] = useState("student")
   const [lrn, setLrn] = useState(0)
-  const [selectedSectionId, setSelectedSectionId] = useState<string>("")
+  const [selectedSectionId, setSelectedSectionId] = useState<number | "">("")
   const [sections, setSections] = useState<Section[]>([])
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
@@ -81,7 +64,7 @@ const RegistrationPage: React.FC = () => {
         await registerTeacher(teacher)
         setSuccess("Teacher registered successfully!")
       }
-    } catch {
+    } catch (err) {
       setError("Failed to register user. Please try again.")
     } finally {
       setIsLoading(false)
@@ -89,138 +72,148 @@ const RegistrationPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-12 px-4 flex items-center justify-center">
-      <div className="w-full max-w-2xl">
-        <Card className="shadow-lg">
-          <CardHeader className="text-center">
-            <CardTitle className="text-3xl font-bold">Create Account</CardTitle>
-            <CardDescription>Join us to get started</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {error && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm font-medium">
-                {error}
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 py-12 px-4">
+      <div className="w-full max-w-2xl mx-auto">
+        <div className="bg-white rounded-lg shadow-lg p-8">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-slate-900 mb-2">Create Account</h1>
+            <p className="text-slate-600">Join us to get started</p>
+          </div>
+
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-700 text-sm font-medium">{error}</p>
+            </div>
+          )}
+
+          {success && (
+            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-green-700 text-sm font-medium mb-4">{success}</p>
+              <Link
+                to="/login"
+                className="block w-full py-2.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg text-center transition duration-200"
+              >
+                Proceed to Login
+              </Link>
+            </div>
+          )}
+
+          {!success && (
+            <form onSubmit={handleRegister} className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">I am a:</label>
+                <select
+                  value={userType}
+                  onChange={(e) => setUserType(e.target.value)}
+                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                >
+                  <option value="student">Student</option>
+                  <option value="teacher">Teacher</option>
+                </select>
               </div>
-            )}
 
-            {success ? (
-              <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-green-700 text-sm font-medium mb-4">{success}</p>
-                <Button asChild className="w-full bg-green-600 hover:bg-green-700">
-                  <Link to="/login">Proceed to Login</Link>
-                </Button>
-              </div>
-            ) : (
-              <form onSubmit={handleRegister} className="space-y-6">
-                <div className="space-y-2">
-                  <Label>I am a:</Label>
-                  <Select value={userType} onValueChange={setUserType}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select user type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="student">Student</SelectItem>
-                      <SelectItem value="teacher">Teacher</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="firstName">First Name</Label>
-                    <Input
-                      id="firstName"
-                      type="text"
-                      value={firstName}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFirstName(e.target.value)}
-                      required
-                      placeholder="John"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="lastName">Last Name</Label>
-                    <Input
-                      id="lastName"
-                      type="text"
-                      value={lastName}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLastName(e.target.value)}
-                      required
-                      placeholder="Doe"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="username">Username</Label>
-                  <Input
-                    id="username"
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">First Name</label>
+                  <input
                     type="text"
-                    value={username}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setUsername(e.target.value)}
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
                     required
-                    placeholder="johndoe"
+                    placeholder="John"
+                    className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                   />
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Last Name</label>
+                  <input
+                    type="text"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
                     required
-                    placeholder="••••••••"
+                    placeholder="Doe"
+                    className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                   />
                 </div>
+              </div>
 
-                {userType === "student" && (
-                  <>
-                    <div className="space-y-2">
-                      <Label htmlFor="lrn">LRN (Learner Reference Number)</Label>
-                      <Input
-                        id="lrn"
-                        type="number"
-                        value={lrn || ""}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLrn(Number(e.target.value))}
-                        required
-                        placeholder="123456789012"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Section</Label>
-                      <Select value={selectedSectionId} onValueChange={setSelectedSectionId}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a section" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {sections.map((section) => (
-                            <SelectItem key={section.id} value={String(section.id)}>
-                              {section.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </>
-                )}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Username</label>
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                  placeholder="johndoe"
+                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                />
+              </div>
 
-                <Button type="submit" className="w-full mt-6" disabled={isLoading} size="lg">
-                  {isLoading ? "Creating Account..." : "Register"}
-                </Button>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Password</label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  placeholder="••••••••"
+                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                />
+              </div>
 
-                <div className="pt-6 border-t border-slate-200 text-center">
-                  <p className="text-slate-600 text-sm">
-                    Already have an account?{" "}
-                    <Link to="/login" className="font-semibold text-primary hover:underline transition">
-                      Login here
-                    </Link>
-                  </p>
-                </div>
-              </form>
-            )}
-          </CardContent>
-        </Card>
+              {userType === "student" && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      LRN (Learner Reference Number)
+                    </label>
+                    <input
+                      type="number"
+                      value={lrn || ""}
+                      onChange={(e) => setLrn(Number(e.target.value))}
+                      required
+                      placeholder="123456789012"
+                      className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Section</label>
+                    <select
+                      value={selectedSectionId}
+                      onChange={(e) => setSelectedSectionId(Number(e.target.value))}
+                      required
+                      className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                    >
+                      <option value="">Select a section</option>
+                      {sections.map((section) => (
+                        <option key={section.id} value={section.id}>
+                          {section.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </>
+              )}
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-400 text-white font-medium rounded-lg transition duration-200 mt-6"
+              >
+                {isLoading ? "Creating Account..." : "Register"}
+              </button>
+
+              <div className="pt-6 border-t border-slate-200 text-center">
+                <p className="text-slate-600 text-sm">
+                  Already have an account?{" "}
+                  <Link to="/login" className="font-semibold text-blue-600 hover:text-blue-700 transition">
+                    Login here
+                  </Link>
+                </p>
+              </div>
+            </form>
+          )}
+        </div>
       </div>
     </div>
   )

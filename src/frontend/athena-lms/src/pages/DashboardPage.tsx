@@ -5,17 +5,6 @@ import { useState, useEffect } from "react"
 import { getTeacherTests, type Test } from "../services/api"
 import { useNavigate } from "react-router-dom"
 import { logout, getCurrentUser } from "../services/authApi"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card"
-import { Plus, Search, BarChart2, Edit, LogOut, Clock, Calendar } from "lucide-react"
 
 const DashboardPage: React.FC = () => {
     const [tests, setTests] = useState<Test[]>([])
@@ -42,7 +31,7 @@ const DashboardPage: React.FC = () => {
                     }
                     setError(null)
                 }
-            } catch {
+            } catch (err) {
                 setError("Failed to fetch tests. Please check your login status.")
                 setTests([])
             } finally {
@@ -62,59 +51,69 @@ const DashboardPage: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen bg-slate-50/50">
-            <header className="sticky top-0 z-50 bg-white border-b border-slate-200">
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+            <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-slate-200">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-                    <h1 className="text-2xl font-bold tracking-tight text-slate-900">Teacher Dashboard</h1>
-                    <Button variant="outline" size="sm" onClick={handleLogout}>
-                        <LogOut className="h-4 w-4 mr-2" />
+                    <h1 className="text-2xl font-bold text-slate-900">Teacher Dashboard</h1>
+                    <button
+                        onClick={handleLogout}
+                        className="px-4 py-2 text-slate-700 border border-slate-300 rounded-lg hover:bg-slate-50 transition"
+                    >
                         Logout
-                    </Button>
+                    </button>
                 </div>
             </header>
 
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {error && (
-                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm font-medium">
-                        {error}
+                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                        <p className="text-red-700 text-sm font-medium">{error}</p>
                     </div>
                 )}
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
                     <div className="lg:col-span-1">
-                        <Card className="sticky top-24">
-                            <CardHeader>
-                                <CardTitle>Create New Test</CardTitle>
-                                <CardDescription>
-                                    Create a new test, add questions, and assign it to your students.
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <Button className="w-full" onClick={() => navigate("/create-test")}>
-                                    <Plus className="h-4 w-4 mr-2" />
-                                    Create New Test
-                                </Button>
-                            </CardContent>
-                        </Card>
+                        <div className="bg-white rounded-lg shadow-md p-6 sticky top-24 h-fit">
+                            <h2 className="text-lg font-bold text-slate-900 mb-3">Create New Test</h2>
+                            <p className="text-slate-600 text-sm mb-4 leading-relaxed">
+                                Create a new test, add questions, and assign it to your students.
+                            </p>
+                            <button
+                                onClick={() => navigate("/create-test")}
+                                className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition duration-200"
+                            >
+                                Create New Test
+                            </button>
+                        </div>
                     </div>
 
                     <div className="lg:col-span-2">
                         <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
                             <div>
-                                <h2 className="text-xl font-bold tracking-tight text-slate-900">Available Tests</h2>
+                                <h2 className="text-xl font-bold text-slate-900">Available Tests</h2>
                                 <p className="text-slate-600 text-sm mt-1">Manage and view your created tests</p>
                             </div>
                             <div className="relative w-full sm:w-64">
-                                <div className="relative">
-                                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-500" />
-                                    <Input
-                                        type="text"
-                                        placeholder="Search tests..."
-                                        value={searchTerm}
-                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-                                        className="pl-9"
+                                <input
+                                    type="text"
+                                    placeholder="Search tests..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-sm"
+                                />
+                                <svg
+                                    className="absolute left-3 top-2.5 h-4 w-4 text-slate-400"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                                     />
-                                </div>
+                                </svg>
                             </div>
                         </div>
 
@@ -123,86 +122,90 @@ const DashboardPage: React.FC = () => {
                                 <p className="text-slate-500">Loading tests...</p>
                             </div>
                         ) : tests.length === 0 ? (
-                            <Card>
-                                <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-                                    <p className="text-slate-600 font-medium">No tests found. Create one to get started.</p>
-                                </CardContent>
-                            </Card>
+                            <div className="bg-white rounded-lg shadow-md p-12 text-center">
+                                <p className="text-slate-600">No tests found. Create one to get started.</p>
+                            </div>
                         ) : (
-                            <div className="space-y-4">
+                            <div className="space-y-3">
                                 {tests.map((test) => (
-                                    <Card key={test.id} className="hover:border-primary/50 transition-colors">
-                                        <CardContent className="p-6">
-                                            <div className="flex flex-col sm:flex-row gap-4 justify-between items-start">
-                                                <div className="flex-1 space-y-2 cursor-pointer" onClick={() => navigate(`/test/${test.id}`)}>
-                                                    <div className="flex items-center gap-2 mb-1">
-                                                        <Badge variant="outline">{test.subject?.name || 'General'}</Badge>
-                                                        {test.section && (
-                                                            <Badge variant="secondary" className="text-xs">
-                                                                {test.section.name}
-                                                            </Badge>
-                                                        )}
-                                                    </div>
-                                                    <h3 className="text-lg font-semibold text-slate-900 hover:text-primary transition-colors">
-                                                        {test.testName}
-                                                    </h3>
-                                                    <p className="text-slate-600 text-sm line-clamp-2">{test.testDescription}</p>
-
-                                                    <div className="flex flex-wrap gap-4 text-xs text-slate-500 pt-2">
-                                                        <span className="flex items-center gap-1">
-                                                            <Calendar className="h-3 w-3" />
-                                                            Updated: {test.updatedAt ? new Date(test.updatedAt).toLocaleDateString() : 'N/A'}
-                                                        </span>
-                                                        <span className="flex items-center gap-1">
-                                                            <Clock className="h-3 w-3" />
-                                                            Created: {test.createdAt ? new Date(test.createdAt).toLocaleDateString() : 'N/A'}
-                                                        </span>
-                                                    </div>
-                                                </div>
-
-                                                <div className="flex sm:flex-col gap-2 w-full sm:w-auto mt-4 sm:mt-0">
-                                                    <Button variant="outline" size="sm" className="justify-start" onClick={(e: React.MouseEvent) => {
-                                                        e.stopPropagation()
-                                                        navigate(`/teacher/test/${test.id}/submissions`)
-                                                    }}>
-                                                        <BarChart2 className="h-4 w-4 mr-2" />
-                                                        Submissions
-                                                    </Button>
-                                                    <Button variant="outline" size="sm" className="justify-start" onClick={(e: React.MouseEvent) => {
-                                                        e.stopPropagation()
-                                                        navigate(`/test/${test.id}/edit`)
-                                                    }}>
-                                                        <Edit className="h-4 w-4 mr-2" />
-                                                        Edit
-                                                    </Button>
+                                    <div
+                                        key={test.id}
+                                        className="bg-white rounded-lg shadow-md p-5 border border-slate-200 hover:border-blue-300 transition group"
+                                    >
+                                        <div className="flex justify-between items-start gap-4">
+                                            <div className="flex-1 min-w-0 cursor-pointer" onClick={() => navigate(`/test/${test.id}`)}>
+                                                <h3 className="text-lg font-semibold text-slate-900 truncate group-hover:text-blue-600 transition-colors">
+                                                    {test.testName}
+                                                </h3>
+                                                <p className="text-slate-600 text-sm mt-1 line-clamp-2">{test.testDescription}</p>
+                                                <div className="flex flex-wrap gap-4 mt-3 text-xs text-slate-600">
+                                                    <span className="inline-flex items-center">
+                                                        <span className="font-medium">Subject:</span>&nbsp;{test.subject?.name || 'N/A'}
+                                                    </span>
+                                                    <span className="inline-flex items-center">
+                                                        <span className="font-medium">Section:</span>&nbsp;{test.section?.name || 'N/A'}
+                                                    </span>
+                                                    <span className="inline-flex items-center text-slate-500">
+                                                        <span className="font-medium">Created:</span>&nbsp;
+                                                        {test.createdAt ? new Date(test.createdAt).toLocaleDateString() : 'N/A'}
+                                                    </span>
+                                                    <span className="inline-flex items-center text-slate-500">
+                                                        <span className="font-medium">Updated:</span>&nbsp;
+                                                        {test.updatedAt ? new Date(test.updatedAt).toLocaleDateString() : 'N/A'}
+                                                    </span>
                                                 </div>
                                             </div>
-                                        </CardContent>
-                                    </Card>
+                                            <div className="flex flex-col items-end gap-2">
+                                                <span className="inline-block px-3 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full whitespace-nowrap">
+                                                    {test.subject?.name || 'General'}
+                                                </span>
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation()
+                                                            navigate(`/teacher/test/${test.id}/submissions`)
+                                                        }}
+                                                        className="px-3 py-1.5 text-xs font-medium text-slate-600 hover:text-green-600 hover:bg-green-50 rounded-md transition-colors flex items-center gap-1 border border-slate-200 hover:border-green-200"
+                                                    >
+                                                        <span>📊 Submissions</span>
+                                                    </button>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation()
+                                                            navigate(`/test/${test.id}/edit`)
+                                                        }}
+                                                        className="px-3 py-1.5 text-xs font-medium text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors flex items-center gap-1 border border-slate-200 hover:border-blue-200"
+                                                    >
+                                                        <span>✎ Edit</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 ))}
                             </div>
                         )}
 
                         {/* Pagination Controls */}
                         {totalPages > 1 && (
-                            <div className="mt-8 flex justify-center items-center gap-2">
-                                <Button
-                                    variant="outline"
+                            <div className="mt-6 flex justify-center items-center gap-2">
+                                <button
                                     onClick={() => setPage(p => Math.max(0, p - 1))}
                                     disabled={page === 0}
+                                    className="px-3 py-1 rounded border border-slate-300 text-slate-600 disabled:opacity-50 hover:bg-slate-50"
                                 >
                                     Previous
-                                </Button>
-                                <span className="text-sm text-slate-600 px-2">
+                                </button>
+                                <span className="text-sm text-slate-600">
                                     Page {page + 1} of {totalPages}
                                 </span>
-                                <Button
-                                    variant="outline"
+                                <button
                                     onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
                                     disabled={page === totalPages - 1}
+                                    className="px-3 py-1 rounded border border-slate-300 text-slate-600 disabled:opacity-50 hover:bg-slate-50"
                                 >
                                     Next
-                                </Button>
+                                </button>
                             </div>
                         )}
                     </div>

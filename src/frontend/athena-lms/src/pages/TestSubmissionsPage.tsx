@@ -15,7 +15,7 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { ArrowLeft, Search, GraduationCap, Loader2, PlayCircle, Eye } from "lucide-react"
+import { ArrowLeft, Search, GraduationCap, Loader2, PlayCircle, Eye, SlidersHorizontal, UserCircle2 } from "lucide-react"
 
 const TestSubmissionsPage: React.FC = () => {
     const { testId } = useParams<{ testId: string }>()
@@ -30,9 +30,8 @@ const TestSubmissionsPage: React.FC = () => {
         if (testId) {
             fetchSubmissions()
         }
-    }, [testId]) // Initial fetch
+    }, [testId])
 
-    // Debounce search
     useEffect(() => {
         const timer = setTimeout(() => {
             if (testId) fetchSubmissions()
@@ -87,114 +86,158 @@ const TestSubmissionsPage: React.FC = () => {
     );
 
     return (
-        <div className="min-h-screen bg-slate-50/50 p-6 md:p-8">
-            <div className="max-w-7xl mx-auto space-y-6">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h1 className="text-3xl font-bold tracking-tight">Test Submissions</h1>
-                        <p className="text-muted-foreground mt-1">View and grade student submissions.</p>
+        <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950 p-6 md:p-8">
+            <div className="max-w-7xl mx-auto space-y-8">
+                {/* Header with decorative background */}
+                <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-violet-600 to-indigo-600 dark:from-violet-900 dark:to-indigo-900 text-white p-8 shadow-xl">
+                    <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+                    <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-40 h-40 bg-purple-400/20 rounded-full blur-2xl"></div>
+
+                    <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                        <div className="space-y-2">
+                            <Button
+                                variant="ghost"
+                                onClick={() => navigate("/dashboard")}
+                                className="text-indigo-100 hover:text-white hover:bg-white/10 pl-0 -ml-3 mb-2"
+                            >
+                                <ArrowLeft className="h-4 w-4 mr-2" /> Back to Dashboard
+                            </Button>
+                            <h1 className="text-3xl md:text-4xl font-bold tracking-tight">Test Submissions</h1>
+                            <p className="text-indigo-100 text-lg max-w-xl">
+                                View details, analyze performance, and grade assessments efficiently.
+                            </p>
+                        </div>
+                        <div className="flex items-center">
+                            <Button
+                                onClick={handleAutoGradeAll}
+                                disabled={grading || loading}
+                                className="bg-white text-indigo-600 hover:bg-indigo-50 shadow-lg border-none transition-all hover:scale-105 font-semibold"
+                            >
+                                {grading ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Auto-Grading...
+                                    </>
+                                ) : (
+                                    <>
+                                        <PlayCircle className="mr-2 h-4 w-4" />
+                                        Auto-Grade All
+                                    </>
+                                )}
+                            </Button>
+                        </div>
                     </div>
-                    <Button
-                        variant="outline"
-                        onClick={() => navigate("/dashboard")}
-                        className="gap-2"
-                    >
-                        <ArrowLeft className="h-4 w-4" /> Back to Dashboard
-                    </Button>
                 </div>
 
-                <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-                    <div className="relative w-full sm:w-72">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <div className="flex flex-col sm:flex-row gap-4 items-center">
+                    <div className="relative w-full sm:w-96">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
-                            placeholder="Search student..."
+                            placeholder="Search by student name or username..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-9"
+                            className="pl-10 h-11 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-sm focus-visible:ring-primary"
                         />
                     </div>
-
-                    <Button
-                        onClick={handleAutoGradeAll}
-                        disabled={grading || loading}
-                        className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white"
-                    >
-                        {grading ? (
-                            <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Auto-Grading...
-                            </>
-                        ) : (
-                            <>
-                                <PlayCircle className="mr-2 h-4 w-4" />
-                                Auto-Grade All
-                            </>
-                        )}
-                    </Button>
+                    {/* Add filters here if needed later */}
+                    <div className="ml-auto flex gap-2">
+                        {/* <Button variant="outline" size="icon">
+                            <SlidersHorizontal className="h-4 w-4" />
+                        </Button> */}
+                    </div>
                 </div>
 
                 {error && (
-                    <div className="p-4 bg-red-50 text-red-700 border border-red-200 rounded-md">
+                    <div className="p-4 bg-red-50 text-red-700 border border-red-200 rounded-lg flex items-center animate-in fade-in slide-in-from-top-2">
+                        <div className="mr-3 text-red-500">⚠️</div>
                         {error}
                     </div>
                 )}
 
-                <Card>
+                <Card className="border-none shadow-md bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm border-slate-200 dark:border-slate-800">
                     <CardHeader>
-                        <CardTitle>Student Submissions</CardTitle>
+                        <CardTitle className="flex items-center gap-2">
+                            <GraduationCap className="h-5 w-5 text-primary" />
+                            Student Submissions
+                        </CardTitle>
                         <CardDescription>
-                            List of all student attempts for this test.
+                            Showing {uniqueSubmissions.length} unique submission{uniqueSubmissions.length !== 1 ? 's' : ''}.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
                         {loading && !grading ? (
-                            <div className="flex justify-center items-center py-12 text-muted-foreground">
-                                <Loader2 className="h-8 w-8 animate-spin mr-2" />
-                                Loading submissions...
+                            <div className="flex flex-col justify-center items-center py-16 text-muted-foreground">
+                                <Loader2 className="h-10 w-10 animate-spin mb-4 text-primary/50" />
+                                <p>Loading submissions...</p>
                             </div>
                         ) : uniqueSubmissions.length === 0 ? (
-                            <div className="text-center py-12 text-muted-foreground border-2 border-dashed rounded-lg">
-                                <GraduationCap className="h-10 w-10 mx-auto mb-3 opacity-20" />
-                                <p>No submissions found matching your criteria.</p>
+                            <div className="text-center py-16 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50/50 dark:bg-slate-900/30">
+                                <div className="h-16 w-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <GraduationCap className="h-8 w-8 text-slate-400" />
+                                </div>
+                                <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 pb-1">No submissions found</h3>
+                                <p className="text-muted-foreground max-w-sm mx-auto">
+                                    We couldn't find any submissions matching your search criteria.
+                                </p>
                             </div>
                         ) : (
-                            <div className="rounded-md border">
+                            <div className="rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
                                 <Table>
-                                    <TableHeader>
+                                    <TableHeader className="bg-slate-50 dark:bg-slate-900/50">
                                         <TableRow>
-                                            <TableHead>Student</TableHead>
+                                            <TableHead className="w-[300px]">Student</TableHead>
                                             <TableHead>Date Submitted</TableHead>
+                                            <TableHead>Status</TableHead>
                                             <TableHead>Score</TableHead>
                                             <TableHead className="text-right">Actions</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         {uniqueSubmissions.map((submission) => (
-                                            <TableRow key={submission.id}>
+                                            <TableRow key={submission.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/50 transition-colors cursor-pointer" onClick={() => navigate(`/teacher/submission/${submission.id}`)}>
                                                 <TableCell>
-                                                    <div className="font-medium text-slate-900">
-                                                        {submission.student.firstName} {submission.student.lastName}
-                                                    </div>
-                                                    <div className="text-sm text-muted-foreground">
-                                                        {submission.student.username}
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="h-9 w-9 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+                                                            <UserCircle2 className="h-5 w-5" />
+                                                        </div>
+                                                        <div>
+                                                            <div className="font-semibold text-slate-900 dark:text-slate-100">
+                                                                {submission.student.firstName} {submission.student.lastName}
+                                                            </div>
+                                                            <div className="text-xs text-muted-foreground font-mono">
+                                                                @{submission.student.username}
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </TableCell>
-                                                <TableCell className="text-muted-foreground">
+                                                <TableCell className="text-slate-600 dark:text-slate-400">
                                                     {(submission as any).submittedAt
                                                         ? format(new Date((submission as any).submittedAt), "MMM d, yyyy h:mm a")
                                                         : (submission as any).createdAt ? format(new Date((submission as any).createdAt), "MMM d, yyyy h:mm a") : "N/A"}
                                                 </TableCell>
-                                                <TableCell className="font-medium">
-                                                    {submission.totalScore !== undefined ? submission.totalScore : (
-                                                        <span className="text-muted-foreground italic">Not Graded</span>
+                                                <TableCell>
+                                                    {(submission.totalScore !== undefined) ? (
+                                                        <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                                                            Graded
+                                                        </div>
+                                                    ) : (
+                                                        <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
+                                                            Pending
+                                                        </div>
                                                     )}
+                                                </TableCell>
+                                                <TableCell className="font-bold text-slate-900 dark:text-slate-100">
+                                                    {submission.totalScore !== undefined ? submission.totalScore : "--"}
                                                 </TableCell>
                                                 <TableCell className="text-right">
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
-                                                        onClick={() => navigate(`/teacher/submission/${submission.id}`)}
-                                                        className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            navigate(`/teacher/submission/${submission.id}`)
+                                                        }}
+                                                        className="text-primary hover:text-primary hover:bg-primary/5 font-medium"
                                                     >
                                                         <Eye className="h-4 w-4 mr-2" />
                                                         View & Grade

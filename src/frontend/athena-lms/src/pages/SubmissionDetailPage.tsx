@@ -5,7 +5,7 @@ import { useParams, useNavigate } from "react-router-dom"
 import { getSubmission, getStudentAnswers, manualSetStudentAnswerScore, recalculateSubmission, type Submission, type StudentAnswer } from "../services/api"
 import { format } from "date-fns"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import {
@@ -17,7 +17,9 @@ import {
     CheckCircle2,
     XCircle,
     Loader2,
-    AlertTriangle
+    AlertTriangle,
+    Clock,
+    Award
 } from "lucide-react"
 
 const SubmissionDetailPage: React.FC = () => {
@@ -82,7 +84,7 @@ const SubmissionDetailPage: React.FC = () => {
 
     if (loading) {
         return (
-            <div className="flex justify-center items-center min-h-screen bg-slate-50/50">
+            <div className="flex justify-center items-center min-h-screen bg-slate-50/50 dark:bg-slate-950">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
         )
@@ -90,11 +92,11 @@ const SubmissionDetailPage: React.FC = () => {
 
     if (error || !submission) {
         return (
-            <div className="flex min-h-screen items-center justify-center bg-slate-50/50 p-4">
-                <div className="bg-destructive/10 text-destructive p-4 rounded-lg flex flex-col items-center gap-2 max-w-md text-center">
-                    <AlertTriangle className="h-6 w-6" />
-                    <p className="font-medium">{error || "Submission not found"}</p>
-                    <Button variant="outline" onClick={() => navigate("/dashboard")} className="mt-2">
+            <div className="flex min-h-screen items-center justify-center bg-slate-50/50 dark:bg-slate-950 p-4">
+                <div className="bg-destructive/10 text-destructive p-6 rounded-lg flex flex-col items-center gap-3 max-w-md text-center border border-destructive/20">
+                    <AlertTriangle className="h-8 w-8" />
+                    <p className="font-semibold text-lg">{error || "Submission not found"}</p>
+                    <Button variant="outline" onClick={() => navigate("/dashboard")} className="mt-2 border-destructive/30 hover:bg-destructive/20 text-destructive">
                         Back to Dashboard
                     </Button>
                 </div>
@@ -103,23 +105,28 @@ const SubmissionDetailPage: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen bg-slate-50/50 p-6 md:p-8">
-            <div className="max-w-4xl mx-auto space-y-6">
+        <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950 p-6 md:p-8">
+            <div className="max-w-5xl mx-auto space-y-8">
+                {/* Header Section */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <Button
-                        variant="ghost"
-                        onClick={() => navigate(-1)}
-                        className="gap-2 pl-0 hover:pl-2 transition-all w-fit"
-                    >
-                        <ArrowLeft className="h-4 w-4" /> Back
-                    </Button>
+                    <div>
+                        <Button
+                            variant="ghost"
+                            onClick={() => navigate(-1)}
+                            className="text-muted-foreground hover:text-foreground mb-2 pl-0 hover:bg-transparent"
+                        >
+                            <ArrowLeft className="h-4 w-4 mr-2" /> Back
+                        </Button>
+                        <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Submission Details</h1>
+                        <p className="text-muted-foreground">Review and grade student answers.</p>
+                    </div>
 
-                    <div className="flex gap-2">
+                    <div className="flex gap-3">
                         <Button
                             variant="outline"
                             onClick={handleRecalculate}
                             disabled={actionLoading}
-                            className="text-blue-600 bg-blue-50 border-blue-200 hover:bg-blue-100 hover:text-blue-700"
+                            className="border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800 dark:bg-blue-950/30 dark:border-blue-900/50 dark:text-blue-300"
                         >
                             {actionLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <RotateCw className="h-4 w-4 mr-2" />}
                             Recalculate
@@ -127,7 +134,7 @@ const SubmissionDetailPage: React.FC = () => {
                         <Button
                             onClick={handleAutoGrade}
                             disabled={actionLoading}
-                            className="bg-purple-600 hover:bg-purple-700 text-white"
+                            className="bg-primary hover:bg-primary/90 text-white shadow-md shadow-primary/20"
                         >
                             {actionLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <PlayCircle className="h-4 w-4 mr-2" />}
                             Auto-Grade
@@ -135,189 +142,250 @@ const SubmissionDetailPage: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <Card>
-                        <CardHeader className="pb-3">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* Student Card */}
+                    <Card className="md:col-span-1 border-none shadow-md bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm border-slate-200 dark:border-slate-800">
+                        <CardHeader className="pb-3 border-b border-slate-100 dark:border-slate-800">
                             <CardTitle className="text-lg flex items-center gap-2">
-                                <User className="h-5 w-5 text-muted-foreground" />
-                                Student Information
+                                <User className="h-5 w-5 text-primary" />
+                                Student
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="space-y-2">
-                            <div className="flex justify-between text-sm">
-                                <span className="text-muted-foreground">Name:</span>
-                                <span className="font-medium">{submission.student.firstName} {submission.student.lastName}</span>
+                        <CardContent className="pt-4 space-y-3">
+                            <div>
+                                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Name</p>
+                                <p className="font-semibold text-lg">{submission.student.firstName} {submission.student.lastName}</p>
                             </div>
-                            <div className="flex justify-between text-sm">
-                                <span className="text-muted-foreground">Username:</span>
-                                <span className="font-medium">{submission.student.username}</span>
+                            <div>
+                                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Username</p>
+                                <p className="text-base font-medium font-mono text-slate-600 dark:text-slate-300">@{submission.student.username}</p>
                             </div>
                         </CardContent>
                     </Card>
 
-                    <Card>
-                        <CardHeader className="pb-3">
+                    {/* Test Info Card */}
+                    <Card className="md:col-span-2 border-none shadow-md bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm border-slate-200 dark:border-slate-800">
+                        <CardHeader className="pb-3 border-b border-slate-100 dark:border-slate-800">
                             <CardTitle className="text-lg flex items-center gap-2">
-                                <FileText className="h-5 w-5 text-muted-foreground" />
+                                <FileText className="h-5 w-5 text-primary" />
                                 Test Information
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="space-y-2">
-                            <div className="flex justify-between text-sm">
-                                <span className="text-muted-foreground">Test:</span>
-                                <span className="font-medium">{submission.test.testName}</span>
+                        <CardContent className="pt-4 grid grid-cols-1 sm:grid-cols-2 gap-6">
+                            <div className="space-y-3">
+                                <div>
+                                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Test Name</p>
+                                    <p className="font-semibold text-lg line-clamp-1">{submission.test.testName}</p>
+                                </div>
+                                <div className="flex items-start gap-3">
+                                    <Clock className="h-4 w-4 text-muted-foreground mt-1" />
+                                    <div>
+                                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Submitted</p>
+                                        <p className="text-sm font-medium">
+                                            {(submission as any).submittedAt ? format(new Date((submission as any).submittedAt), "MMM d, yyyy h:mm a") : "N/A"}
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
-                            <div className="flex justify-between text-sm">
-                                <span className="text-muted-foreground">Submitted:</span>
-                                <span className="font-medium">{(submission as any).submittedAt ? format(new Date((submission as any).submittedAt), "MMM d, yyyy h:mm a") : "N/A"}</span>
-                            </div>
-                            <div className="flex justify-between text-sm items-center mt-2 pt-2 border-t">
-                                <span className="text-muted-foreground">Total Score:</span>
-                                <Badge variant="secondary" className="text-lg px-3 py-1">
-                                    {submission.totalScore !== undefined ? submission.totalScore : "N/A"}
-                                </Badge>
+                            <div className="flex flex-col justify-center items-center sm:items-end">
+                                <div className="text-center sm:text-right">
+                                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1">Total Score</p>
+                                    <div className="flex items-center gap-2">
+                                        <Award className="h-6 w-6 text-yellow-500" />
+                                        <span className="text-4xl font-bold text-slate-900 dark:text-slate-100">
+                                            {submission.totalScore !== undefined ? submission.totalScore : "--"}
+                                        </span>
+                                    </div>
+                                </div>
                             </div>
                         </CardContent>
                     </Card>
                 </div>
 
                 <div className="space-y-6">
-                    <h2 className="text-xl font-semibold tracking-tight">Question Details</h2>
+                    <div className="flex items-center gap-2">
+                        <div className="h-6 w-1 bg-primary rounded-full"></div>
+                        <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Question Analysis</h2>
+                    </div>
+
                     {submission.test.questions && submission.test.questions.map((question, index) => {
                         const studentAnswer = answers.find(a => a.question.id === question.id)
-                        const isCorrect = (studentAnswer?.points || 0) > 0; // Simple heuristic, might need deeper check for partials
+                        const score = studentAnswer?.points || 0;
+                        const fullPoints = question.fullPoints;
+                        const isFullCredit = score === fullPoints;
+                        const isPartialCredit = score > 0 && score < fullPoints;
+                        const isZeroCredit = score === 0;
 
                         return (
-                            <Card key={question.id}>
-                                <CardContent className="p-6 space-y-4">
+                            <Card key={question.id} className="overflow-hidden border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+                                <div className={`h-1 w-full ${isFullCredit ? "bg-green-500" : isPartialCredit ? "bg-yellow-500" : "bg-slate-300 dark:bg-slate-700"}`} />
+                                <CardContent className="p-6 space-y-6">
                                     <div className="flex flex-col md:flex-row justify-between items-start gap-4">
-                                        <div className="flex items-center gap-3">
-                                            <Badge variant="outline" className="h-7 min-w-[28px] flex items-center justify-center rounded-full font-bold">
+                                        <div className="flex items-start gap-4 flex-1">
+                                            <div className="flex-none h-8 w-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
                                                 {index + 1}
-                                            </Badge>
-                                            <Badge variant={isCorrect ? "default" : "destructive"}>
-                                                {studentAnswer?.points || 0} / {question.fullPoints} Pts
-                                            </Badge>
-                                        </div>
-
-                                        <div className="flex items-center gap-2 bg-slate-50 p-1.5 rounded-lg border border-slate-200">
-                                            <span className="text-xs font-semibold text-muted-foreground uppercase px-2">Score</span>
-                                            <div className="flex items-center">
-                                                <Input
-                                                    type="number"
-                                                    min="0"
-                                                    max={question.fullPoints}
-                                                    defaultValue={studentAnswer?.points || 0}
-                                                    onBlur={async (e) => {
-                                                        const val = Number(e.target.value);
-                                                        if (studentAnswer?.id && !isNaN(val)) {
-                                                            try {
-                                                                await manualSetStudentAnswerScore(studentAnswer.id, val);
-                                                            } catch (err) {
-                                                                console.error(err);
-                                                                alert("Failed to update score");
-                                                            }
-                                                        }
-                                                    }}
-                                                    className="w-16 h-8 text-right font-medium"
-                                                />
-                                                <span className="text-sm text-muted-foreground ml-2 px-2 border-l">
-                                                    / {question.fullPoints}
-                                                </span>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <div className="text-base font-medium text-slate-900 dark:text-slate-100 leading-relaxed">
+                                                    {question.questionText}
+                                                </div>
+                                                <Badge variant="secondary" className="text-xs font-normal">
+                                                    {question.questionType.replace("_", " ")}
+                                                </Badge>
                                             </div>
                                         </div>
+
+                                        <div className="flex-none flex flex-col items-end gap-2">
+                                            <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-900 p-1.5 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm relative group">
+                                                <span className="text-xs font-semibold text-muted-foreground uppercase px-2">Score</span>
+                                                <div className="flex items-center">
+                                                    <Input
+                                                        type="number"
+                                                        min="0"
+                                                        max={question.fullPoints}
+                                                        defaultValue={score}
+                                                        onBlur={async (e) => {
+                                                            const val = Number(e.target.value);
+                                                            if (studentAnswer?.id && !isNaN(val)) {
+                                                                try {
+                                                                    await manualSetStudentAnswerScore(studentAnswer.id, val);
+                                                                } catch (err) {
+                                                                    console.error(err);
+                                                                    alert("Failed to update score");
+                                                                }
+                                                            }
+                                                        }}
+                                                        className="w-16 h-8 text-right font-medium text-slate-900 border-none bg-white focus-visible:ring-1 focus-visible:ring-primary shadow-inner"
+                                                    />
+                                                    <span className="text-sm text-muted-foreground ml-2 px-2 border-l border-slate-200 dark:border-slate-700">
+                                                        / {question.fullPoints}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            {isFullCredit && (
+                                                <div className="flex items-center text-xs font-medium text-green-600 dark:text-green-400">
+                                                    <CheckCircle2 className="h-3 w-3 mr-1" /> Full Credit
+                                                </div>
+                                            )}
+                                            {isZeroCredit && (
+                                                <div className="flex items-center text-xs font-medium text-muted-foreground">
+                                                    <XCircle className="h-3 w-3 mr-1" /> No Credit
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
 
-                                    <div className="bg-slate-50 p-4 rounded-md border border-slate-100">
-                                        <p className="font-medium text-slate-800">{question.questionText}</p>
-                                    </div>
-
-                                    {/* Multiple Choice */}
-                                    {question.questionType === "MULTIPLE_CHOICE" && (
-                                        <div className="space-y-3">
-                                            <div className="grid gap-2">
+                                    <div className="pl-12">
+                                        {/* Multiple Choice */}
+                                        {question.questionType === "MULTIPLE_CHOICE" && (
+                                            <div className="grid gap-3 sm:grid-cols-2">
                                                 {question.options?.map((option) => {
                                                     const isSelected = studentAnswer?.optionId === option.id
                                                     const isAnswerCorrect = option.id === question.correctOptionId
 
-                                                    let variantClass = "bg-white border-slate-200 text-slate-700"
-                                                    if (isSelected && isAnswerCorrect) variantClass = "bg-green-50 border-green-500 text-green-900"
-                                                    else if (isSelected && !isAnswerCorrect) variantClass = "bg-red-50 border-red-500 text-red-900"
-                                                    else if (isAnswerCorrect) variantClass = "bg-blue-50 border-blue-400 text-blue-900 ring-1 ring-blue-400"
+                                                    // Determine visual state
+                                                    let cardClasses = "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300"
+                                                    let icon = null;
+
+                                                    if (isSelected && isAnswerCorrect) {
+                                                        cardClasses = "bg-green-50 dark:bg-green-900/20 border-green-500 text-green-900 dark:text-green-100 ring-1 ring-green-500"
+                                                        icon = <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
+                                                    } else if (isSelected && !isAnswerCorrect) {
+                                                        cardClasses = "bg-red-50 dark:bg-red-900/20 border-red-500 text-red-900 dark:text-red-100 ring-1 ring-red-500"
+                                                        icon = <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
+                                                    } else if (isAnswerCorrect) {
+                                                        cardClasses = "bg-blue-50 dark:bg-blue-900/20 border-blue-400 text-blue-900 dark:text-blue-100 ring-1 ring-blue-400"
+                                                        icon = <CheckCircle2 className="h-5 w-5 text-blue-600 dark:text-blue-400 opacity-50" />
+                                                    }
 
                                                     return (
-                                                        <div key={option.id || option.tempId} className={`flex items-center justify-between p-3 rounded-md border ${variantClass} transition-colors`}>
+                                                        <div key={option.id || option.tempId} className={`flex items-center justify-between p-4 rounded-xl border ${cardClasses} transition-all`}>
                                                             <div className="flex items-center gap-3">
-                                                                {isSelected ? (
-                                                                    isAnswerCorrect ? <CheckCircle2 className="h-5 w-5 text-green-600" /> : <XCircle className="h-5 w-5 text-red-600" />
-                                                                ) : (
-                                                                    <div className="h-5 w-5" /> // spacer
-                                                                )}
+                                                                {icon || <div className="h-5 w-5 rounded-full border-2 border-slate-200 dark:border-slate-700" />}
                                                                 <span className="font-medium">{option.optionText}</span>
                                                             </div>
-                                                            <div className="flex gap-2 text-xs font-bold uppercase tracking-wider">
-                                                                {isSelected && <span>Selected</span>}
-                                                                {isAnswerCorrect && <span className="text-blue-700">Correct Answer</span>}
-                                                            </div>
+                                                            {isSelected && (
+                                                                <Badge variant={isAnswerCorrect ? "default" : "destructive"} className="text-[10px] uppercase">
+                                                                    Selected
+                                                                </Badge>
+                                                            )}
+                                                            {!isSelected && isAnswerCorrect && (
+                                                                <Badge variant="outline" className="text-[10px] uppercase border-blue-300 text-blue-600 bg-blue-50">
+                                                                    Correct Answer
+                                                                </Badge>
+                                                            )}
                                                         </div>
                                                     )
                                                 })}
                                             </div>
-                                        </div>
-                                    )}
+                                        )}
 
-                                    {/* True/False */}
-                                    {question.questionType === "TRUE_FALSE" && (
-                                        <div className="space-y-3">
-                                            <div className="grid gap-2">
+                                        {/* True/False */}
+                                        {question.questionType === "TRUE_FALSE" && (
+                                            <div className="grid gap-3 sm:grid-cols-2">
                                                 {["true", "false"].map((val) => {
                                                     const isSelected = studentAnswer?.textAnswer?.toLowerCase() === val
                                                     const isAnswerCorrect = question.correctAnswer?.toLowerCase() === val
 
-                                                    let variantClass = "bg-white border-slate-200 text-slate-700"
-                                                    if (isSelected && isAnswerCorrect) variantClass = "bg-green-50 border-green-500 text-green-900"
-                                                    else if (isSelected && !isAnswerCorrect) variantClass = "bg-red-50 border-red-500 text-red-900"
-                                                    else if (isAnswerCorrect) variantClass = "bg-blue-50 border-blue-400 text-blue-900 ring-1 ring-blue-400"
+                                                    let cardClasses = "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300"
+                                                    let icon = null;
+
+                                                    if (isSelected && isAnswerCorrect) {
+                                                        cardClasses = "bg-green-50 dark:bg-green-900/20 border-green-500 text-green-900 dark:text-green-100 ring-1 ring-green-500"
+                                                        icon = <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
+                                                    } else if (isSelected && !isAnswerCorrect) {
+                                                        cardClasses = "bg-red-50 dark:bg-red-900/20 border-red-500 text-red-900 dark:text-red-100 ring-1 ring-red-500"
+                                                        icon = <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
+                                                    } else if (isAnswerCorrect) {
+                                                        cardClasses = "bg-blue-50 dark:bg-blue-900/20 border-blue-400 text-blue-900 dark:text-blue-100 ring-1 ring-blue-400"
+                                                        icon = <CheckCircle2 className="h-5 w-5 text-blue-600 dark:text-blue-400 opacity-50" />
+                                                    }
 
                                                     return (
-                                                        <div key={val} className={`flex items-center justify-between p-3 rounded-md border ${variantClass} transition-colors`}>
+                                                        <div key={val} className={`flex items-center justify-between p-4 rounded-xl border ${cardClasses} transition-all`}>
                                                             <div className="flex items-center gap-3">
-                                                                {isSelected ? (
-                                                                    isAnswerCorrect ? <CheckCircle2 className="h-5 w-5 text-green-600" /> : <XCircle className="h-5 w-5 text-red-600" />
-                                                                ) : (
-                                                                    <div className="h-5 w-5" /> // spacer
-                                                                )}
+                                                                {icon || <div className="h-5 w-5 rounded-full border-2 border-slate-200 dark:border-slate-700" />}
                                                                 <span className="font-medium capitalize">{val}</span>
                                                             </div>
-                                                            <div className="flex gap-2 text-xs font-bold uppercase tracking-wider">
-                                                                {isSelected && <span>Selected</span>}
-                                                                {isAnswerCorrect && <span className="text-blue-700">Correct Answer</span>}
-                                                            </div>
+                                                            {isSelected && (
+                                                                <Badge variant={isAnswerCorrect ? "default" : "destructive"} className="text-[10px] uppercase">
+                                                                    Selected
+                                                                </Badge>
+                                                            )}
+                                                            {!isSelected && isAnswerCorrect && (
+                                                                <Badge variant="outline" className="text-[10px] uppercase border-blue-300 text-blue-600 bg-blue-50">
+                                                                    Correct Answer
+                                                                </Badge>
+                                                            )}
                                                         </div>
                                                     )
                                                 })}
                                             </div>
-                                        </div>
-                                    )}
+                                        )}
 
-                                    {/* Essay / Identification */}
-                                    {(question.questionType === "ESSAY" || question.questionType === "IDENTIFICATION") && (
-                                        <div className="grid md:grid-cols-2 gap-4 mt-2">
-                                            <div className="space-y-1">
-                                                <span className="text-xs font-semibold text-muted-foreground uppercase">Student's Answer</span>
-                                                <div className="p-3 bg-slate-50 border rounded-md min-h-[80px] text-sm whitespace-pre-wrap">
-                                                    {studentAnswer?.textAnswer || <span className="text-muted-foreground italic">No answer provided</span>}
+                                        {/* Essay / Identification */}
+                                        {(question.questionType === "ESSAY" || question.questionType === "IDENTIFICATION") && (
+                                            <div className="grid md:grid-cols-2 gap-6 mt-4">
+                                                <div className="space-y-2">
+                                                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                                                        <User className="h-3 w-3" /> Student's Answer
+                                                    </span>
+                                                    <div className="p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl min-h-[100px] text-sm whitespace-pre-wrap shadow-sm">
+                                                        {studentAnswer?.textAnswer || <span className="text-muted-foreground italic opacity-50">No answer provided</span>}
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <span className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider flex items-center gap-2">
+                                                        <CheckCircle2 className="h-3 w-3" /> Answer Key
+                                                    </span>
+                                                    <div className="p-4 bg-blue-50/50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/50 rounded-xl min-h-[100px] text-sm whitespace-pre-wrap text-slate-800 dark:text-slate-200 shadow-sm relative overflow-hidden">
+                                                        <div className="absolute top-0 right-0 w-16 h-16 bg-blue-500/5 rounded-bl-full pointer-events-none"></div>
+                                                        {question.correctAnswer || <span className="text-muted-foreground italic opacity-50">Not available</span>}
+                                                    </div>
                                                 </div>
                                             </div>
-                                            <div className="space-y-1">
-                                                <span className="text-xs font-semibold text-muted-foreground uppercase text-blue-700">Correct Answer / Key</span>
-                                                <div className="p-3 bg-blue-50/50 border border-blue-100 rounded-md min-h-[80px] text-sm whitespace-pre-wrap text-slate-800">
-                                                    {question.correctAnswer || <span className="text-muted-foreground italic">Not available</span>}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-
+                                        )}
+                                    </div>
                                 </CardContent>
                             </Card>
                         )
