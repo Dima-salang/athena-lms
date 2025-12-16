@@ -4,6 +4,26 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { getSubjects, createSubject, type Subject } from "../services/api"
 import { useNavigate } from "react-router-dom"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { ArrowLeft, BookOpen, Loader2, Plus } from "lucide-react"
 
 const SubjectManagementPage: React.FC = () => {
   const [subjects, setSubjects] = useState<Subject[]>([])
@@ -11,6 +31,7 @@ const SubjectManagementPage: React.FC = () => {
   const [newSubjectDescription, setNewSubjectDescription] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -18,11 +39,14 @@ const SubjectManagementPage: React.FC = () => {
   }, [])
 
   const fetchData = async () => {
+    setLoading(true)
     try {
       const fetchedSubjects = await getSubjects()
       setSubjects(fetchedSubjects)
     } catch (err) {
       setError("Failed to fetch subjects")
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -35,115 +59,122 @@ const SubjectManagementPage: React.FC = () => {
       setSuccess("Subject created successfully")
       fetchData()
       setTimeout(() => setSuccess(null), 3000)
-    } catch (err) {
+    } catch {
       setError("Failed to create subject")
       setTimeout(() => setError(null), 3000)
     }
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-slate-200">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+    <div className="min-h-screen bg-slate-50/50 p-6 md:p-8">
+      <div className="max-w-4xl mx-auto space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">Manage Subjects</h1>
-            <p className="text-slate-600 text-sm mt-1">Add and manage subjects for your tests</p>
+            <h1 className="text-3xl font-bold tracking-tight">Manage Subjects</h1>
+            <p className="text-muted-foreground mt-1">Add and manage subjects for your tests.</p>
           </div>
-          <button
+          <Button
+            variant="outline"
             onClick={() => navigate("/admin")}
-            className="px-4 py-2 text-slate-700 border border-slate-300 rounded-lg hover:bg-slate-50 transition"
+            className="gap-2"
           >
-            Back to Admin
-          </button>
+            <ArrowLeft className="h-4 w-4" /> Back to Admin
+          </Button>
         </div>
-      </header>
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-700 text-sm font-medium">{error}</p>
+          <div className="p-4 bg-red-50 text-red-700 border border-red-200 rounded-md">
+            {error}
           </div>
         )}
 
         {success && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <p className="text-green-700 text-sm font-medium">{success}</p>
+          <div className="p-4 bg-green-50 text-green-700 border border-green-200 rounded-md">
+            {success}
           </div>
         )}
 
-        <div className="bg-white rounded-lg shadow-md p-6 md:p-8 mb-8">
-          <h2 className="text-lg font-bold text-slate-900 mb-6">Add New Subject</h2>
-          <form onSubmit={handleCreateSubject} className="space-y-5">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Subject Name</label>
-              <input
-                type="text"
-                value={newSubjectName}
-                onChange={(e) => setNewSubjectName(e.target.value)}
-                required
-                placeholder="e.g. Mathematics, Physics, English"
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Description</label>
-              <textarea
-                value={newSubjectDescription}
-                onChange={(e) => setNewSubjectDescription(e.target.value)}
-                required
-                placeholder="Provide a brief description of the subject..."
-                rows={3}
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-              />
-            </div>
-            <button
-              type="submit"
-              className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition duration-200"
-            >
-              Add Subject
-            </button>
-          </form>
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Add New Subject</CardTitle>
+            <CardDescription>Create a new subject to categorize your tests.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleCreateSubject} className="space-y-4">
+              <div className="grid w-full items-center gap-1.5">
+                <Label htmlFor="subjectName">Subject Name</Label>
+                <Input
+                  id="subjectName"
+                  type="text"
+                  value={newSubjectName}
+                  onChange={(e) => setNewSubjectName(e.target.value)}
+                  required
+                  placeholder="e.g. Mathematics, Physics, English"
+                />
+              </div>
+              <div className="grid w-full items-center gap-1.5">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  value={newSubjectDescription}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setNewSubjectDescription(e.target.value)}
+                  required
+                  placeholder="Provide a brief description of the subject..."
+                  rows={3}
+                  className="resize-none"
+                />
+              </div>
+              <Button type="submit" className="w-full sm:w-auto">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Subject
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
 
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-slate-200 bg-slate-50">
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                    ID
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                    Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                    Description
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200">
-                {subjects.map((subject) => (
-                  <tr key={subject.id} className="hover:bg-slate-50 transition">
-                    <td className="px-6 py-4 text-sm text-slate-700">{subject.id}</td>
-                    <td className="px-6 py-4 text-sm font-medium text-slate-900">{subject.name}</td>
-                    <td className="px-6 py-4 text-sm text-slate-600">{subject.description}</td>
-                  </tr>
-                ))}
-                {subjects.length === 0 && (
-                  <tr>
-                    <td colSpan={3} className="px-6 py-8 text-center text-slate-600">
-                      No subjects found
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </main>
+        <Card>
+          <CardHeader>
+            <CardTitle>Existing Subjects</CardTitle>
+            <CardDescription>List of all subjects available in the system.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="flex justify-center items-center py-12 text-muted-foreground">
+                <Loader2 className="h-8 w-8 animate-spin mr-2" />
+                Loading...
+              </div>
+            ) : subjects.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground border-2 border-dashed rounded-lg">
+                <BookOpen className="h-10 w-10 mx-auto mb-3 opacity-20" />
+                <p>No subjects found</p>
+              </div>
+            ) : (
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[100px]">ID</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Description</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {subjects.map((subject) => (
+                      <TableRow key={subject.id}>
+                        <TableCell className="font-medium text-muted-foreground">#{subject.id}</TableCell>
+                        <TableCell className="font-medium">{subject.name}</TableCell>
+                        <TableCell className="text-muted-foreground">{subject.description}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }
 
 export default SubjectManagementPage
-

@@ -4,14 +4,41 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { getSections, createSection, getAllTeachers, type Section, type Teacher } from "../services/api"
 import { useNavigate } from "react-router-dom"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { ArrowLeft, Loader2, Plus, School } from "lucide-react"
 
 const SectionManagementPage: React.FC = () => {
   const [sections, setSections] = useState<Section[]>([])
   const [teachers, setTeachers] = useState<Teacher[]>([])
   const [newSectionName, setNewSectionName] = useState("")
-  const [selectedTeacherId, setSelectedTeacherId] = useState<number | "">("")
+  const [selectedTeacherId, setSelectedTeacherId] = useState<string>("")
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -19,6 +46,7 @@ const SectionManagementPage: React.FC = () => {
   }, [])
 
   const fetchData = async () => {
+    setLoading(true)
     try {
       const [fetchedSections, fetchedTeachersRes] = await Promise.all([
         getSections(),
@@ -28,6 +56,8 @@ const SectionManagementPage: React.FC = () => {
       setTeachers(fetchedTeachersRes.content)
     } catch (err) {
       setError("Failed to fetch data")
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -36,123 +66,140 @@ const SectionManagementPage: React.FC = () => {
     try {
       await createSection(
         { name: newSectionName },
-        selectedTeacherId === "" ? undefined : Number(selectedTeacherId)
+        selectedTeacherId === "" || selectedTeacherId === "unassigned" ? undefined : Number(selectedTeacherId)
       )
       setNewSectionName("")
       setSelectedTeacherId("")
       setSuccess("Section created successfully")
       fetchData()
       setTimeout(() => setSuccess(null), 3000)
-    } catch (err) {
+    } catch {
       setError("Failed to create section")
       setTimeout(() => setError(null), 3000)
     }
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-slate-200">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+    <div className="min-h-screen bg-slate-50/50 p-6 md:p-8">
+      <div className="max-w-4xl mx-auto space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">Manage Sections</h1>
-            <p className="text-slate-600 text-sm mt-1">Add and manage class sections</p>
+            <h1 className="text-3xl font-bold tracking-tight">Manage Sections</h1>
+            <p className="text-muted-foreground mt-1">Add and manage class sections and assign advisers.</p>
           </div>
-          <button
+          <Button
+            variant="outline"
             onClick={() => navigate("/admin")}
-            className="px-4 py-2 text-slate-700 border border-slate-300 rounded-lg hover:bg-slate-50 transition"
+            className="gap-2"
           >
-            Back to Admin
-          </button>
+            <ArrowLeft className="h-4 w-4" /> Back to Admin
+          </Button>
         </div>
-      </header>
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-700 text-sm font-medium">{error}</p>
+          <div className="p-4 bg-red-50 text-red-700 border border-red-200 rounded-md">
+            {error}
           </div>
         )}
 
         {success && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <p className="text-green-700 text-sm font-medium">{success}</p>
+          <div className="p-4 bg-green-50 text-green-700 border border-green-200 rounded-md">
+            {success}
           </div>
         )}
 
-        <div className="bg-white rounded-lg shadow-md p-6 md:p-8 mb-8">
-          <h2 className="text-lg font-bold text-slate-900 mb-6">Add New Section</h2>
-          <form onSubmit={handleCreateSection} className="flex flex-col sm:flex-row gap-3">
-            <div className="flex-1">
-              <input
-                type="text"
-                value={newSectionName}
-                onChange={(e) => setNewSectionName(e.target.value)}
-                required
-                placeholder="e.g. Grade 10 - Newton"
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-              />
-            </div>
-            <div className="flex-1">
-              <select
-                value={selectedTeacherId}
-                onChange={(e) => setSelectedTeacherId(e.target.value ? Number(e.target.value) : "")}
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition bg-white"
-              >
-                <option value="">Select Adviser (Optional)</option>
-                {teachers.map((teacher) => (
-                  <option key={teacher.id} value={teacher.id}>
-                    {teacher.firstName} {teacher.lastName}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <button
-              type="submit"
-              className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition duration-200 whitespace-nowrap"
-            >
-              Add Section
-            </button>
-          </form>
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Add New Section</CardTitle>
+            <CardDescription>Create a new section and optionally assign a class adviser.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleCreateSection} className="flex flex-col md:flex-row gap-4 items-end">
+              <div className="grid w-full items-center gap-1.5">
+                <Label htmlFor="sectionName">Section Name</Label>
+                <Input
+                  id="sectionName"
+                  type="text"
+                  value={newSectionName}
+                  onChange={(e) => setNewSectionName(e.target.value)}
+                  required
+                  placeholder="e.g. Grade 10 - Newton"
+                />
+              </div>
+              <div className="grid w-full items-center gap-1.5">
+                <Label htmlFor="adviser">Class Adviser (Optional)</Label>
+                <Select
+                  value={selectedTeacherId}
+                  onValueChange={setSelectedTeacherId}
+                >
+                  <SelectTrigger id="adviser">
+                    <SelectValue placeholder="Select Adviser" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="unassigned">None</SelectItem>
+                    {teachers.map((teacher) => (
+                      <SelectItem key={teacher.id} value={teacher.id.toString()}>
+                        {teacher.firstName} {teacher.lastName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button type="submit" className="w-full md:w-auto">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Section
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
 
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-slate-200 bg-slate-50">
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                    ID
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                    Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                    Adviser
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200">
-                {sections.map((section) => (
-                  <tr key={section.id} className="hover:bg-slate-50 transition">
-                    <td className="px-6 py-4 text-sm text-slate-700">{section.id}</td>
-                    <td className="px-6 py-4 text-sm font-medium text-slate-900">{section.name}</td>
-                    <td className="px-6 py-4 text-sm text-slate-600">
-                      {section.adviserName || <span className="text-slate-400 italic">None</span>}
-                    </td>
-                  </tr>
-                ))}
-                {sections.length === 0 && (
-                  <tr>
-                    <td colSpan={2} className="px-6 py-8 text-center text-slate-600">
-                      No sections found
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </main>
+        <Card>
+          <CardHeader>
+            <CardTitle>Existing Sections</CardTitle>
+            <CardDescription>List of all class sections in the system.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="flex justify-center items-center py-12 text-muted-foreground">
+                <Loader2 className="h-8 w-8 animate-spin mr-2" />
+                Loading...
+              </div>
+            ) : sections.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground border-2 border-dashed rounded-lg">
+                <School className="h-10 w-10 mx-auto mb-3 opacity-20" />
+                <p>No sections found</p>
+              </div>
+            ) : (
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[100px]">ID</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Adviser</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {sections.map((section) => (
+                      <TableRow key={section.id}>
+                        <TableCell className="font-medium text-muted-foreground">#{section.id}</TableCell>
+                        <TableCell className="font-medium">{section.name}</TableCell>
+                        <TableCell>
+                          {section.adviserName ? (
+                            <span className="text-primary font-medium">{section.adviserName}</span>
+                          ) : (
+                            <span className="text-muted-foreground italic">Unassigned</span>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

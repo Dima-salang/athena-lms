@@ -1,8 +1,26 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState } from "react"
 import { Link, useLocation } from "react-router-dom"
-import { Menu, X, ChevronDown, User, Settings, LogOut, Bell } from "lucide-react"
+import { Menu, User, Settings, LogOut, Bell } from "lucide-react"
+
+import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 interface NavbarProps {
   isLoggedIn?: boolean
@@ -11,34 +29,20 @@ interface NavbarProps {
 }
 
 export default function Navbar({ isLoggedIn = false, userName = "User", onLogout }: NavbarProps) {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [profileMenuOpen, setProfileMenuOpen] = useState(false)
   const location = useLocation()
-  const profileMenuRef = useRef<HTMLDivElement>(null)
-
-  // Close menus when clicking outside
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
-        setProfileMenuOpen(false)
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [])
-
-  const isActive = (path: string) => {
-    return location.pathname === path
-      ? "text-indigo-600 font-semibold"
-      : "text-slate-700 hover:text-indigo-600 transition-colors duration-200"
-  }
+  const [isOpen, setIsOpen] = useState(false)
 
   const navLinks = [
     { path: "/dashboard", label: "Dashboard" },
     { path: "/login", label: "Login" },
     { path: "/register", label: "Register" },
   ]
+
+  const isActive = (path: string) => {
+    return location.pathname === path
+      ? "text-indigo-600 font-semibold"
+      : "text-slate-700 hover:text-indigo-600 transition-colors duration-200"
+  }
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-sm">
@@ -73,169 +77,126 @@ export default function Navbar({ isLoggedIn = false, userName = "User", onLogout
           <div className="hidden md:flex items-center gap-4">
             {isLoggedIn ? (
               <>
-                {/* Notifications */}
-                <button
-                  className="relative p-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors duration-200"
-                  aria-label="Notifications"
-                >
-                  <Bell size={20} />
-                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-                </button>
+                <Button variant="ghost" size="icon" className="text-slate-700">
+                  <Bell className="h-5 w-5" />
+                  <span className="sr-only">Notifications</span>
+                </Button>
 
-                {/* Profile Dropdown */}
-                <div className="relative" ref={profileMenuRef}>
-                  <button
-                    onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-                    className="flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors duration-200"
-                    aria-haspopup="true"
-                    aria-expanded={profileMenuOpen}
-                  >
-                    <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
-                      <User size={18} className="text-indigo-600" />
-                    </div>
-                    <span className="text-sm font-medium">{userName}</span>
-                    <ChevronDown
-                      size={16}
-                      className={`transition-transform duration-200 ${profileMenuOpen ? "rotate-180" : ""}`}
-                    />
-                  </button>
-
-                  {/* Profile Dropdown Menu */}
-                  {profileMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-lg shadow-lg py-2">
-                      <Link
-                        to="/profile"
-                        className="flex items-center gap-3 px-4 py-2 text-slate-700 hover:bg-slate-50 transition-colors"
-                        onClick={() => setProfileMenuOpen(false)}
-                      >
-                        <User size={18} />
-                        <span className="text-sm">Profile</span>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src="/avatars/01.png" alt={userName} />
+                        <AvatarFallback>{userName.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-56" align="end" forceMount>
+                    <DropdownMenuLabel className="font-normal">
+                      <div className="flex flex-col space-y-1">
+                        <p className="text-sm font-medium leading-none">{userName}</p>
+                        <p className="text-xs leading-none text-muted-foreground">
+                          user@example.com
+                        </p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link to="/profile" className="cursor-pointer w-full flex items-center">
+                        <User className="mr-2 h-4 w-4" />
+                        <span>Profile</span>
                       </Link>
-                      <Link
-                        to="/settings"
-                        className="flex items-center gap-3 px-4 py-2 text-slate-700 hover:bg-slate-50 transition-colors"
-                        onClick={() => setProfileMenuOpen(false)}
-                      >
-                        <Settings size={18} />
-                        <span className="text-sm">Settings</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/settings" className="cursor-pointer w-full flex items-center">
+                        <Settings className="mr-2 h-4 w-4" />
+                        <span>Settings</span>
                       </Link>
-                      <hr className="my-2 border-slate-200" />
-                      <button
-                        onClick={() => {
-                          onLogout?.()
-                          setProfileMenuOpen(false)
-                        }}
-                        className="w-full flex items-center gap-3 px-4 py-2 text-red-600 hover:bg-red-50 transition-colors text-sm"
-                      >
-                        <LogOut size={18} />
-                        <span>Logout</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={onLogout} className="cursor-pointer text-red-600 focus:text-red-600">
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Log out</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </>
             ) : (
               <>
-                <Link
-                  to="/login"
-                  className="px-4 py-2 text-indigo-600 hover:text-indigo-700 font-medium text-sm transition-colors duration-200"
-                >
-                  Sign In
-                </Link>
-                <Link
-                  to="/register"
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium text-sm transition-colors duration-200"
-                >
-                  Sign Up
-                </Link>
+                <Button variant="ghost" asChild>
+                  <Link to="/login">Sign In</Link>
+                </Button>
+                <Button asChild>
+                  <Link to="/register">Sign Up</Link>
+                </Button>
               </>
             )}
           </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors duration-200"
-            aria-label="Toggle mobile menu"
-            aria-expanded={mobileMenuOpen}
-          >
-            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
-        </div>
-
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden pb-4 border-t border-slate-200">
-            <nav className="pt-4 space-y-2">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  className={`block px-4 py-2 rounded-lg transition-colors duration-200 ${
-                    location.pathname === link.path
-                      ? "bg-indigo-50 text-indigo-600 font-semibold"
-                      : "text-slate-700 hover:bg-slate-100"
-                  }`}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </nav>
-
-            {/* Mobile Auth Buttons */}
-            {!isLoggedIn && (
-              <div className="flex gap-2 px-4 pt-4 border-t border-slate-200 mt-4">
-                <Link
-                  to="/login"
-                  className="flex-1 px-4 py-2 text-center text-indigo-600 hover:bg-indigo-50 rounded-lg font-medium text-sm transition-colors duration-200"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Sign In
-                </Link>
-                <Link
-                  to="/register"
-                  className="flex-1 px-4 py-2 text-center bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium text-sm transition-colors duration-200"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Sign Up
-                </Link>
-              </div>
-            )}
-
-            {/* Mobile Profile Menu */}
-            {isLoggedIn && (
-              <div className="px-4 pt-4 border-t border-slate-200 mt-4 space-y-2">
-                <Link
-                  to="/profile"
-                  className="flex items-center gap-3 px-3 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <User size={18} />
-                  <span className="text-sm">Profile</span>
-                </Link>
-                <Link
-                  to="/settings"
-                  className="flex items-center gap-3 px-3 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <Settings size={18} />
-                  <span className="text-sm">Settings</span>
-                </Link>
-                <button
-                  onClick={() => {
-                    onLogout?.()
-                    setMobileMenuOpen(false)
-                  }}
-                  className="w-full flex items-center gap-3 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors text-sm"
-                >
-                  <LogOut size={18} />
-                  <span>Logout</span>
-                </button>
-              </div>
-            )}
+          {/* Mobile Menu */}
+          <div className="md:hidden">
+            <Sheet open={isOpen} onOpenChange={setIsOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Menu className="h-6 w-6" />
+                  <span className="sr-only">Toggle menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right">
+                <SheetHeader>
+                  <SheetTitle>Menu</SheetTitle>
+                </SheetHeader>
+                <div className="flex flex-col gap-4 mt-4">
+                  {navLinks.map((link) => (
+                    <Link
+                      key={link.path}
+                      to={link.path}
+                      className={`text-sm font-medium transition-colors hover:text-primary ${location.pathname === link.path ? "text-primary" : "text-muted-foreground"
+                        }`}
+                      onClick={() => setIsOpen(false)}
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                  {isLoggedIn ? (
+                    <>
+                      <div className="border-t pt-4 mt-2">
+                        <div className="flex items-center gap-2 mb-4">
+                          <Avatar className="h-8 w-8">
+                            <AvatarFallback>{userName.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <div className="flex flex-col">
+                            <span className="text-sm font-medium">{userName}</span>
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <Link to="/profile" onClick={() => setIsOpen(false)} className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary">
+                            <User className="h-4 w-4" /> Profile
+                          </Link>
+                          <Link to="/settings" onClick={() => setIsOpen(false)} className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-primary">
+                            <Settings className="h-4 w-4" /> Settings
+                          </Link>
+                          <button onClick={() => { onLogout?.(); setIsOpen(false); }} className="flex items-center gap-2 text-sm font-medium text-red-600 hover:text-red-700 text-left">
+                            <LogOut className="h-4 w-4" /> Logout
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex flex-col gap-2 mt-4">
+                      <Button variant="outline" asChild onClick={() => setIsOpen(false)}>
+                        <Link to="/login">Sign In</Link>
+                      </Button>
+                      <Button asChild onClick={() => setIsOpen(false)}>
+                        <Link to="/register">Sign Up</Link>
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
-        )}
+        </div>
       </div>
     </header>
   )

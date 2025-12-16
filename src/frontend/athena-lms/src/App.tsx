@@ -18,7 +18,7 @@ export default function AppWithNavbar() {
           setIsLoggedIn(true)
           setUserName(user.firstName || user.username)
         }
-      } catch (error) {
+      } catch {
         // Not logged in or session expired
         setIsLoggedIn(false)
       }

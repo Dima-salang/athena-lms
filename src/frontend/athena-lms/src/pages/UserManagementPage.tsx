@@ -3,6 +3,28 @@
 import React, { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { getAllUsers, deleteUser, updateUser, type User } from "../services/api"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
+import { Search, Loader2, Edit, Trash2, ArrowLeft, UserCog } from "lucide-react"
 
 const UserManagementPage: React.FC = () => {
     const navigate = useNavigate()
@@ -110,215 +132,232 @@ const UserManagementPage: React.FC = () => {
         if (currentPage < totalPages - 1) setCurrentPage(prev => prev + 1)
     }
 
-    return (
-        <div className="min-h-screen bg-slate-50">
-            <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-slate-200">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-                    <h1 className="text-2xl font-bold text-slate-900">User Management</h1>
-                    <button
-                        onClick={() => navigate("/admin")}
-                        className="px-4 py-2 text-slate-700 border border-slate-300 rounded-lg hover:bg-slate-50 transition"
-                    >
-                        Back to Dashboard
-                    </button>
-                </div>
-            </header>
+    const getRoleBadgeVariant = (role: string) => {
+        switch (role) {
+            case 'ADMIN': return 'default' // primary
+            case 'TEACHER': return 'secondary' // secondary
+            default: return 'outline' // student/others
+        }
+    }
 
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    return (
+        <div className="min-h-screen bg-slate-50/50 p-6 md:p-8">
+            <div className="max-w-7xl mx-auto space-y-6">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h1 className="text-3xl font-bold tracking-tight">User Management</h1>
+                        <p className="text-muted-foreground mt-1">Manage users, their roles, and system access.</p>
+                    </div>
+                    <Button
+                        variant="outline"
+                        onClick={() => navigate("/admin")}
+                        className="gap-2"
+                    >
+                        <ArrowLeft className="h-4 w-4" /> Back to Dashboard
+                    </Button>
+                </div>
+
                 {error && (
-                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+                    <div className="p-4 bg-red-50 text-red-700 border border-red-200 rounded-md">
                         {error}
                     </div>
                 )}
                 {success && (
-                    <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700">
+                    <div className="p-4 bg-green-50 text-green-700 border border-green-200 rounded-md">
                         {success}
                     </div>
                 )}
 
-                <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                    <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 w-full md:w-auto">
-                        {(["ALL", "TEACHER", "STUDENT", "ADMIN"] as const).map((role) => (
-                            <button
-                                key={role}
-                                onClick={() => setFilter(role)}
-                                className={`px-4 py-2 rounded-lg font-medium transition whitespace-nowrap ${filter === role
-                                    ? "bg-blue-100 text-blue-700"
-                                    : "text-slate-600 hover:bg-slate-100"
-                                    }`}
-                            >
-                                {role === "ALL" ? "All Users" : role.charAt(0) + role.slice(1).toLowerCase() + "s"}
-                            </button>
-                        ))}
-                    </div>
-
-                    <div className="w-full md:w-64">
-                        <input
-                            type="text"
-                            placeholder="Search users..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                    </div>
-                </div>
-
-                {loading ? (
-                    <div className="text-center py-12 text-slate-500">Loading users...</div>
-                ) : users.length === 0 ? (
-                    <div className="bg-white rounded-lg shadow p-12 text-center text-slate-600">
-                        No users found matching your criteria.
-                    </div>
-                ) : (
-                    <>
-                        <div className="bg-white rounded-lg shadow overflow-hidden border border-slate-200">
-                            <table className="min-w-full divide-y divide-slate-200">
-                                <thead className="bg-slate-50">
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">ID</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Name</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Username</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Role</th>
-                                        <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-slate-200">
-                                    {users.map((user) => (
-                                        <tr key={user.id} className="hover:bg-slate-50 transition">
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">#{user.id}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">
-                                                {user.firstName} {user.lastName}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
-                                                {user.username}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.role === 'ADMIN' ? 'bg-purple-100 text-purple-800' :
-                                                    user.role === 'TEACHER' ? 'bg-blue-100 text-blue-800' :
-                                                        'bg-green-100 text-green-800'
-                                                    }`}>
-                                                    {user.role}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                <button
-                                                    onClick={() => handleEditClick(user)}
-                                                    className="text-blue-600 hover:text-blue-900 mr-4"
-                                                >
-                                                    Edit
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDelete(user.id)}
-                                                    className="text-red-600 hover:text-red-900"
-                                                >
-                                                    Delete
-                                                </button>
-                                            </td>
-                                        </tr>
+                <Card>
+                    <CardHeader>
+                        <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+                            <CardTitle>Users Directory</CardTitle>
+                            <div className="flex flex-col sm:flex-row gap-3">
+                                <div className="flex gap-2">
+                                    {(["ALL", "TEACHER", "STUDENT", "ADMIN"] as const).map((role) => (
+                                        <Button
+                                            key={role}
+                                            variant={filter === role ? "default" : "outline"}
+                                            onClick={() => setFilter(role)}
+                                            size="sm"
+                                        >
+                                            {role === "ALL" ? "All" : role.charAt(0) + role.slice(1).toLowerCase() + "s"}
+                                        </Button>
                                     ))}
-                                </tbody>
-                            </table>
+                                </div>
+                                <div className="relative w-full sm:w-64">
+                                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                                    <Input
+                                        type="search"
+                                        placeholder="Search users..."
+                                        className="pl-8"
+                                        value={searchQuery}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+                                    />
+                                </div>
+                            </div>
                         </div>
+                        <CardDescription>
+                            A list of all users in the system including their roles and actions.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        {loading ? (
+                            <div className="flex justify-center items-center py-16 text-muted-foreground">
+                                <Loader2 className="h-8 w-8 animate-spin mr-2" />
+                                Loading...
+                            </div>
+                        ) : users.length === 0 ? (
+                            <div className="text-center py-16 text-muted-foreground border-2 border-dashed rounded-lg">
+                                <UserCog className="h-10 w-10 mx-auto mb-3 opacity-20" />
+                                <p>No users found matching your criteria.</p>
+                            </div>
+                        ) : (
+                            <>
+                                <div className="rounded-md border">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>User</TableHead>
+                                                <TableHead>Username</TableHead>
+                                                <TableHead>Role</TableHead>
+                                                <TableHead className="text-right">Actions</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {users.map((user) => (
+                                                <TableRow key={user.id}>
+                                                    <TableCell className="font-medium">
+                                                        <div>{user.firstName} {user.lastName}</div>
+                                                        <div className="text-xs text-muted-foreground">ID: #{user.id}</div>
+                                                    </TableCell>
+                                                    <TableCell>{user.username}</TableCell>
+                                                    <TableCell>
+                                                        <Badge variant={getRoleBadgeVariant("default")}>
+                                                            {user.role}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell className="text-right">
+                                                        <div className="flex justify-end gap-2">
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                onClick={() => handleEditClick(user)}
+                                                            >
+                                                                <Edit className="h-4 w-4" />
+                                                                <span className="sr-only">Edit</span>
+                                                            </Button>
+                                                            <Button
+                                                                variant="destructive"
+                                                                size="sm"
+                                                                onClick={() => handleDelete(user.id)}
+                                                            >
+                                                                <Trash2 className="h-4 w-4" />
+                                                                <span className="sr-only">Delete</span>
+                                                            </Button>
+                                                        </div>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </div>
 
-                        {/* Pagination Controls */}
-                        <div className="flex justify-between items-center mt-6">
-                            <button
-                                onClick={handlePreviousPage}
-                                disabled={currentPage === 0}
-                                className={`px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium transition ${currentPage === 0
-                                    ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-                                    : "bg-white text-slate-700 hover:bg-slate-50"
-                                    }`}
-                            >
-                                Previous
-                            </button>
-                            <span className="text-sm text-slate-600">
-                                Page <span className="font-semibold text-slate-900">{currentPage + 1}</span> of <span className="font-semibold text-slate-900">{totalPages}</span>
-                            </span>
-                            <button
-                                onClick={handleNextPage}
-                                disabled={currentPage >= totalPages - 1}
-                                className={`px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium transition ${currentPage >= totalPages - 1
-                                    ? "bg-slate-100 text-slate-400 cursor-not-allowed"
-                                    : "bg-white text-slate-700 hover:bg-slate-50"
-                                    }`}
-                            >
-                                Next
-                            </button>
-                        </div>
-                    </>
-                )}
-            </main>
+                                <div className="flex items-center justify-end space-x-2 py-4">
+                                    <div className="flex-1 text-sm text-muted-foreground">
+                                        Page {currentPage + 1} of {totalPages}
+                                    </div>
+                                    <div className="space-x-2">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={handlePreviousPage}
+                                            disabled={currentPage === 0}
+                                        >
+                                            Previous
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={handleNextPage}
+                                            disabled={currentPage >= totalPages - 1}
+                                        >
+                                            Next
+                                        </Button>
+                                    </div>
+                                </div>
+                            </>
+                        )}
+                    </CardContent>
+                </Card>
+            </div>
 
-            {/* Edit User Modal */}
-            {showEditModal && editingUser && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-                    <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
-                        <h2 className="text-xl font-bold text-slate-900 mb-4">Edit User</h2>
-                        <form onSubmit={handleUpdateUser} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">First Name</label>
-                                <input
-                                    type="text"
-                                    value={editingUser.firstName}
-                                    onChange={(e) => setEditingUser({ ...editingUser, firstName: e.target.value })}
-                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    required
-                                />
+            <Dialog open={showEditModal} onOpenChange={setShowEditModal}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Edit User</DialogTitle>
+                        <DialogDescription>
+                            Make changes to the user's profile here. Click save when you're done.
+                        </DialogDescription>
+                    </DialogHeader>
+                    {editingUser && (
+                        <form onSubmit={handleUpdateUser}>
+                            <div className="grid gap-4 py-4">
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="firstName" className="text-right">
+                                        First Name
+                                    </Label>
+                                    <Input
+                                        id="firstName"
+                                        value={editingUser.firstName}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditingUser({ ...editingUser, firstName: e.target.value })}
+                                        className="col-span-3"
+                                        required
+                                    />
+                                </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="lastName" className="text-right">
+                                        Last Name
+                                    </Label>
+                                    <Input
+                                        id="lastName"
+                                        value={editingUser.lastName}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditingUser({ ...editingUser, lastName: e.target.value })}
+                                        className="col-span-3"
+                                        required
+                                    />
+                                </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="username" className="text-right">
+                                        Username
+                                    </Label>
+                                    <Input
+                                        id="username"
+                                        value={editingUser.username}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditingUser({ ...editingUser, username: e.target.value })}
+                                        className="col-span-3"
+                                        required
+                                    />
+                                </div>
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="role" className="text-right">
+                                        Role
+                                    </Label>
+                                    <Input
+                                        id="role"
+                                        value={editingUser.role}
+                                        disabled
+                                        className="col-span-3 bg-muted"
+                                    />
+                                </div>
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Last Name</label>
-                                <input
-                                    type="text"
-                                    value={editingUser.lastName}
-                                    onChange={(e) => setEditingUser({ ...editingUser, lastName: e.target.value })}
-                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Username</label>
-                                <input
-                                    type="text"
-                                    value={editingUser.username}
-                                    onChange={(e) => setEditingUser({ ...editingUser, username: e.target.value })}
-                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    required
-                                />
-                            </div>
-                            {/* Role Editing - Optional, can stay read-only or be editable */}
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Role</label>
-                                <input
-                                    type="text"
-                                    value={editingUser.role}
-                                    disabled
-                                    className="w-full px-3 py-2 border border-slate-200 rounded-lg bg-slate-100 text-slate-500 cursor-not-allowed"
-                                />
-                            </div>
-
-                            <div className="flex justify-end gap-3 mt-6">
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setShowEditModal(false)
-                                        setEditingUser(null)
-                                    }}
-                                    className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-                                >
-                                    Save Changes
-                                </button>
-                            </div>
+                            <DialogFooter>
+                                <Button type="submit">Save changes</Button>
+                            </DialogFooter>
                         </form>
-                    </div>
-                </div>
-            )}
+                    )}
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }

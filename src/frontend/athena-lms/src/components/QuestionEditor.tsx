@@ -3,6 +3,20 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import type { Question } from "../services/api"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
+import { Card, CardContent } from "@/components/ui/card"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Trash2, Save, Plus, X } from "lucide-react"
 
 interface QuestionEditorProps {
     question: Question
@@ -18,10 +32,8 @@ const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onUpdate, onD
         setLocalQuestion(question)
     }, [question])
 
-    const handleChange = (field: string, value: any) => {
-        console.log(`handleChange called: field="${field}", value=`, value);
+    const handleChange = (field: string, value: string | number | boolean | React.ChangeEvent<HTMLInputElement>) => {
         const updated = { ...localQuestion, [field]: value } as Question;
-        console.log("Updated question object:", updated);
         setLocalQuestion(updated);
         onUpdate(updated);
     }
@@ -55,157 +67,179 @@ const QuestionEditor: React.FC<QuestionEditorProps> = ({ question, onUpdate, onD
     }
 
     return (
-        <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-                <div className="flex gap-3 items-center">
-                    <h3 className="text-lg font-bold text-slate-900">Question {localQuestion.questionNumber}</h3>
-                    <select
-                        value={localQuestion.questionType}
-                        onChange={(e) => handleChange("questionType", e.target.value)}
-                        className="px-3 py-1.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                    >
-                        <option value="MULTIPLE_CHOICE">Multiple Choice</option>
-                        <option value="TRUE_FALSE">True / False</option>
-                        <option value="IDENTIFICATION">Identification</option>
-                        <option value="ESSAY">Essay</option>
-                    </select>
-                </div>
-                <div className="flex gap-2">
-                    <button
-                        onClick={() => onSave()}
-                        className="px-4 py-2 text-green-600 hover:bg-green-50 rounded-lg transition font-semibold"
-                        title="Save Question"
-                    >
-                        ✓ Save
-                    </button>
-                    <button
-                        onClick={() => onDelete(localQuestion.id)}
-                        className="px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition font-semibold"
-                        title="Delete Question"
-                    >
-                        🗑 Delete
-                    </button>
-                </div>
-            </div>
-
-            <div className="space-y-6">
-                <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Question Text</label>
-                    <textarea
-                        value={localQuestion.questionText}
-                        onChange={(e) => handleChange("questionText", e.target.value)}
-                        rows={3}
-                        placeholder="Enter your question here..."
-                        className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                    />
-                </div>
-
-                <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Points</label>
-                    <input
-                        type="number"
-                        value={localQuestion.fullPoints}
-                        onChange={(e) => handleChange("fullPoints", Number(e.target.value))}
-                        min="1"
-                        className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                    />
-                </div>
-
-                {localQuestion.questionType === "MULTIPLE_CHOICE" && (
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-3">Options</label>
-                        <div className="space-y-3">
-                            {localQuestion.options?.map((option, index) => (
-                                <div key={option.id || option.tempId || index} className="flex gap-3 items-start">
-                                    <input
-                                        type="radio"
-                                        name={`correct-${localQuestion.id}`}
-                                        checked={localQuestion.correctOptionId === (option.id || option.tempId)}
-                                        onChange={() => {
-                                            const updated = {
-                                                ...localQuestion,
-                                                correctOptionId: option.id || option.tempId,
-                                                correctAnswer: option.optionText,
-                                            } as Question
-                                            setLocalQuestion(updated)
-                                            onUpdate(updated)
-                                        }}
-                                        className="mt-3 w-4 h-4 cursor-pointer"
-                                    />
-                                    <div className="flex-1">
-                                        <input
-                                            type="text"
-                                            value={option.optionText || ""}
-                                            onChange={(e) => handleOptionChange(index, e.target.value)}
-                                            placeholder={`Option ${String.fromCharCode(65 + index)}`}
-                                            className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                                        />
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => removeOption(index)}
-                                        className="mt-2.5 text-red-600 hover:bg-red-50 px-3 py-1.5 rounded transition font-semibold"
-                                    >
-                                        ×
-                                    </button>
-                                </div>
-                            ))}
+        <Card className="border-l-4 border-l-blue-500">
+            <CardContent className="p-6 space-y-6">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div className="flex flex-1 gap-4 items-center w-full md:w-auto">
+                        <h3 className="text-lg font-bold text-slate-900 whitespace-nowrap">
+                            Question {localQuestion.questionNumber}
+                        </h3>
+                        <div className="w-full md:w-[200px]">
+                            <Select
+                                value={localQuestion.questionType}
+                                onValueChange={(value) => handleChange("questionType", value)}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Question Type" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="MULTIPLE_CHOICE">Multiple Choice</SelectItem>
+                                    <SelectItem value="TRUE_FALSE">True / False</SelectItem>
+                                    <SelectItem value="IDENTIFICATION">Identification</SelectItem>
+                                    <SelectItem value="ESSAY">Essay</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
-                        <button
-                            type="button"
-                            onClick={addOption}
-                            className="mt-4 px-4 py-2 text-blue-600 border border-blue-300 rounded-lg hover:bg-blue-50 font-medium transition"
-                        >
-                            + Add Option
-                        </button>
                     </div>
-                )}
-
-                {localQuestion.questionType === "TRUE_FALSE" && (
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">Correct Answer</label>
-                        <select
-                            value={localQuestion.correctAnswer || ""}
-                            onChange={(e) => handleChange("correctAnswer", e.target.value)}
-                            className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                    <div className="flex gap-2 w-full md:w-auto justify-end">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => onSave()}
+                            className="text-green-600 hover:text-green-700 hover:bg-green-50"
                         >
-                            <option value="">Select Answer</option>
-                            <option value="true">True</option>
-                            <option value="false">False</option>
-                        </select>
+                            <Save className="h-4 w-4 mr-2" />
+                            Save
+                        </Button>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => onDelete(localQuestion.id)}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                        </Button>
                     </div>
-                )}
+                </div>
 
-                {localQuestion.questionType === "IDENTIFICATION" && (
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">Correct Answer</label>
-                        <input
-                            type="text"
-                            value={localQuestion.correctAnswer || ""}
-                            onChange={(e) => {
-                                console.log("Identification correctAnswer changed to:", e.target.value);
-                                handleChange("correctAnswer", e.target.value);
-                            }}
-                            placeholder="Enter the correct answer"
-                            className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                <div className="space-y-4">
+                    <div className="space-y-2">
+                        <Label htmlFor={`q-text-${localQuestion.id}`}>Question Text</Label>
+                        <Textarea
+                            id={`q-text-${localQuestion.id}`}
+                            value={localQuestion.questionText}
+                            onChange={(e) => handleChange("questionText", e.target.value)}
+                            rows={3}
+                            placeholder="Enter your question here..."
+                            className="resize-none"
                         />
                     </div>
-                )}
 
-                {localQuestion.questionType === "ESSAY" && (
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">Model Answer / Key Points (Optional)</label>
-                        <textarea
-                            value={localQuestion.correctAnswer || ""}
-                            onChange={(e) => handleChange("correctAnswer", e.target.value)}
-                            rows={4}
-                            placeholder="Enter a model answer or key points for grading reference..."
-                            className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                    <div className="space-y-2">
+                        <Label htmlFor={`q-points-${localQuestion.id}`}>Points</Label>
+                        <Input
+                            id={`q-points-${localQuestion.id}`}
+                            type="number"
+                            value={localQuestion.fullPoints}
+                            onChange={(e) => handleChange("fullPoints", Number(e.target.value))}
+                            min="1"
                         />
                     </div>
-                )}
-            </div>
-        </div>
+
+                    {localQuestion.questionType === "MULTIPLE_CHOICE" && (
+                        <div className="space-y-3">
+                            <Label>Options</Label>
+                            <RadioGroup
+                                value={String(localQuestion.correctOptionId || "")}
+                                onValueChange={(value) => {
+                                    const selectedId = Number(value);
+                                    const selectedOption = localQuestion.options?.find(o => (o.id || o.tempId) === selectedId);
+                                    if (selectedOption) {
+                                        const updated = {
+                                            ...localQuestion,
+                                            correctOptionId: selectedId,
+                                            correctAnswer: selectedOption.optionText,
+                                        } as Question;
+                                        setLocalQuestion(updated);
+                                        onUpdate(updated);
+                                    }
+                                }}
+                            >
+                                <div className="space-y-3">
+                                    {localQuestion.options?.map((option, index) => {
+                                        const optionId = option.id || option.tempId || index;
+                                        return (
+                                            <div key={optionId} className="flex gap-3 items-center">
+                                                <RadioGroupItem value={String(optionId)} id={`opt-${optionId}`} />
+                                                <div className="flex-1">
+                                                    <Input
+                                                        value={option.optionText || ""}
+                                                        onChange={(e) => handleOptionChange(index, e.target.value)}
+                                                        placeholder={`Option ${String.fromCharCode(65 + index)}`}
+                                                    />
+                                                </div>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    type="button"
+                                                    onClick={() => removeOption(index)}
+                                                    className="text-muted-foreground hover:text-destructive"
+                                                >
+                                                    <X className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </RadioGroup>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={addOption}
+                                className="mt-2"
+                            >
+                                <Plus className="h-4 w-4 mr-2" />
+                                Add Option
+                            </Button>
+                        </div>
+                    )}
+
+                    {localQuestion.questionType === "TRUE_FALSE" && (
+                        <div className="space-y-2">
+                            <Label>Correct Answer</Label>
+                            <Select
+                                value={localQuestion.correctAnswer || ""}
+                                onValueChange={(value) => handleChange("correctAnswer", value)}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select Answer" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="true">True</SelectItem>
+                                    <SelectItem value="false">False</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
+
+                    {localQuestion.questionType === "IDENTIFICATION" && (
+                        <div className="space-y-2">
+                            <Label>Correct Answer</Label>
+                            <Input
+                                type="text"
+                                value={localQuestion.correctAnswer || ""}
+                                onChange={(e) => handleChange("correctAnswer", e.target.value)}
+                                placeholder="Enter the correct answer"
+                            />
+                        </div>
+                    )}
+
+                    {localQuestion.questionType === "ESSAY" && (
+                        <div className="space-y-2">
+                            <Label>Model Answer / Key Points (Optional)</Label>
+                            <Textarea
+                                value={localQuestion.correctAnswer || ""}
+                                onChange={(e) => handleChange("correctAnswer", e.target.value)}
+                                rows={4}
+                                placeholder="Enter a model answer or key points for grading reference..."
+                                className="resize-none"
+                            />
+                        </div>
+                    )}
+                </div>
+            </CardContent>
+        </Card>
     )
 }
 

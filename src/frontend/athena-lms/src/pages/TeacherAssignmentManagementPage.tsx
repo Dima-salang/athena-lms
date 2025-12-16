@@ -14,6 +14,33 @@ import {
     type Section,
     type Subject
 } from "../services/api"
+import { Button } from "@/components/ui/button"
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
+import { ArrowLeft, Loader2, Plus, School, Trash2, Users, BookOpen } from "lucide-react"
 
 const TeacherAssignmentManagementPage: React.FC = () => {
     const navigate = useNavigate()
@@ -33,9 +60,9 @@ const TeacherAssignmentManagementPage: React.FC = () => {
 
     const [showCreateModal, setShowCreateModal] = useState(false)
     const [newAssignment, setNewAssignment] = useState<{
-        teacherId: number | "";
-        sectionId: number | "";
-        subjectId: number | "";
+        teacherId: string;
+        sectionId: string;
+        subjectId: string;
     }>({
         teacherId: "",
         sectionId: "",
@@ -137,222 +164,210 @@ const TeacherAssignmentManagementPage: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen bg-slate-50">
-            <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-slate-200">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-                    <h1 className="text-2xl font-bold text-slate-900">Teacher Assignments</h1>
-                    <button
+        <div className="min-h-screen bg-slate-50/50 p-6 md:p-8">
+            <div className="max-w-7xl mx-auto space-y-6">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h1 className="text-3xl font-bold tracking-tight">Teacher Assignments</h1>
+                        <p className="text-muted-foreground mt-1">Manage which teachers handle specific subjects and sections.</p>
+                    </div>
+                    <Button
+                        variant="outline"
                         onClick={() => navigate("/admin")}
-                        className="px-4 py-2 text-slate-700 border border-slate-300 rounded-lg hover:bg-slate-50 transition"
+                        className="gap-2"
                     >
-                        Back to Dashboard
-                    </button>
+                        <ArrowLeft className="h-4 w-4" /> Back to Admin
+                    </Button>
                 </div>
-            </header>
 
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {error && (
-                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+                    <div className="p-4 bg-red-50 text-red-700 border border-red-200 rounded-md">
                         {error}
                     </div>
                 )}
                 {success && (
-                    <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700">
+                    <div className="p-4 bg-green-50 text-green-700 border border-green-200 rounded-md">
                         {success}
                     </div>
                 )}
 
-                <div className="flex justify-between items-center mb-6">
-                    <div>
-                        <h2 className="text-lg font-semibold text-slate-900">Current Assignments</h2>
-                        <p className="text-sm text-slate-600">Manage which teachers handle specific subjects and sections.</p>
-                    </div>
-                    <button
-                        onClick={() => setShowCreateModal(true)}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-sm"
-                    >
-                        + Assign Teacher
-                    </button>
-                </div>
-
-                {loading ? (
-                    <div className="text-center py-12 text-slate-500">Loading assignments...</div>
-                ) : assignments.length === 0 ? (
-                    <div className="bg-white rounded-lg shadow p-12 text-center text-slate-600">
-                        No teacher assignments found. Click "Assign Teacher" to create one.
-                    </div>
-                ) : (
-                    <>
-                        <div className="bg-white rounded-lg shadow overflow-hidden border border-slate-200">
-                            <table className="min-w-full divide-y divide-slate-200">
-                                <thead className="bg-slate-50">
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Teacher</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Subject</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Section</th>
-                                        <th className="px-6 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-slate-200">
-                                    {assignments.map((assignment) => (
-                                        <tr key={assignment.id} className="hover:bg-slate-50 transition">
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">
-                                                {assignment.teacher?.firstName} {assignment.teacher?.lastName}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
-                                                {assignment.subject?.name}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
-                                                {assignment.section?.name}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                <button
-                                                    onClick={() => handleDeleteAssignment(assignment.id)}
-                                                    className="text-red-600 hover:text-red-900 transition"
-                                                >
-                                                    Remove
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        {/* Pagination Controls */}
-                        <div className="flex items-center justify-between mt-4 bg-white px-4 py-3 sm:px-6 rounded-lg shadow-sm border border-slate-200">
-                            <div className="flex flex-1 justify-between sm:hidden">
-                                <button
-                                    onClick={() => handlePageChange(currentPage - 1)}
-                                    disabled={currentPage === 0}
-                                    className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-                                >
-                                    Previous
-                                </button>
-                                <button
-                                    onClick={() => handlePageChange(currentPage + 1)}
-                                    disabled={currentPage >= totalPages - 1}
-                                    className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-                                >
-                                    Next
-                                </button>
+                <Card>
+                    <CardHeader>
+                        <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+                            <div className="space-y-1">
+                                <CardTitle>Current Assignments</CardTitle>
+                                <CardDescription>
+                                    List of all active teacher assignments.
+                                </CardDescription>
                             </div>
-                            <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-                                <div>
-                                    <p className="text-sm text-gray-700">
-                                        Page <span className="font-medium">{currentPage + 1}</span> of <span className="font-medium">{totalPages}</span>
-                                    </p>
+                            <Button onClick={() => setShowCreateModal(true)}>
+                                <Plus className="h-4 w-4 mr-2" />
+                                Assign Teacher
+                            </Button>
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        {loading ? (
+                            <div className="flex justify-center items-center py-12 text-muted-foreground">
+                                <Loader2 className="h-8 w-8 animate-spin mr-2" />
+                                Loading...
+                            </div>
+                        ) : assignments.length === 0 ? (
+                            <div className="text-center py-12 text-muted-foreground border-2 border-dashed rounded-lg">
+                                <Users className="h-10 w-10 mx-auto mb-3 opacity-20" />
+                                <p>No teacher assignments found.</p>
+                                <Button variant="link" onClick={() => setShowCreateModal(true)} className="mt-2">
+                                    Create your first assignment
+                                </Button>
+                            </div>
+                        ) : (
+                            <>
+                                <div className="rounded-md border">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead>Teacher</TableHead>
+                                                <TableHead>Subject</TableHead>
+                                                <TableHead>Section</TableHead>
+                                                <TableHead className="text-right">Actions</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {assignments.map((assignment) => (
+                                                <TableRow key={assignment.id}>
+                                                    <TableCell className="font-medium">
+                                                        <div className="flex items-center gap-2">
+                                                            <Users className="h-4 w-4 text-muted-foreground" />
+                                                            {assignment.teacher?.firstName} {assignment.teacher?.lastName}
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <div className="flex items-center gap-2">
+                                                            <BookOpen className="h-4 w-4 text-muted-foreground" />
+                                                            {assignment.subject?.name}
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <div className="flex items-center gap-2">
+                                                            <School className="h-4 w-4 text-muted-foreground" />
+                                                            {assignment.section?.name}
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="text-right">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => handleDeleteAssignment(assignment.id)}
+                                                            className="text-destructive hover:text-destructive/90 hover:bg-destructive/10"
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                            <span className="sr-only">Remove</span>
+                                                        </Button>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
                                 </div>
-                                <div>
-                                    <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
-                                        <button
+
+                                <div className="flex items-center justify-end space-x-2 py-4">
+                                    <div className="flex-1 text-sm text-muted-foreground">
+                                        Page {currentPage + 1} of {totalPages}
+                                    </div>
+                                    <div className="space-x-2">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
                                             onClick={() => handlePageChange(currentPage - 1)}
                                             disabled={currentPage === 0}
-                                            className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
                                         >
-                                            <span className="sr-only">Previous</span>
-                                            <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                                <path fillRule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clipRule="evenodd" />
-                                            </svg>
-                                        </button>
-                                        <button
+                                            Previous
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
                                             onClick={() => handlePageChange(currentPage + 1)}
                                             disabled={currentPage >= totalPages - 1}
-                                            className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50"
                                         >
-                                            <span className="sr-only">Next</span>
-                                            <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                                <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
-                                            </svg>
-                                        </button>
-                                    </nav>
+                                            Next
+                                        </Button>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                    </>
-                )}
-            </main>
-
-            {/* Create Assignment Modal */}
-            {showCreateModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-                    <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
-                        <h2 className="text-xl font-bold text-slate-900 mb-4">Assign Teacher</h2>
-
-                        {error && (
-                            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-                                {error}
-                            </div>
+                            </>
                         )}
+                    </CardContent>
+                </Card>
+            </div>
 
-                        <form onSubmit={handleCreateAssignment} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Teacher</label>
-                                <select
-                                    value={newAssignment.teacherId}
-                                    onChange={(e) => setNewAssignment({ ...newAssignment, teacherId: Number(e.target.value) })}
-                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                                    required
-                                >
-                                    <option value="">Select a teacher...</option>
-                                    {teachers.map(t => (
-                                        <option key={t.id} value={t.id}>{t.firstName} {t.lastName} ({t.username})</option>
+            <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Assign Teacher</DialogTitle>
+                        <DialogDescription>
+                            Assign a teacher to a subject and section.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleCreateAssignment} className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="teacher">Teacher</Label>
+                            <Select
+                                value={newAssignment.teacherId}
+                                onValueChange={(value) => setNewAssignment({ ...newAssignment, teacherId: value })}
+                            >
+                                <SelectTrigger id="teacher">
+                                    <SelectValue placeholder="Select a teacher" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {teachers.map((t) => (
+                                        <SelectItem key={t.id} value={t.id.toString()}>
+                                            {t.firstName} {t.lastName} ({t.username})
+                                        </SelectItem>
                                     ))}
-                                </select>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Subject</label>
-                                <select
-                                    value={newAssignment.subjectId}
-                                    onChange={(e) => setNewAssignment({ ...newAssignment, subjectId: Number(e.target.value) })}
-                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                                    required
-                                >
-                                    <option value="">Select a subject...</option>
-                                    {subjects.map(s => (
-                                        <option key={s.id} value={s.id}>{s.name}</option>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="subject">Subject</Label>
+                            <Select
+                                value={newAssignment.subjectId}
+                                onValueChange={(value) => setNewAssignment({ ...newAssignment, subjectId: value })}
+                            >
+                                <SelectTrigger id="subject">
+                                    <SelectValue placeholder="Select a subject" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {subjects.map((s) => (
+                                        <SelectItem key={s.id} value={s.id.toString()}>
+                                            {s.name}
+                                        </SelectItem>
                                     ))}
-                                </select>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Section</label>
-                                <select
-                                    value={newAssignment.sectionId}
-                                    onChange={(e) => setNewAssignment({ ...newAssignment, sectionId: Number(e.target.value) })}
-                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                                    required
-                                >
-                                    <option value="">Select a section...</option>
-                                    {sections.map(s => (
-                                        <option key={s.id} value={s.id}>{s.name}</option>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="section">Section</Label>
+                            <Select
+                                value={newAssignment.sectionId}
+                                onValueChange={(value) => setNewAssignment({ ...newAssignment, sectionId: value })}
+                            >
+                                <SelectTrigger id="section">
+                                    <SelectValue placeholder="Select a section" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {sections.map((s) => (
+                                        <SelectItem key={s.id} value={s.id.toString()}>
+                                            {s.name}
+                                        </SelectItem>
                                     ))}
-                                </select>
-                            </div>
-
-                            <div className="flex justify-end gap-3 mt-6">
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setShowCreateModal(false)
-                                        setError(null)
-                                    }}
-                                    className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-                                >
-                                    Assign
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <DialogFooter>
+                            <Button type="submit">Assign</Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }

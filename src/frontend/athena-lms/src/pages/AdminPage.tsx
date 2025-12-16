@@ -2,6 +2,25 @@
 
 import React from "react"
 import { useNavigate } from "react-router-dom"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { BookOpen, Users, GraduationCap, Shield, UserPlus, ArrowLeft } from "lucide-react"
 
 const AdminPage: React.FC = () => {
   const navigate = useNavigate()
@@ -29,183 +48,164 @@ const AdminPage: React.FC = () => {
         setShowCreateAdminModal(false)
         setSuccess(null)
       }, 2000)
-    } catch (err) {
+    } catch (error) {
       setError("Failed to create admin account. Please try again.")
     }
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-slate-200">
+    <div className="min-h-screen bg-slate-50/50">
+      <header className="sticky top-0 z-50 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-slate-900">Admin Dashboard</h1>
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="px-4 py-2 text-slate-700 border border-slate-300 rounded-lg hover:bg-slate-50 transition"
-          >
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Admin Dashboard</h1>
+          <Button variant="outline" size="sm" onClick={() => navigate("/dashboard")}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
-          </button>
+          </Button>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Manage Sections Card */}
-          <div
+          <Card
+            className="cursor-pointer hover:shadow-md transition-all hover:border-blue-300 group"
             onClick={() => navigate("/admin/sections")}
-            className="group bg-white rounded-lg shadow-md p-8 cursor-pointer hover:shadow-lg transition border border-slate-200 hover:border-blue-300"
           >
-            <div className="mb-4 w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition">
-              <span className="text-2xl">📚</span>
-            </div>
-            <h2 className="text-xl font-bold text-slate-900 mb-2">Manage Sections</h2>
-            <p className="text-slate-600">Create, view, and manage class sections for your school.</p>
-            <div className="mt-6 flex items-center text-blue-600 font-semibold group-hover:gap-2 transition-all">
-              Go to Sections <span className="ml-2">→</span>
-            </div>
-          </div>
+            <CardHeader>
+              <div className="mb-2 w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors text-blue-600">
+                <BookOpen className="h-6 w-6" />
+              </div>
+              <CardTitle>Manage Sections</CardTitle>
+              <CardDescription>Create, view, and manage class sections for your school.</CardDescription>
+            </CardHeader>
+          </Card>
 
           {/* Manage Subjects Card */}
-          <div
+          <Card
+            className="cursor-pointer hover:shadow-md transition-all hover:border-purple-300 group"
             onClick={() => navigate("/admin/subjects")}
-            className="group bg-white rounded-lg shadow-md p-8 cursor-pointer hover:shadow-lg transition border border-slate-200 hover:border-blue-300"
           >
-            <div className="mb-4 w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-purple-200 transition">
-              <span className="text-2xl">📖</span>
-            </div>
-            <h2 className="text-xl font-bold text-slate-900 mb-2">Manage Subjects</h2>
-            <p className="text-slate-600">Create, view, and manage subjects and their descriptions.</p>
-            <div className="mt-6 flex items-center text-purple-600 font-semibold group-hover:gap-2 transition-all">
-              Go to Subjects <span className="ml-2">→</span>
-            </div>
-          </div>
+            <CardHeader>
+              <div className="mb-2 w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-purple-200 transition-colors text-purple-600">
+                <GraduationCap className="h-6 w-6" />
+              </div>
+              <CardTitle>Manage Subjects</CardTitle>
+              <CardDescription>Create, view, and manage subjects and their descriptions.</CardDescription>
+            </CardHeader>
+          </Card>
 
           {/* Manage Teacher Assignments Card */}
-          <div
+          <Card
+            className="cursor-pointer hover:shadow-md transition-all hover:border-orange-300 group"
             onClick={() => navigate("/admin/teacher-assignments")}
-            className="group bg-white rounded-lg shadow-md p-8 cursor-pointer hover:shadow-lg transition border border-slate-200 hover:border-orange-300"
           >
-            <div className="mb-4 w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center group-hover:bg-orange-200 transition">
-              <span className="text-2xl">👨‍🏫</span>
-            </div>
-            <h2 className="text-xl font-bold text-slate-900 mb-2">Teacher Assignments</h2>
-            <p className="text-slate-600">Assign teachers to specific subjects and sections.</p>
-            <div className="mt-6 flex items-center text-orange-600 font-semibold group-hover:gap-2 transition-all">
-              Manage Assignments <span className="ml-2">→</span>
-            </div>
-          </div>
+            <CardHeader>
+              <div className="mb-2 w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center group-hover:bg-orange-200 transition-colors text-orange-600">
+                <Users className="h-6 w-6" />
+              </div>
+              <CardTitle>Teacher Assignments</CardTitle>
+              <CardDescription>Assign teachers to specific subjects and sections.</CardDescription>
+            </CardHeader>
+          </Card>
 
           {/* Manage Users Card */}
-          <div
+          <Card
+            className="cursor-pointer hover:shadow-md transition-all hover:border-indigo-300 group"
             onClick={() => navigate("/admin/users")}
-            className="group bg-white rounded-lg shadow-md p-8 cursor-pointer hover:shadow-lg transition border border-slate-200 hover:border-indigo-300"
           >
-            <div className="mb-4 w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center group-hover:bg-indigo-200 transition">
-              <span className="text-2xl">👥</span>
-            </div>
-            <h2 className="text-xl font-bold text-slate-900 mb-2">Manage Users</h2>
-            <p className="text-slate-600">View and manage all users (Teachers, Students, Admins).</p>
-            <div className="mt-6 flex items-center text-indigo-600 font-semibold group-hover:gap-2 transition-all">
-              Manage Users <span className="ml-2">→</span>
-            </div>
-          </div>
+            <CardHeader>
+              <div className="mb-2 w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center group-hover:bg-indigo-200 transition-colors text-indigo-600">
+                <UserPlus className="h-6 w-6" />
+              </div>
+              <CardTitle>Manage Users</CardTitle>
+              <CardDescription>View and manage all users (Teachers, Students, Admins).</CardDescription>
+            </CardHeader>
+          </Card>
 
           {/* Create Admin Card */}
-          <div
-            onClick={() => setShowCreateAdminModal(true)}
-            className="group bg-white rounded-lg shadow-md p-8 cursor-pointer hover:shadow-lg transition border border-slate-200 hover:border-green-300"
-          >
-            <div className="mb-4 w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center group-hover:bg-green-200 transition">
-              <span className="text-2xl">🛡️</span>
-            </div>
-            <h2 className="text-xl font-bold text-slate-900 mb-2">Create Admin</h2>
-            <p className="text-slate-600">Create a new administrator account for the system.</p>
-            <div className="mt-6 flex items-center text-green-600 font-semibold group-hover:gap-2 transition-all">
-              Create Account <span className="ml-2">→</span>
-            </div>
-          </div>
+          <Dialog open={showCreateAdminModal} onOpenChange={setShowCreateAdminModal}>
+            <DialogTrigger asChild>
+              <Card className="cursor-pointer hover:shadow-md transition-all hover:border-green-300 group">
+                <CardHeader>
+                  <div className="mb-2 w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center group-hover:bg-green-200 transition-colors text-green-600">
+                    <Shield className="h-6 w-6" />
+                  </div>
+                  <CardTitle>Create Admin</CardTitle>
+                  <CardDescription>Create a new administrator account for the system.</CardDescription>
+                </CardHeader>
+              </Card>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create New Admin</DialogTitle>
+                <DialogDescription>
+                  Enter the details below to create a new administrator account.
+                </DialogDescription>
+              </DialogHeader>
+              {error && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm font-medium">
+                  {error}
+                </div>
+              )}
+              {success && (
+                <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm font-medium">
+                  {success}
+                </div>
+              )}
+
+              <form onSubmit={handleCreateAdmin} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="firstName">First Name</Label>
+                  <Input
+                    id="firstName"
+                    type="text"
+                    value={newAdmin.firstName}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewAdmin({ ...newAdmin, firstName: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="lastName">Last Name</Label>
+                  <Input
+                    id="lastName"
+                    type="text"
+                    value={newAdmin.lastName}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewAdmin({ ...newAdmin, lastName: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="username">Username</Label>
+                  <Input
+                    id="username"
+                    type="text"
+                    value={newAdmin.username}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewAdmin({ ...newAdmin, username: e.target.value })}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={newAdmin.password}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewAdmin({ ...newAdmin, password: e.target.value })}
+                    required
+                  />
+                </div>
+                <DialogFooter className="mt-4">
+                  <Button type="button" variant="outline" onClick={() => setShowCreateAdminModal(false)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit">Create Admin</Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
       </main>
-
-      {/* Create Admin Modal */}
-      {showCreateAdminModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
-            <h2 className="text-2xl font-bold text-slate-900 mb-4">Create New Admin</h2>
-
-            {error && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
-                {error}
-              </div>
-            )}
-
-            {success && (
-              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded text-green-700 text-sm">
-                {success}
-              </div>
-            )}
-
-            <form onSubmit={handleCreateAdmin} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">First Name</label>
-                <input
-                  type="text"
-                  value={newAdmin.firstName}
-                  onChange={(e) => setNewAdmin({ ...newAdmin, firstName: e.target.value })}
-                  required
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Last Name</label>
-                <input
-                  type="text"
-                  value={newAdmin.lastName}
-                  onChange={(e) => setNewAdmin({ ...newAdmin, lastName: e.target.value })}
-                  required
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Username</label>
-                <input
-                  type="text"
-                  value={newAdmin.username}
-                  onChange={(e) => setNewAdmin({ ...newAdmin, username: e.target.value })}
-                  required
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
-                <input
-                  type="password"
-                  value={newAdmin.password}
-                  onChange={(e) => setNewAdmin({ ...newAdmin, password: e.target.value })}
-                  required
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div className="flex justify-end gap-3 mt-6">
-                <button
-                  type="button"
-                  onClick={() => setShowCreateAdminModal(false)}
-                  className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-                >
-                  Create Admin
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

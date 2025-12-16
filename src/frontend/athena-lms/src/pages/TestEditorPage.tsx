@@ -12,6 +12,12 @@ import {
     autosaveTest,
 } from "../services/api"
 import QuestionEditor from "../components/QuestionEditor"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Loader2, Save, Check, Plus } from "lucide-react"
 
 const TestEditorPage: React.FC = () => {
     const { testId } = useParams<{ testId: string }>()
@@ -238,57 +244,75 @@ const TestEditorPage: React.FC = () => {
         await Promise.all([handleAutosaveQuestions(), handleAutosaveTestDetails()])
     }
 
-    if (!test) return <div className="text-center py-8">Loading...</div>
+    if (!test) return (
+        <div className="flex justify-center items-center min-h-screen">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+    )
 
     return (
-        <div className="min-h-screen bg-slate-50 p-4 md:p-8">
-            <div className="max-w-4xl mx-auto">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+        <div className="min-h-screen bg-slate-50/50 p-6 md:p-8">
+            <div className="max-w-4xl mx-auto space-y-6">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
-                        <h1 className="text-3xl font-bold text-slate-900">Edit Test</h1>
-                        <p className="text-slate-600 text-sm mt-1">Manage test details and questions</p>
+                        <h1 className="text-3xl font-bold tracking-tight">Edit Test</h1>
+                        <p className="text-muted-foreground mt-1">Manage test details and questions.</p>
                     </div>
-                    <div className="flex items-center gap-4">
-                        {isSaving && <span className="text-blue-600 font-medium">Saving...</span>}
-                        {lastSavedTime && (
-                            <span className="text-slate-600 text-sm">Saved {lastSavedTime.toLocaleTimeString()}</span>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground bg-white px-3 py-1.5 rounded-full border shadow-sm">
+                        {isSaving ? (
+                            <>
+                                <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                                <span className="text-blue-600 font-medium">Saving...</span>
+                            </>
+                        ) : lastSavedTime ? (
+                            <>
+                                <Check className="h-4 w-4 text-green-600" />
+                                <span>Saved {lastSavedTime.toLocaleTimeString()}</span>
+                            </>
+                        ) : (
+                            <span>All changes saved locally</span>
                         )}
                     </div>
                 </div>
 
                 {/* Test Details Editor */}
-                <div className="bg-white rounded-lg shadow-sm p-6 mb-8 border border-slate-200">
-                    <h2 className="text-lg font-semibold text-slate-900 mb-4">Test Details</h2>
-                    <div className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Test Name</label>
-                            <input
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Test Details</CardTitle>
+                        <CardDescription>Update the basic information for your test. Changes are autosaved.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="testName">Test Name</Label>
+                            <Input
+                                id="testName"
                                 type="text"
                                 value={testName}
                                 onChange={(e) => {
                                     setTestName(e.target.value)
                                     setIsTestDetailsDirty(true)
                                 }}
-                                className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 placeholder="Enter test name"
                             />
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
-                            <textarea
+                        <div className="space-y-2">
+                            <Label htmlFor="description">Description</Label>
+                            <Textarea
+                                id="description"
                                 value={testDescription}
                                 onChange={(e) => {
                                     setTestDescription(e.target.value)
                                     setIsTestDetailsDirty(true)
                                 }}
                                 rows={3}
-                                className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="resize-none"
                                 placeholder="Enter test description"
                             />
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Duration (minutes)</label>
-                            <input
+                        <div className="space-y-2">
+                            <Label htmlFor="duration">Duration (minutes)</Label>
+                            <Input
+                                id="duration"
                                 type="number"
                                 value={testDuration}
                                 onChange={(e) => {
@@ -296,39 +320,58 @@ const TestEditorPage: React.FC = () => {
                                     setIsTestDetailsDirty(true)
                                 }}
                                 min="0"
-                                className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
-                            <p className="text-xs text-slate-500 mt-1">Set to 0 for no time limit</p>
+                            <p className="text-xs text-muted-foreground">Set to 0 for no time limit</p>
                         </div>
+                    </CardContent>
+                </Card>
+
+                <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-xl font-semibold tracking-tight">Questions</h2>
+                        <Button onClick={addQuestion} size="sm">
+                            <Plus className="h-4 w-4 mr-2" />
+                            Add Question
+                        </Button>
                     </div>
+
+                    {questions.length === 0 ? (
+                        <div className="text-center py-12 border-2 border-dashed rounded-lg bg-slate-50">
+                            <p className="text-muted-foreground">No questions added yet.</p>
+                            <Button variant="link" onClick={addQuestion} className="mt-2">
+                                Add your first question
+                            </Button>
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            {questions.map((q, index) => (
+                                <QuestionEditor
+                                    key={q.id || q.tempId}
+                                    question={{ ...q, questionNumber: (index + 1).toString() }}
+                                    onUpdate={updateQuestion}
+                                    onDelete={handleDeleteQuestion}
+                                    onSave={() => saveAll()}
+                                />
+                            ))}
+                        </div>
+                    )}
                 </div>
 
-                <div className="space-y-4 mb-6">
-                    <h2 className="text-lg font-semibold text-slate-900">Questions</h2>
-                    {questions.map((q) => (
-                        <QuestionEditor
-                            key={q.id || q.tempId}
-                            question={q}
-                            onUpdate={updateQuestion}
-                            onDelete={handleDeleteQuestion}
-                            onSave={() => saveAll()}
-                        />
-                    ))}
-                </div>
-
-                <div className="space-y-4">
-                    <button
+                <div className="sticky bottom-6 z-10 bg-white/80 backdrop-blur-sm p-4 rounded-lg border shadow-lg flex gap-4">
+                    <Link to="/header" className="hidden" /> {/* Dummy link for router ensuring */}
+                    <Button
+                        variant="secondary"
+                        className="w-full"
                         onClick={addQuestion}
-                        className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition duration-200"
                     >
-                        + Add New Question
-                    </button>
-                    <Link to="/dashboard" onClick={() => saveAll()}>
-                        <button
-                            className="w-full py-3 border border-slate-300 text-slate-700 hover:bg-slate-50 font-medium rounded-lg transition duration-200"
-                        >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Question
+                    </Button>
+                    <Link to="/dashboard" onClick={() => saveAll()} className="w-full">
+                        <Button className="w-full">
+                            <Save className="h-4 w-4 mr-2" />
                             Done & Return to Dashboard
-                        </button>
+                        </Button>
                     </Link>
                 </div>
             </div>

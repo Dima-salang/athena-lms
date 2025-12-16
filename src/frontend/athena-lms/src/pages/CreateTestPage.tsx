@@ -4,6 +4,19 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { createTest, getMyTeacherAssignments, type Test, type Section, type Subject, type TeacherAssignment } from "../services/api"
 import { useNavigate } from "react-router-dom"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import {Loader2, Save } from "lucide-react"
 
 const CreateTestPage: React.FC = () => {
     const [testName, setTestName] = useState("")
@@ -12,8 +25,8 @@ const CreateTestPage: React.FC = () => {
     const [testDueDate, setTestDueDate] = useState("")
     const [testDurationMinutes, setTestDurationMinutes] = useState(60)
     const [hasInfiniteTime, setHasInfiniteTime] = useState(false)
-    const [subjectId, setSubjectId] = useState<number | null>(null)
-    const [sectionId, setSectionId] = useState<number | null>(null)
+    const [subjectId, setSubjectId] = useState<string>("")
+    const [sectionId, setSectionId] = useState<string>("")
     const [assignments, setAssignments] = useState<TeacherAssignment[]>([])
     const [availableSubjects, setAvailableSubjects] = useState<Subject[]>([])
     const [availableSections, setAvailableSections] = useState<Section[]>([])
@@ -35,7 +48,7 @@ const CreateTestPage: React.FC = () => {
                 setAvailableSubjects(subjects)
 
                 if (subjects.length > 0) {
-                    setSubjectId(subjects[0].id)
+                    setSubjectId(subjects[0].id.toString())
                 }
             } catch (err) {
                 console.error("Failed to fetch teacher assignments", err)
@@ -46,8 +59,9 @@ const CreateTestPage: React.FC = () => {
 
     useEffect(() => {
         if (subjectId && assignments.length > 0) {
+            const currentSubjectId = Number(subjectId)
             const sections = assignments
-                .filter((a) => a.subject?.id === subjectId && a.section)
+                .filter((a) => a.subject?.id === currentSubjectId && a.section)
                 .map((a) => a.section)
 
             // Remove duplicates just in case
@@ -57,13 +71,13 @@ const CreateTestPage: React.FC = () => {
 
             setAvailableSections(uniqueSections)
             if (uniqueSections.length > 0) {
-                setSectionId(uniqueSections[0].id)
+                setSectionId(uniqueSections[0].id.toString())
             } else {
-                setSectionId(null)
+                setSectionId("")
             }
         } else {
             setAvailableSections([])
-            setSectionId(null)
+            setSectionId("")
         }
     }, [subjectId, assignments])
 
@@ -79,8 +93,8 @@ const CreateTestPage: React.FC = () => {
                 testDueDate: new Date(testDueDate).toISOString(),
                 testDuration: hasInfiniteTime ? 0 : testDurationMinutes * 60, // Convert minutes to seconds
                 hasInfiniteTime: hasInfiniteTime,
-                section: availableSections.find((s) => s.id === sectionId) || { id: 0, name: "" },
-                subject: availableSubjects.find((s) => s.id === subjectId) || { id: 0, name: "", description: "" },
+                section: availableSections.find((s) => s.id === Number(sectionId)) || { id: 0, name: "" },
+                subject: availableSubjects.find((s) => s.id === Number(subjectId)) || { id: 0, name: "", description: "" },
                 questions: [],
             }
             const createdTest = await createTest(newTest)
@@ -96,143 +110,167 @@ const CreateTestPage: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 p-4 md:p-8">
-            <div className="max-w-2xl mx-auto">
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-slate-900">Create New Test</h1>
-                    <p className="text-slate-600 text-base mt-2">Set up a new test and add questions</p>
+        <div className="min-h-screen bg-slate-50/50 p-6 md:p-8">
+            <div className="max-w-3xl mx-auto space-y-6">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h1 className="text-3xl font-bold tracking-tight">Create New Test</h1>
+                        <p className="text-muted-foreground mt-1">Set up a new test and add questions.</p>
+                    </div>
                 </div>
 
-                <div className="bg-white rounded-lg shadow-md p-6 md:p-8">
-                    {error && (
-                        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                            <p className="text-red-700 text-sm font-medium">{error}</p>
-                        </div>
-                    )}
-                    <form onSubmit={handleCreateTest} className="space-y-6">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">Test Name</label>
-                            <input
-                                type="text"
-                                value={testName}
-                                onChange={(e) => setTestName(e.target.value)}
-                                required
-                                placeholder="e.g. Final Exam - Mathematics"
-                                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                            />
-                        </div>
+                {error && (
+                    <div className="p-4 bg-red-50 text-red-700 border border-red-200 rounded-md">
+                        {error}
+                    </div>
+                )}
 
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">Description</label>
-                            <textarea
-                                value={testDescription}
-                                onChange={(e) => setTestDescription(e.target.value)}
-                                required
-                                placeholder="Describe what this test covers..."
-                                rows={4}
-                                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                            />
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">Subject</label>
-                                <select
-                                    value={subjectId || ""}
-                                    onChange={(e) => setSubjectId(Number(e.target.value))}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Test Details</CardTitle>
+                        <CardDescription>Enter the basic information for your test.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <form onSubmit={handleCreateTest} className="space-y-6">
+                            <div className="space-y-2">
+                                <Label htmlFor="testName">Test Name</Label>
+                                <Input
+                                    id="testName"
+                                    type="text"
+                                    value={testName}
+                                    onChange={(e) => setTestName(e.target.value)}
                                     required
-                                    className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                                    placeholder="e.g. Final Exam - Mathematics"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="description">Description</Label>
+                                <Textarea
+                                    id="description"
+                                    value={testDescription}
+                                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setTestDescription(e.target.value)}
+                                    required
+                                    placeholder="Describe what this test covers..."
+                                    rows={4}
+                                    className="resize-none"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <Label htmlFor="subject">Subject</Label>
+                                    <Select
+                                        value={subjectId}
+                                        onValueChange={setSubjectId}
+                                    >
+                                        <SelectTrigger id="subject">
+                                            <SelectValue placeholder="Select Subject" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {availableSubjects.map((s) => (
+                                                <SelectItem key={s.id} value={s.id.toString()}>
+                                                    {s.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="section">Section</Label>
+                                    <Select
+                                        value={sectionId}
+                                        onValueChange={setSectionId}
+                                    >
+                                        <SelectTrigger id="section">
+                                            <SelectValue placeholder="Select Section" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {availableSections.map((s) => (
+                                                <SelectItem key={s.id} value={s.id.toString()}>
+                                                    {s.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <Label htmlFor="issueDate">Issue Date</Label>
+                                    <Input
+                                        id="issueDate"
+                                        type="datetime-local"
+                                        value={testIssueDate}
+                                        onChange={(e) => setTestIssueDate(e.target.value)}
+                                        required
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="dueDate">Due Date</Label>
+                                    <Input
+                                        id="dueDate"
+                                        type="datetime-local"
+                                        value={testDueDate}
+                                        onChange={(e) => setTestDueDate(e.target.value)}
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                                <div className="space-y-2">
+                                    <Label htmlFor="duration">Duration (minutes)</Label>
+                                    <Input
+                                        id="duration"
+                                        type="number"
+                                        value={testDurationMinutes}
+                                        onChange={(e) => setTestDurationMinutes(Number(e.target.value))}
+                                        required={!hasInfiniteTime}
+                                        disabled={hasInfiniteTime}
+                                        min="1"
+                                    />
+                                </div>
+
+                                <div className="flex items-center space-x-2 pt-9">
+                                    <input
+                                        type="checkbox"
+                                        id="hasInfiniteTime"
+                                        checked={hasInfiniteTime}
+                                        onChange={(e) => setHasInfiniteTime(e.target.checked)}
+                                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                    />
+                                    <Label htmlFor="hasInfiniteTime" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                        Infinite Time (No Duration Limit)
+                                    </Label>
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end pt-4">
+                                <Button
+                                    type="submit"
+                                    disabled={isSaving}
+                                    className="w-full md:w-auto min-w-[200px]"
                                 >
-                                    <option value="" disabled>
-                                        Select Subject
-                                    </option>
-                                    {availableSubjects.map((s) => (
-                                        <option key={s.id} value={s.id}>
-                                            {s.name}
-                                        </option>
-                                    ))}
-                                </select>
+                                    {isSaving ? (
+                                        <>
+                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                            Creating Test...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Save className="mr-2 h-4 w-4" />
+                                            Create & Add Questions
+                                        </>
+                                    )}
+                                </Button>
                             </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">Section</label>
-                                <select
-                                    value={sectionId || ""}
-                                    onChange={(e) => setSectionId(Number(e.target.value))}
-                                    required
-                                    className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                                >
-                                    <option value="" disabled>
-                                        Select Section
-                                    </option>
-                                    {availableSections.map((s) => (
-                                        <option key={s.id} value={s.id}>
-                                            {s.name}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">Issue Date</label>
-                                <input
-                                    type="datetime-local"
-                                    value={testIssueDate}
-                                    onChange={(e) => setTestIssueDate(e.target.value)}
-                                    required
-                                    className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">Due Date</label>
-                                <input
-                                    type="datetime-local"
-                                    value={testDueDate}
-                                    onChange={(e) => setTestDueDate(e.target.value)}
-                                    required
-                                    className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">Duration (minutes)</label>
-                                <input
-                                    type="number"
-                                    value={testDurationMinutes}
-                                    onChange={(e) => setTestDurationMinutes(Number(e.target.value))}
-                                    required={!hasInfiniteTime}
-                                    disabled={hasInfiniteTime}
-                                    min="1"
-                                    className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition disabled:bg-slate-100 disabled:text-slate-400"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                            <input
-                                type="checkbox"
-                                id="hasInfiniteTime"
-                                checked={hasInfiniteTime}
-                                onChange={(e) => setHasInfiniteTime(e.target.checked)}
-                                className="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500"
-                            />
-                            <label htmlFor="hasInfiniteTime" className="text-sm font-medium text-slate-700">
-                                Infinite Time (No Duration Limit)
-                            </label>
-                        </div>
-
-                        <button
-                            type="submit"
-                            disabled={isSaving}
-                            className="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-400 text-white font-semibold rounded-lg transition duration-200 mt-8"
-                        >
-                            {isSaving ? "Creating Test..." : "Create & Add Questions"}
-                        </button>
-                    </form>
-                </div>
+                        </form>
+                    </CardContent>
+                </Card>
             </div>
         </div>
     )
