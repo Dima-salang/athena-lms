@@ -1,8 +1,22 @@
+DECEMBER 16, 2025
+- implement not being able to take the test if the test has already been submitted - DONE
+- implement submissions and grades for the student dashboard - DONE
+- implement being able to set the grade for the submission view for the teacher
+- implement being able to set the grade for the essay in the submission view for the teacher
+- implement being able to set the grade for every question for the teacher
+- implement recalculate score for all submissions by a specific test
+- implement scheduling of the tests for the teacher
+
+
+
 DECEMBER 12, 2025
-- implement autosaving for the timer as well
-- fix the autosaving not preserving the answers when page refreshed
-- fix the viewing of the submissions where the student answer is red even if the answer is correct
-- fix true false question not displaying the true or false question because we are now using the correct answer instead of options
+- implement autosaving for the timer as well - DONE
+- fix the autosaving not preserving the answers when page refreshed - DONE
+- implement not being able to take the test if the test due has already passed - DONE
+- validate editing and creation of the test for the teacher - DONE
+    - verify whether a specific teacher assignment exists for that subject and section 
+- fix the viewing of the submissions where the student answer is red even if the answer is correct - DONE
+- fix true false question not displaying the true or false question because we are now using the correct answer instead of options - DONE
 
 
 DECEMBER 8, 2025
@@ -11,8 +25,6 @@ DECEMBER 8, 2025
 - teacher management in the admin - DONE
 - student management in the admin - DONE
 - implement timer in the frontend - DONE
-- validate editing and creation of the test for the teacher
-    - verify whether a specific teacher assignment exists for that subject and section
 
 NOVEMBER 29, 2025
 - solve the issue of 404 in getting tests for the student dashboard - DONE

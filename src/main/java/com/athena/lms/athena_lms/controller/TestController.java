@@ -10,6 +10,7 @@ import com.athena.lms.athena_lms.dto.QuestionDto;
 import com.athena.lms.athena_lms.dto.TestDto;
 import com.athena.lms.athena_lms.model.Section;
 import com.athena.lms.athena_lms.model.Subject;
+import com.athena.lms.athena_lms.model.TeacherAssignment;
 import com.athena.lms.athena_lms.service.tests.TestManagementService;
 
 import java.security.Principal;
@@ -82,6 +83,11 @@ public class TestController {
         } else {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    @GetMapping("/assignments")
+    public ResponseEntity<List<TeacherAssignment>> getTeacherAssignments(Principal principal) {
+        return ResponseEntity.ok(testManagementService.getTeacherAssignments(principal.getName()));
     }
 
     @GetMapping("/sections")

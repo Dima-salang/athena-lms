@@ -3,6 +3,7 @@ package com.athena.lms.athena_lms.service.tests;
 import java.util.ArrayList;
 import java.util.List;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 import org.springframework.stereotype.Service;
 
@@ -15,12 +16,14 @@ import com.athena.lms.athena_lms.model.options.Option;
 import com.athena.lms.athena_lms.model.Subject;
 import com.athena.lms.athena_lms.model.Section;
 import com.athena.lms.athena_lms.model.Teacher;
+import com.athena.lms.athena_lms.model.TeacherAssignment;
 import com.athena.lms.athena_lms.model.questions.Question;
 import com.athena.lms.athena_lms.model.questions.QuestionType;
 import com.athena.lms.athena_lms.model.tests.Test;
 import com.athena.lms.athena_lms.repository.QuestionRepository;
 import com.athena.lms.athena_lms.repository.SubjectRepository;
 import com.athena.lms.athena_lms.repository.SectionRepository;
+import com.athena.lms.athena_lms.repository.TeacherAssignmentRepository;
 import com.athena.lms.athena_lms.repository.TestRepository;
 import com.athena.lms.athena_lms.repository.UserRepository;
 import com.blazebit.persistence.CriteriaBuilderFactory;
@@ -47,6 +50,7 @@ public class TestManagementService {
     private final StudentAnswerRepository studentAnswerRepository;
     private final TestMapper testMapper;
     private final QuestionMapper questionMapper;
+    private final TeacherAssignmentRepository teacherAssignmentRepository;
     private final OptionMapper optionMapper;
     private final CriteriaBuilderFactory cbf;
     private final EntityManager em;
@@ -60,6 +64,7 @@ public class TestManagementService {
             TestMapper testMapper,
             QuestionMapper questionMapper,
             OptionMapper optionMapper,
+            TeacherAssignmentRepository teacherAssignmentRepository,
             CriteriaBuilderFactory cbf,
             EntityManager em) {
 
@@ -72,6 +77,7 @@ public class TestManagementService {
         this.testMapper = testMapper;
         this.questionMapper = questionMapper;
         this.optionMapper = optionMapper;
+        this.teacherAssignmentRepository = teacherAssignmentRepository;
         this.cbf = cbf;
         this.em = em;
     }
@@ -89,6 +95,23 @@ public class TestManagementService {
             throw new RuntimeException("Current user is not a teacher");
         }
         test.setTeacher((Teacher) user);
+
+        Long subjectId = testDto.getSubjectId();
+        if (subjectId == null && testDto.getSubject() != null) {
+            subjectId = testDto.getSubject().getId();
+        }
+
+        Long sectionId = testDto.getSectionId();
+        if (sectionId == null && testDto.getSection() != null) {
+            sectionId = testDto.getSection().getId();
+        }
+
+        // see if there is a teacher assignment for the teacher
+        boolean teacherAssignmentExists = teacherAssignmentRepository.existsByTeacherIdAndSubjectIdAndSectionId(
+                user.getId(), subjectId, sectionId);
+        if (!teacherAssignmentExists) {
+            throw new RuntimeException("You are not assigned to this subject and section");
+        }
 
         // Handle Subject
         if (testDto.getSubjectId() != null) {
@@ -179,7 +202,6 @@ public class TestManagementService {
 
     public TestDto autosaveTest(Long id, TestDto testDto) {
         Test existingTest = testRepository.findById(id).orElseThrow(() -> new RuntimeException("Test not found"));
-        System.out.println("Existing test: " + existingTest);
 
         // Update fields
         if (testDto.getTestName() != null)
@@ -190,7 +212,6 @@ public class TestManagementService {
             existingTest.setTestDueDate(testDto.getTestDueDate());
         if (testDto.getTestDuration() != null) {
             existingTest.setTestDuration(java.time.Duration.ofSeconds(testDto.getTestDuration()));
-            System.out.println("Test duration: " + testDto.getTestDuration());
         } else {
             existingTest.setHasInfiniteTime(true);
         }
@@ -216,7 +237,6 @@ public class TestManagementService {
 
     public TestDto updateTest(Long id, TestDto testDto) {
         Test existingTest = testRepository.findById(id).orElseThrow(() -> new RuntimeException("Test not found"));
-        System.out.println("Existing test: " + existingTest);
 
         // Update fields
         if (testDto.getTestName() != null)
@@ -380,8 +400,20 @@ public class TestManagementService {
                     .endOr();
         }
 
-        cb.orderByDesc("createdAt")
-                .orderByDesc("id");
+        // rank the tests by due date priority
+        Instant now = Instant.now();
+
+        cb.orderByAsc(
+                "CASE WHEN TestDueDate >= :now THEN 0 ELSE 1 END");
+
+        cb.orderByAsc(
+                "CASE WHEN TestDueDate >= :now THEN TestDueDate ELSE NULL END");
+
+        cb.orderByDesc(
+                "CASE WHEN TestDueDate < :now THEN TestDueDate ELSE NULL END");
+
+        cb.orderByDesc("id");
+        cb.setParameter("now", now);
 
         PagedList<Test> pagedList = cb.page(pageable.getPageNumber() * pageable.getPageSize(), pageable.getPageSize())
                 .getResultList();
@@ -570,5 +602,13 @@ public class TestManagementService {
 
     public List<Subject> getSubjects() {
         return subjectRepository.findAll();
+    }
+
+    public List<TeacherAssignment> getTeacherAssignments(String username) {
+        User user = userRepository.findByUsername(username);
+        if (user == null || !(user instanceof Teacher)) {
+            throw new RuntimeException("Current user is not a teacher");
+        }
+        return teacherAssignmentRepository.findByTeacher((Teacher) user);
     }
 }

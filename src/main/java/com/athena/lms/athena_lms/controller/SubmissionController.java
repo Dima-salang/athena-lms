@@ -63,4 +63,9 @@ public class SubmissionController {
     public ResponseEntity<SubmissionDto> getSubmission(@PathVariable Long submissionId) {
         return ResponseEntity.ok(submissionService.getSubmissionById(submissionId));
     }
+
+    @GetMapping("/my-submissions")
+    public ResponseEntity<List<SubmissionDto>> getMySubmissions(java.security.Principal principal) {
+        return ResponseEntity.ok(submissionService.getStudentSubmissions(principal.getName()));
+    }
 }

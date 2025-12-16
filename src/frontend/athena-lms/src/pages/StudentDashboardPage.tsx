@@ -2,13 +2,14 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { getTestsBySection, type Test, type Student } from "../services/api"
+import { getTestsBySection, getMySubmissions, type Test, type Student, type Submission } from "../services/api"
 import { getCurrentUser, logout } from "../services/authApi"
 import { useNavigate } from "react-router-dom"
 
 const StudentDashboardPage: React.FC = () => {
     const [tests, setTests] = useState<Test[]>([])
     const [student, setStudent] = useState<Student | null>(null)
+    const [submittedTestIds, setSubmittedTestIds] = useState<Set<number>>(new Set())
     const [error, setError] = useState<string | null>(null)
     const navigate = useNavigate()
 
@@ -27,7 +28,19 @@ const StudentDashboardPage: React.FC = () => {
                 // console.log(studentUser)
 
                 if (studentUser.section) {
-                    const response = await getTestsBySection(studentUser.section.id, page, 6, searchTerm) // Use 6 for grid layout
+                    const [testsResponse, submissions] = await Promise.all([
+                        getTestsBySection(studentUser.section.id, page, 6, searchTerm), // Use 6 for grid layout
+                        getMySubmissions()
+                    ])
+
+                    const submittedIds = new Set(
+                        submissions
+                            .filter(s => s.submittedAt !== null && s.submittedAt !== undefined) // Only count completed submissions
+                            .map(s => s.test.id)
+                    )
+                    setSubmittedTestIds(submittedIds)
+
+                    const response = testsResponse
                     // console.log(response)
                     if (response && response.content) {
                         setTests(response.content)
@@ -165,12 +178,28 @@ const StudentDashboardPage: React.FC = () => {
                                         </div>
                                     </div>
                                     <div className="p-4 bg-slate-50 border-t border-slate-100">
-                                        <button
-                                            onClick={() => navigate(`/student/test/${test.id}`)}
-                                            className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition duration-200"
-                                        >
-                                            Take Test
-                                        </button>
+                                        {new Date(test.testDueDate) < new Date() ? (
+                                            <button
+                                                disabled
+                                                className="w-full py-2 bg-slate-300 text-slate-500 font-medium rounded-lg cursor-not-allowed"
+                                            >
+                                                Past Due
+                                            </button>
+                                        ) : submittedTestIds.has(test.id) ? (
+                                            <button
+                                                disabled
+                                                className="w-full py-2 bg-green-100 text-green-700 font-medium rounded-lg cursor-not-allowed border border-green-200"
+                                            >
+                                                Completed
+                                            </button>
+                                        ) : (
+                                            <button
+                                                onClick={() => navigate(`/student/test/${test.id}`)}
+                                                className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition duration-200"
+                                            >
+                                                Take Test
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                             ))}

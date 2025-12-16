@@ -10,11 +10,14 @@ import com.athena.lms.athena_lms.model.Teacher;
 import com.athena.lms.athena_lms.model.TeacherAssignment;
 
 public interface TeacherAssignmentRepository extends JpaRepository<TeacherAssignment, Long> {
-    TeacherAssignment findByTeacher(Teacher teacher);
+    java.util.List<TeacherAssignment> findByTeacher(Teacher teacher);
+
     TeacherAssignment findBySubject(Subject subject);
+
     TeacherAssignment findBySection(Section section);
+
     Page<TeacherAssignment> findAll(Pageable pageable);
+
     boolean existsByTeacherIdAndSubjectIdAndSectionId(Long teacherId, Long subjectId, Long sectionId);
 
-    
 }

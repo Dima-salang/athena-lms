@@ -96,7 +96,21 @@ const TestSubmissionsPage: React.FC = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white divide-y divide-slate-200">
-                                    {submissions.map((submission) => (
+                                    {Array.from(
+                                        submissions.reduce((acc, curr) => {
+                                            const key = curr.student.username;
+                                            if (!acc.has(key) || (curr.endTime && !acc.get(key)?.endTime)) {
+                                                acc.set(key, curr);
+                                            } else if (curr.endTime && acc.get(key)?.endTime) {
+                                                // If both have endTime, take the latest? Or first?
+                                                // usually we want the one with submittedAt.
+                                                if (curr.submittedAt && !acc.get(key)?.submittedAt) {
+                                                    acc.set(key, curr);
+                                                }
+                                            }
+                                            return acc;
+                                        }, new Map<string, Submission>()).values()
+                                    ).map((submission) => (
                                         <tr key={submission.id} className="hover:bg-slate-50 transition">
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="flex items-center">

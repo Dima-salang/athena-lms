@@ -126,6 +126,7 @@ export interface Submission {
     student: Student;
     startTime: string;
     endTime?: string;
+    submittedAt?: string;
     totalScore?: number;
 }
 
@@ -194,6 +195,11 @@ export const getSectionsTeacher = async (): Promise<Section[]> => {
 
 export const getSubjectsTeacher = async (): Promise<Subject[]> => {
     const response = await axios.get(`${API_BASE_URL}/teacher/tests/subjects`);
+    return response.data;
+};
+
+export const getMyTeacherAssignments = async (): Promise<TeacherAssignment[]> => {
+    const response = await axios.get(`${API_BASE_URL}/teacher/tests/assignments`);
     return response.data;
 };
 
@@ -277,7 +283,10 @@ export const getSubmissionsByTest = async (testId: number, search?: string): Pro
     });
     return response.data;
 };
-
+export const getMySubmissions = async (): Promise<Submission[]> => {
+    const response = await axios.get(`${API_BASE_URL}/student/submissions/my-submissions`);
+    return response.data;
+};
 export const getSubmission = async (submissionId: number): Promise<Submission> => {
     const response = await axios.get(`${API_BASE_URL}/student/submissions/${submissionId}`);
     return response.data;

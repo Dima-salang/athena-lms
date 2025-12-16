@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { createTest, getSectionsTeacher, getSubjectsTeacher, type Test, type Section, type Subject } from "../services/api"
+import { createTest, getMyTeacherAssignments, type Test, type Section, type Subject, type TeacherAssignment } from "../services/api"
 import { useNavigate } from "react-router-dom"
 
 const CreateTestPage: React.FC = () => {
@@ -14,29 +14,63 @@ const CreateTestPage: React.FC = () => {
     const [hasInfiniteTime, setHasInfiniteTime] = useState(false)
     const [subjectId, setSubjectId] = useState<number | null>(null)
     const [sectionId, setSectionId] = useState<number | null>(null)
+    const [assignments, setAssignments] = useState<TeacherAssignment[]>([])
     const [availableSubjects, setAvailableSubjects] = useState<Subject[]>([])
     const [availableSections, setAvailableSections] = useState<Section[]>([])
     const [isSaving, setIsSaving] = useState(false)
+    const [error, setError] = useState<string | null>(null)
     const navigate = useNavigate()
 
     useEffect(() => {
         const fetchOptions = async () => {
             try {
-                const [sections, subjects] = await Promise.all([getSectionsTeacher(), getSubjectsTeacher()])
-                setAvailableSections(sections)
+                const assignmentsData = await getMyTeacherAssignments()
+                setAssignments(assignmentsData)
+
+                const subjectsMap = new Map<number, Subject>()
+                assignmentsData.forEach((a) => {
+                    if (a.subject) subjectsMap.set(a.subject.id, a.subject)
+                })
+                const subjects = Array.from(subjectsMap.values())
                 setAvailableSubjects(subjects)
-                if (sections.length > 0) setSectionId(sections[0].id)
-                if (subjects.length > 0) setSubjectId(subjects[0].id)
+
+                if (subjects.length > 0) {
+                    setSubjectId(subjects[0].id)
+                }
             } catch (err) {
-                console.error("Failed to fetch sections or subjects", err)
+                console.error("Failed to fetch teacher assignments", err)
             }
         }
         fetchOptions()
     }, [])
 
+    useEffect(() => {
+        if (subjectId && assignments.length > 0) {
+            const sections = assignments
+                .filter((a) => a.subject?.id === subjectId && a.section)
+                .map((a) => a.section)
+
+            // Remove duplicates just in case
+            const uniqueSectionsMap = new Map<number, Section>()
+            sections.forEach(s => uniqueSectionsMap.set(s.id, s))
+            const uniqueSections = Array.from(uniqueSectionsMap.values())
+
+            setAvailableSections(uniqueSections)
+            if (uniqueSections.length > 0) {
+                setSectionId(uniqueSections[0].id)
+            } else {
+                setSectionId(null)
+            }
+        } else {
+            setAvailableSections([])
+            setSectionId(null)
+        }
+    }, [subjectId, assignments])
+
     const handleCreateTest = async (e: React.FormEvent) => {
         e.preventDefault()
         setIsSaving(true)
+        setError(null)
         try {
             const newTest: Omit<Test, "id" | "teacher"> = {
                 testName,
@@ -51,8 +85,11 @@ const CreateTestPage: React.FC = () => {
             }
             const createdTest = await createTest(newTest)
             navigate(`/test/${createdTest.id}/edit`)
-        } catch (error) {
-            console.error("Failed to create test", error)
+        } catch (err: any) {
+            console.error("Failed to create test", err)
+            // Axios error structure usually has response.data.message or error field
+            const errorMessage = err.response?.data?.message || err.message || "Failed to create test"
+            setError(errorMessage)
         } finally {
             setIsSaving(false)
         }
@@ -67,6 +104,11 @@ const CreateTestPage: React.FC = () => {
                 </div>
 
                 <div className="bg-white rounded-lg shadow-md p-6 md:p-8">
+                    {error && (
+                        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+                            <p className="text-red-700 text-sm font-medium">{error}</p>
+                        </div>
+                    )}
                     <form onSubmit={handleCreateTest} className="space-y-6">
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-2">Test Name</label>

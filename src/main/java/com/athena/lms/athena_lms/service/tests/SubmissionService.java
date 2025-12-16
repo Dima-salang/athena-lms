@@ -74,7 +74,7 @@ public class SubmissionService {
 
         CriteriaBuilder<Submission> cb = cbf.create(em, Submission.class);
 
-        cb.where("test.id").eq(testId);
+        cb.where("test.id").eq(testId).where("submittedAt").isNotNull();
 
         if (search != null && !search.isEmpty()) {
             cb.whereOr()
@@ -85,7 +85,7 @@ public class SubmissionService {
         }
 
         // Order by submission time descending (most recent first)
-        cb.orderByDesc("createdAt");
+        cb.orderByDesc("submittedAt");
 
         List<Submission> submissions = cb.getResultList();
 
@@ -97,7 +97,20 @@ public class SubmissionService {
         return submissionDtos;
     }
 
-    // student answers
+    public List<SubmissionDto> getStudentSubmissions(String username) {
+        User user = userRepository.findByUsername(username);
+        if (user == null || !(user instanceof Student)) {
+            throw new AccessDeniedException("User not found or not a student");
+        }
+        List<Submission> submissions = submissionRepository.findByStudentId(user.getId());
+        List<SubmissionDto> result = new ArrayList<>();
+        for (Submission s : submissions) {
+            result.add(submissionMapper.toDto(s));
+        }
+        return result;
+    }
+
+    @org.springframework.transaction.annotation.Transactional
     public List<StudentAnswerDto> createOrUpdateStudentAnswers(List<StudentAnswerDto> studentAnswerDtos) {
         List<StudentAnswer> studentAnswers = new ArrayList<>();
 
@@ -145,6 +158,7 @@ public class SubmissionService {
         return studentAnswerMapper.toDtoList(savedStudentAnswers);
     }
 
+    @org.springframework.transaction.annotation.Transactional
     public SubmissionDto startTest(Long testId, String username) {
         User user = userRepository.findByUsername(username);
         if (user == null || !(user instanceof Student)) {
@@ -161,6 +175,14 @@ public class SubmissionService {
             return submissionMapper.toDto(existingSubmission);
         }
 
+        // check if submission already exists (submitted)
+        Submission submittedSubmission = submissionRepository.findFirstByTestIdAndStudentIdAndSubmittedAtIsNotNull(
+                testId,
+                student.getId());
+        if (submittedSubmission != null) {
+            throw new AccessDeniedException("You have already submitted this test");
+        }
+
         Submission submission = new Submission();
         submission.setTest(test);
         submission.setStudent(student);
@@ -173,6 +195,7 @@ public class SubmissionService {
 
         submission.setCreatedAt(Instant.now());
         submission.setUpdatedAt(Instant.now());
+        submission.setSubmittedAt(null);
 
         return submissionMapper.toDto(submissionRepository.save(submission));
     }
@@ -182,6 +205,7 @@ public class SubmissionService {
         return studentAnswerMapper.toDtoList(answers);
     }
 
+    @org.springframework.transaction.annotation.Transactional
     public SubmissionDto submitTest(Long submissionId, List<StudentAnswerDto> studentAnswerDtos) {
         Submission submission = submissionRepository.findById(submissionId)
                 .orElseThrow(() -> new NotFoundException("Submission not found"));
@@ -272,6 +296,25 @@ public class SubmissionService {
         }
         submission.setTotalScore(totalScore);
     }
+
+
+    public void recalculateSubmissions(Long testId, Long submissionId) {
+        if (submissionId != null) {
+            recalculateSubmission(submissionRepository.findById(submissionId).orElseThrow(() -> new NotFoundException("Submission not found")));
+            return;
+        }
+        List<Submission> submissions = submissionRepository.findByTestId(testId);
+        for (Submission submission : submissions) {
+            recalculateSubmission(submission);
+        }
+    }
+
+
+    private void recalculateSubmission(Submission submission) {
+        calculateScore(submission);
+        submissionRepository.save(submission);
+    }
+
 
     public SubmissionDto getSubmissionById(Long submissionId) {
         Submission submission = submissionRepository.findById(submissionId)

@@ -11,7 +11,6 @@ import com.athena.lms.athena_lms.model.Subject;
 import com.athena.lms.athena_lms.model.Teacher;
 import com.athena.lms.athena_lms.model.questions.Question;
 
-// TODO - change TestIssueDate and TestDueDate to Instant
 @Entity
 public class Test {
     @Id
