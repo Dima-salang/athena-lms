@@ -15,7 +15,7 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { ArrowLeft, Search, GraduationCap, Loader2, PlayCircle, Eye, SlidersHorizontal, UserCircle2 } from "lucide-react"
+import { ArrowLeft, Search, GraduationCap, Loader2, PlayCircle, Eye, UserCircle2 } from "lucide-react"
 
 const TestSubmissionsPage: React.FC = () => {
     const { testId } = useParams<{ testId: string }>()

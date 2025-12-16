@@ -15,6 +15,7 @@ import {
     type Subject
 } from "../services/api"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import {
     Table,
     TableBody,
@@ -40,7 +41,7 @@ import {
 } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
-import { ArrowLeft, Loader2, Plus, School, Trash2, Users, BookOpen } from "lucide-react"
+import { ArrowLeft, Loader2, Plus, School, Trash2, BookOpen, GraduationCap, Briefcase } from "lucide-react"
 
 const TeacherAssignmentManagementPage: React.FC = () => {
     const navigate = useNavigate()
@@ -164,43 +165,56 @@ const TeacherAssignmentManagementPage: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen bg-slate-50/50 p-6 md:p-8">
-            <div className="max-w-7xl mx-auto space-y-6">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h1 className="text-3xl font-bold tracking-tight">Teacher Assignments</h1>
-                        <p className="text-muted-foreground mt-1">Manage which teachers handle specific subjects and sections.</p>
+        <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950 p-6 md:p-8">
+            <div className="max-w-7xl mx-auto space-y-8">
+                {/* Header with decorative background */}
+                <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-violet-600 to-indigo-600 dark:from-violet-900 dark:to-indigo-900 text-white p-8 shadow-xl">
+                    <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+                    <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-40 h-40 bg-purple-400/20 rounded-full blur-2xl"></div>
+
+                    <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                        <div className="space-y-2">
+                            <Button
+                                variant="ghost"
+                                onClick={() => navigate("/admin")}
+                                className="text-indigo-100 hover:text-white hover:bg-white/10 pl-0 -ml-3 mb-2"
+                            >
+                                <ArrowLeft className="h-4 w-4 mr-2" /> Back to Admin
+                            </Button>
+                            <h1 className="text-3xl md:text-4xl font-bold tracking-tight">Teacher Assignments</h1>
+                            <p className="text-indigo-100 text-lg max-w-xl">
+                                Assign teachers to specific subjects and sections to manage workload.
+                            </p>
+                        </div>
+                        <div className="hidden md:block opacity-80">
+                            <Briefcase className="h-24 w-24 text-white/20" />
+                        </div>
                     </div>
-                    <Button
-                        variant="outline"
-                        onClick={() => navigate("/admin")}
-                        className="gap-2"
-                    >
-                        <ArrowLeft className="h-4 w-4" /> Back to Admin
-                    </Button>
                 </div>
 
                 {error && (
-                    <div className="p-4 bg-red-50 text-red-700 border border-red-200 rounded-md">
+                    <div className="p-4 bg-red-50 text-red-700 border border-red-200 rounded-lg animate-in fade-in slide-in-from-top-2 flex items-center gap-2">
+                        <div className="h-2 w-2 rounded-full bg-red-600" />
                         {error}
                     </div>
                 )}
                 {success && (
-                    <div className="p-4 bg-green-50 text-green-700 border border-green-200 rounded-md">
+                    <div className="p-4 bg-green-50 text-green-700 border border-green-200 rounded-lg animate-in fade-in slide-in-from-top-2 flex items-center gap-2">
+                        <div className="h-2 w-2 rounded-full bg-green-600" />
                         {success}
                     </div>
                 )}
 
-                <Card>
+                <Card className="border-none shadow-md bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm border-slate-200 dark:border-slate-800">
                     <CardHeader>
                         <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
-                            <div className="space-y-1">
-                                <CardTitle>Current Assignments</CardTitle>
-                                <CardDescription>
-                                    List of all active teacher assignments.
+                            <div>
+                                <CardTitle className="text-xl">Assignments Directory</CardTitle>
+                                <CardDescription className="mt-1">
+                                    Manage existing academic assignments.
                                 </CardDescription>
                             </div>
-                            <Button onClick={() => setShowCreateModal(true)}>
+                            <Button onClick={() => setShowCreateModal(true)} className="bg-primary hover:bg-primary/90 shadow-md">
                                 <Plus className="h-4 w-4 mr-2" />
                                 Assign Teacher
                             </Button>
@@ -208,23 +222,28 @@ const TeacherAssignmentManagementPage: React.FC = () => {
                     </CardHeader>
                     <CardContent>
                         {loading ? (
-                            <div className="flex justify-center items-center py-12 text-muted-foreground">
-                                <Loader2 className="h-8 w-8 animate-spin mr-2" />
-                                Loading...
+                            <div className="flex flex-col justify-center items-center py-20 text-muted-foreground">
+                                <Loader2 className="h-10 w-10 animate-spin text-primary/50 mb-4" />
+                                <p>Loading assignments...</p>
                             </div>
                         ) : assignments.length === 0 ? (
-                            <div className="text-center py-12 text-muted-foreground border-2 border-dashed rounded-lg">
-                                <Users className="h-10 w-10 mx-auto mb-3 opacity-20" />
-                                <p>No teacher assignments found.</p>
-                                <Button variant="link" onClick={() => setShowCreateModal(true)} className="mt-2">
-                                    Create your first assignment
+                            <div className="text-center py-20 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50/50 dark:bg-slate-900/30">
+                                <div className="h-16 w-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <Briefcase className="h-8 w-8 text-slate-400" />
+                                </div>
+                                <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 pb-1">No assignments found</h3>
+                                <p className="text-muted-foreground max-w-sm mx-auto mb-4">
+                                    Get started by creating the first teacher assignment.
+                                </p>
+                                <Button variant="outline" onClick={() => setShowCreateModal(true)}>
+                                    Create Assignment
                                 </Button>
                             </div>
                         ) : (
                             <>
-                                <div className="rounded-md border">
+                                <div className="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden bg-white dark:bg-slate-950">
                                     <Table>
-                                        <TableHeader>
+                                        <TableHeader className="bg-slate-50 dark:bg-slate-900/50">
                                             <TableRow>
                                                 <TableHead>Teacher</TableHead>
                                                 <TableHead>Subject</TableHead>
@@ -234,23 +253,32 @@ const TeacherAssignmentManagementPage: React.FC = () => {
                                         </TableHeader>
                                         <TableBody>
                                             {assignments.map((assignment) => (
-                                                <TableRow key={assignment.id}>
+                                                <TableRow key={assignment.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/50 transition-colors">
                                                     <TableCell className="font-medium">
-                                                        <div className="flex items-center gap-2">
-                                                            <Users className="h-4 w-4 text-muted-foreground" />
-                                                            {assignment.teacher?.firstName} {assignment.teacher?.lastName}
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="h-9 w-9 rounded-full bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                                                                <GraduationCap className="h-4 w-4" />
+                                                            </div>
+                                                            <div>
+                                                                <div className="font-semibold text-slate-900 dark:text-slate-100">
+                                                                    {assignment.teacher?.firstName} {assignment.teacher?.lastName}
+                                                                </div>
+                                                                <div className="text-xs text-muted-foreground">@{assignment.teacher?.username}</div>
+                                                            </div>
                                                         </div>
                                                     </TableCell>
                                                     <TableCell>
                                                         <div className="flex items-center gap-2">
                                                             <BookOpen className="h-4 w-4 text-muted-foreground" />
-                                                            {assignment.subject?.name}
+                                                            <span className="text-slate-700 dark:text-slate-300">{assignment.subject?.name}</span>
                                                         </div>
                                                     </TableCell>
                                                     <TableCell>
                                                         <div className="flex items-center gap-2">
                                                             <School className="h-4 w-4 text-muted-foreground" />
-                                                            {assignment.section?.name}
+                                                            <Badge variant="outline" className="font-normal text-slate-600 dark:text-slate-400 border-slate-300 dark:border-slate-700">
+                                                                {assignment.section?.name}
+                                                            </Badge>
                                                         </div>
                                                     </TableCell>
                                                     <TableCell className="text-right">
@@ -258,7 +286,7 @@ const TeacherAssignmentManagementPage: React.FC = () => {
                                                             variant="ghost"
                                                             size="sm"
                                                             onClick={() => handleDeleteAssignment(assignment.id)}
-                                                            className="text-destructive hover:text-destructive/90 hover:bg-destructive/10"
+                                                            className="text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
                                                         >
                                                             <Trash2 className="h-4 w-4" />
                                                             <span className="sr-only">Remove</span>
@@ -270,16 +298,17 @@ const TeacherAssignmentManagementPage: React.FC = () => {
                                     </Table>
                                 </div>
 
-                                <div className="flex items-center justify-end space-x-2 py-4">
-                                    <div className="flex-1 text-sm text-muted-foreground">
-                                        Page {currentPage + 1} of {totalPages}
+                                <div className="flex items-center justify-between py-4 border-t border-slate-200 dark:border-slate-800 mt-4">
+                                    <div className="text-sm text-muted-foreground">
+                                        Page <span className="font-medium text-foreground">{currentPage + 1}</span> of <span className="font-medium text-foreground">{totalPages}</span>
                                     </div>
-                                    <div className="space-x-2">
+                                    <div className="flex gap-2">
                                         <Button
                                             variant="outline"
                                             size="sm"
                                             onClick={() => handlePageChange(currentPage - 1)}
                                             disabled={currentPage === 0}
+                                            className="h-8"
                                         >
                                             Previous
                                         </Button>
@@ -288,6 +317,7 @@ const TeacherAssignmentManagementPage: React.FC = () => {
                                             size="sm"
                                             onClick={() => handlePageChange(currentPage + 1)}
                                             disabled={currentPage >= totalPages - 1}
+                                            className="h-8"
                                         >
                                             Next
                                         </Button>
@@ -304,7 +334,7 @@ const TeacherAssignmentManagementPage: React.FC = () => {
                     <DialogHeader>
                         <DialogTitle>Assign Teacher</DialogTitle>
                         <DialogDescription>
-                            Assign a teacher to a subject and section.
+                            Create a new academic assignment connection.
                         </DialogDescription>
                     </DialogHeader>
                     <form onSubmit={handleCreateAssignment} className="space-y-4 py-4">
@@ -320,50 +350,54 @@ const TeacherAssignmentManagementPage: React.FC = () => {
                                 <SelectContent>
                                     {teachers.map((t) => (
                                         <SelectItem key={t.id} value={t.id.toString()}>
-                                            {t.firstName} {t.lastName} ({t.username})
+                                            {t.firstName} {t.lastName}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                         </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="subject">Subject</Label>
-                            <Select
-                                value={newAssignment.subjectId}
-                                onValueChange={(value) => setNewAssignment({ ...newAssignment, subjectId: value })}
-                            >
-                                <SelectTrigger id="subject">
-                                    <SelectValue placeholder="Select a subject" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {subjects.map((s) => (
-                                        <SelectItem key={s.id} value={s.id.toString()}>
-                                            {s.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="subject">Subject</Label>
+                                <Select
+                                    value={newAssignment.subjectId}
+                                    onValueChange={(value) => setNewAssignment({ ...newAssignment, subjectId: value })}
+                                >
+                                    <SelectTrigger id="subject">
+                                        <SelectValue placeholder="Select Subject" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {subjects.map((s) => (
+                                            <SelectItem key={s.id} value={s.id.toString()}>
+                                                {s.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="section">Section</Label>
+                                <Select
+                                    value={newAssignment.sectionId}
+                                    onValueChange={(value) => setNewAssignment({ ...newAssignment, sectionId: value })}
+                                >
+                                    <SelectTrigger id="section">
+                                        <SelectValue placeholder="Select Section" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {sections.map((s) => (
+                                            <SelectItem key={s.id} value={s.id.toString()}>
+                                                {s.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="section">Section</Label>
-                            <Select
-                                value={newAssignment.sectionId}
-                                onValueChange={(value) => setNewAssignment({ ...newAssignment, sectionId: value })}
-                            >
-                                <SelectTrigger id="section">
-                                    <SelectValue placeholder="Select a section" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {sections.map((s) => (
-                                        <SelectItem key={s.id} value={s.id.toString()}>
-                                            {s.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <DialogFooter>
-                            <Button type="submit">Assign</Button>
+
+                        <DialogFooter className="pt-4">
+                            <Button type="button" variant="ghost" onClick={() => setShowCreateModal(false)}>Cancel</Button>
+                            <Button type="submit">Create Assignment</Button>
                         </DialogFooter>
                     </form>
                 </DialogContent>

@@ -7,7 +7,7 @@ import { getTestById, type Test } from "../services/api"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Clock, BookOpen, Layers, HelpCircle, CheckCircle2, AlertCircle, Loader2 } from "lucide-react"
+import { ArrowLeft, Clock, BookOpen, Layers, HelpCircle, CheckCircle2, AlertCircle, Loader2, Calendar, FileText } from "lucide-react"
 
 const TestDetailPage: React.FC = () => {
   const { testId } = useParams<{ testId: string }>()
@@ -72,166 +72,208 @@ const TestDetailPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50/50 p-6 md:p-8">
-      <div className="max-w-4xl mx-auto space-y-6">
-        <Button
-          variant="ghost"
-          onClick={() => navigate("/dashboard")}
-          className="gap-2 pl-0 hover:pl-2 transition-all"
-        >
-          <ArrowLeft className="h-4 w-4" /> Back to Dashboard
-        </Button>
+    <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950 p-6 md:p-8">
+      <div className="max-w-5xl mx-auto space-y-8">
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-3xl">{test.testName}</CardTitle>
-            <CardDescription className="text-base mt-2">
-              {test.testDescription}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-4 border-t">
-              <div className="space-y-1">
-                <span className="flex items-center text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                  <BookOpen className="h-3.5 w-3.5 mr-1.5" />
-                  Subject
-                </span>
-                <p className="font-medium">{test.subject?.name}</p>
-              </div>
-              <div className="space-y-1">
-                <span className="flex items-center text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                  <Layers className="h-3.5 w-3.5 mr-1.5" />
-                  Section
-                </span>
-                <p className="font-medium">{test.section?.name}</p>
-              </div>
-              <div className="space-y-1">
-                <span className="flex items-center text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                  <Clock className="h-3.5 w-3.5 mr-1.5" />
-                  Duration
-                </span>
-                <p className="font-medium">
-                  {test.testDuration ? `${test.testDuration / 60} mins` : "No time limit"}
+        {/* Modern Header */}
+        <div className="relative overflow-hidden rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm p-8">
+          <div className="relative z-10">
+            <Button
+              variant="ghost"
+              onClick={() => navigate("/dashboard")}
+              className="mb-6 pl-0 hover:pl-2 transition-all text-muted-foreground"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" /> Back to Dashboard
+            </Button>
+
+            <div className="flex flex-col md:flex-row justify-between md:items-start gap-6">
+              <div>
+                <div className="flex items-center gap-3 mb-3">
+                  <Badge variant="secondary" className="bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 hover:bg-indigo-200">
+                    <BookOpen className="h-3 w-3 mr-1" />
+                    {test.subject?.name}
+                  </Badge>
+                  <Badge variant="outline" className="text-slate-500">
+                    {test.section?.name}
+                  </Badge>
+                </div>
+                <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mb-2">
+                  {test.testName}
+                </h1>
+                <p className="text-lg text-muted-foreground max-w-2xl">
+                  {test.testDescription}
                 </p>
               </div>
-              <div className="space-y-1">
-                <span className="flex items-center text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                  <HelpCircle className="h-3.5 w-3.5 mr-1.5" />
-                  Questions
-                </span>
-                <p className="font-medium">{test.questions?.length || 0}</p>
+
+              <div className="flex flex-col gap-3 min-w-[200px]">
+                <Button className="w-full shadow-md bg-indigo-600 hover:bg-indigo-700 text-white" onClick={() => navigate(`/test/${test.id}/edit`)}>
+                  Edit Configuration
+                </Button>
+                <Button variant="outline" className="w-full" onClick={() => navigate(`/teacher/test/${test.id}/submissions`)}>
+                  View Submissions
+                </Button>
               </div>
             </div>
-          </CardContent>
-        </Card>
 
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold tracking-tight px-1">Questions Preview</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 pt-8 border-t border-slate-100 dark:border-slate-800">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                  <Clock className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase">Duration</p>
+                  <p className="font-semibold text-slate-900 dark:text-slate-100">
+                    {test.testDuration ? `${test.testDuration / 60} mins` : "Unlimited"}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center text-purple-600 dark:text-purple-400">
+                  <Calendar className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase">Due Date</p>
+                  <p className="font-semibold text-slate-900 dark:text-slate-100">
+                    {new Date(test.testDueDate).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                  <HelpCircle className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase">Questions</p>
+                  <p className="font-semibold text-slate-900 dark:text-slate-100">
+                    {test.questions?.length || 0} Items
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center text-orange-600 dark:text-orange-400">
+                  <Layers className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase">Total Points</p>
+                  <p className="font-semibold text-slate-900 dark:text-slate-100">
+                    {test.questions?.reduce((acc, q) => acc + q.fullPoints, 0) || 0} pts
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <div className="flex items-center justify-between px-2">
+            <h2 className="text-xl font-bold tracking-tight">Question Preview</h2>
+            <Badge variant="outline" className="bg-slate-100">
+              ReadOnly View
+            </Badge>
+          </div>
 
           {test.questions && test.questions.length > 0 ? (
-            <div className="space-y-4">
+            <div className="grid gap-6">
               {test.questions.map((q, index) => (
-                <Card key={q.id} className="border-l-4 border-l-blue-500">
-                  <CardContent className="p-6 space-y-4">
+                <Card key={q.id} className="overflow-hidden border-none shadow-sm bg-white/60 dark:bg-slate-900/60 backdrop-blur-sm border-slate-200 dark:border-slate-800">
+                  <div className="h-1 w-full bg-gradient-to-r from-blue-400 to-indigo-500 opacity-80" />
+                  <CardContent className="p-6 space-y-6">
                     <div className="flex justify-between items-start gap-4">
                       <div className="flex items-center gap-3">
-                        <Badge variant="outline" className="font-bold bg-blue-50 text-blue-700 border-blue-200">
-                          Q{index + 1}
-                        </Badge>
-                        <Badge variant="secondary" className="capitalize">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-100 text-slate-600 font-bold text-sm">
+                          {index + 1}
+                        </span>
+                        <Badge variant="secondary" className="capitalize font-medium">
                           {q.questionType.replace("_", " ").toLowerCase()}
                         </Badge>
                       </div>
-                      <Badge variant="outline" className="border-slate-300">
+                      <Badge variant="outline" className="border-slate-200 font-mono">
                         {q.fullPoints} pts
                       </Badge>
                     </div>
 
-                    <p className="text-lg leading-relaxed font-medium">
-                      {q.questionText}
-                    </p>
+                    <div className="pl-11">
+                      <p className="text-lg font-medium text-slate-800 dark:text-slate-200 leading-relaxed">
+                        {q.questionText}
+                      </p>
 
-                    {q.questionType === "MULTIPLE_CHOICE" && (
-                      <div className="space-y-3 pl-1">
-                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                          Options
-                        </p>
-                        <div className="grid gap-2">
-                          {q.options?.map((opt, i) => {
-                            const isCorrect = q.correctAnswer === opt.optionText
-                            return (
-                              <div
-                                key={i}
-                                className={`flex items-center gap-3 p-3 rounded-md border text-sm transition-colors ${isCorrect
-                                  ? "bg-green-50 border-green-200 text-green-900"
-                                  : "bg-white border-slate-200"
-                                  }`}
-                              >
-                                <span className={`
-                                                                    flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold border
-                                                                    ${isCorrect
-                                    ? "bg-green-100 border-green-300 text-green-700"
-                                    : "bg-slate-100 border-slate-200 text-slate-500"
-                                  }
-                                                                `}>
-                                  {String.fromCharCode(65 + i)}
-                                </span>
-                                <span className="flex-1 font-medium">{opt.optionText}</span>
-                                {isCorrect && (
-                                  <Badge variant="outline" className="bg-green-100 text-green-700 border-green-200 gap-1">
-                                    <CheckCircle2 className="h-3 w-3" /> Correct
-                                  </Badge>
-                                )}
-                              </div>
-                            )
-                          })}
-                        </div>
-                      </div>
-                    )}
+                      <div className="mt-6">
+                        {q.questionType === "MULTIPLE_CHOICE" && (
+                          <div className="grid gap-3">
+                            {q.options?.map((opt, i) => {
+                              const isCorrect = q.correctAnswer === opt.optionText
+                              return (
+                                <div
+                                  key={i}
+                                  className={`flex items-center gap-4 p-3 rounded-xl border text-sm transition-all ${isCorrect
+                                    ? "bg-green-50/50 border-green-200 text-green-900 shadow-sm"
+                                    : "bg-white/50 border-slate-100 text-slate-600"
+                                    }`}
+                                >
+                                  <span className={`
+                                        flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold border transition-colors
+                                        ${isCorrect
+                                      ? "bg-green-100 border-green-300 text-green-700"
+                                      : "bg-slate-100 border-slate-200 text-slate-400"
+                                    }
+                                    `}>
+                                    {String.fromCharCode(65 + i)}
+                                  </span>
+                                  <span className="flex-1 font-medium">{opt.optionText}</span>
+                                  {isCorrect && (
+                                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                                  )}
+                                </div>
+                              )
+                            })}
+                          </div>
+                        )}
 
-                    {q.questionType === "TRUE_FALSE" && (
-                      <div className="space-y-2">
-                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                          Correct Answer
-                        </p>
-                        <div className="flex items-center gap-2">
-                          <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-green-200 uppercase px-3 py-1 text-sm">
-                            {q.correctAnswer || "Not set"}
-                          </Badge>
-                        </div>
-                      </div>
-                    )}
+                        {q.questionType === "TRUE_FALSE" && (
+                          <div className="flex items-center gap-3">
+                            <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Answer:</span>
+                            <Badge className={q.correctAnswer === 'true' ? "bg-green-100 text-green-800 hover:bg-green-100" : "bg-red-100 text-red-800 hover:bg-red-100"}>
+                              {q.correctAnswer}
+                            </Badge>
+                          </div>
+                        )}
 
-                    {q.questionType === "IDENTIFICATION" && (
-                      <div className="space-y-2">
-                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                          Correct Answer
-                        </p>
-                        <div className="p-3 bg-green-50 border border-green-200 rounded-md text-green-900 font-medium inline-block min-w-[200px]">
-                          {q.correctAnswer || "No answer set"}
-                        </div>
-                      </div>
-                    )}
+                        {q.questionType === "IDENTIFICATION" && (
+                          <div className="flex flex-col gap-2">
+                            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Correct Answer</span>
+                            <div className="p-3 bg-slate-50 border border-slate-200 rounded-md font-mono text-sm text-slate-700 inline-block w-fit">
+                              {q.correctAnswer || "Not specified"}
+                            </div>
+                          </div>
+                        )}
 
-                    {q.questionType === "ESSAY" && (
-                      <div className="space-y-2">
-                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                          Model Answer / Key Points
-                        </p>
-                        <div className="p-4 bg-slate-50 border border-slate-200 rounded-md text-slate-700 text-sm italic">
-                          {q.correctAnswer || "No model answer provided."}
-                        </div>
+                        {q.questionType === "ESSAY" && (
+                          <div className="flex flex-col gap-2">
+                            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Model Answer / Key Points</span>
+                            <div className="p-4 bg-slate-50/50 border border-slate-100 rounded-md text-slate-600 text-sm italic">
+                              {q.correctAnswer || "No model answer provided."}
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    )}
+                    </div>
                   </CardContent>
                 </Card>
               ))}
             </div>
           ) : (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12 text-center space-y-3">
-                <HelpCircle className="h-12 w-12 text-slate-300" />
-                <p className="text-muted-foreground">No questions have been added to this test yet.</p>
+            <Card className="border-dashed border-2 shadow-none bg-slate-50/50">
+              <CardContent className="flex flex-col items-center justify-center py-16 text-center space-y-4">
+                <div className="bg-white p-4 rounded-full shadow-sm">
+                  <FileText className="h-8 w-8 text-slate-300" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg">No Questions Added</h3>
+                  <p className="text-muted-foreground">This test is currently empty.</p>
+                </div>
+                <Button variant="outline" onClick={() => navigate(`/test/${test.id}/edit`)}>
+                  Add Questions
+                </Button>
               </CardContent>
             </Card>
           )}

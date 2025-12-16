@@ -17,7 +17,8 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Loader2, Save, Check, Plus } from "lucide-react"
+import { Loader2, Save, Check, Plus, ArrowLeft, Clock, FileText, Settings, Sparkles } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 
 const TestEditorPage: React.FC = () => {
     const { testId } = useParams<{ testId: string }>()
@@ -82,16 +83,15 @@ const TestEditorPage: React.FC = () => {
                 .filter((q) => q.isDirty)
                 .map((q) => {
                     const tempId = q.tempId || (q.id < 0 ? q.id : undefined);
-                    let cleanedQuestion = { ...q, tempId };
+                    let cleanedQuestion: Question = { ...q, tempId };
 
                     // Clean up incompatible fields based on question type
                     if (q.questionType === "IDENTIFICATION" || q.questionType === "TRUE_FALSE" || q.questionType === "ESSAY") {
-                        // Remove MCQ-specific fields
-                        delete (cleanedQuestion as any).options;
-                        delete (cleanedQuestion as any).correctOptionId;
+                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                        const { options, correctOptionId, ...rest } = cleanedQuestion
+                        cleanedQuestion = rest as Question
                     }
 
-                    console.log("Question to save:", cleanedQuestion);
                     return cleanedQuestion;
                 });
 
@@ -126,11 +126,7 @@ const TestEditorPage: React.FC = () => {
 
                             // Preserve correctAnswer for IDENTIFICATION and TRUE_FALSE since backend might not return it correctly
                             if (localQ.questionType === "IDENTIFICATION" || localQ.questionType === "TRUE_FALSE") {
-                                console.log("Preserving correctAnswer for", localQ.questionType);
-                                console.log("Local correctAnswer:", (localQ as any).correctAnswer);
-                                console.log("Saved correctAnswer from backend:", (savedQ as any).correctAnswer);
                                 (newQ as any).correctAnswer = (localQ as any).correctAnswer;
-                                console.log("Final newQ correctAnswer:", (newQ as any).correctAnswer);
                             }
 
                             if (localQ.questionType === "MULTIPLE_CHOICE") {
@@ -193,8 +189,6 @@ const TestEditorPage: React.FC = () => {
                 testDescription,
                 testDuration: testDuration * 60 // Convert minutes back to seconds
             })
-            console.log("Autosave test details success")
-            console.log("Duration: ", testDuration)
             setLastSavedTime(new Date())
             setIsTestDetailsDirty(false)
         } catch (error) {
@@ -251,128 +245,201 @@ const TestEditorPage: React.FC = () => {
     )
 
     return (
-        <div className="min-h-screen bg-slate-50/50 p-6 md:p-8">
-            <div className="max-w-4xl mx-auto space-y-6">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <div>
-                        <h1 className="text-3xl font-bold tracking-tight">Edit Test</h1>
-                        <p className="text-muted-foreground mt-1">Manage test details and questions.</p>
+        <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950 p-6 md:p-8">
+            <div className="max-w-5xl mx-auto space-y-8 pb-20">
+                {/* Header Section */}
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800">
+                    <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => window.history.back()}
+                                className="h-8 w-8 p-0 rounded-full"
+                            >
+                                <ArrowLeft className="h-4 w-4" />
+                            </Button>
+                            <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
+                                Editor Studio
+                            </h1>
+                        </div>
+                        <p className="text-muted-foreground pl-10">Crafting: <span className="font-semibold text-foreground">{test.testName}</span></p>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground bg-white px-3 py-1.5 rounded-full border shadow-sm">
-                        {isSaving ? (
-                            <>
-                                <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
-                                <span className="text-blue-600 font-medium">Saving...</span>
-                            </>
-                        ) : lastSavedTime ? (
-                            <>
-                                <Check className="h-4 w-4 text-green-600" />
-                                <span>Saved {lastSavedTime.toLocaleTimeString()}</span>
-                            </>
+
+                    <div className="flex items-center gap-3">
+                        <div className={`flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium transition-colors ${isSaving
+                            ? "bg-blue-50 text-blue-700 border-blue-200"
+                            : lastSavedTime
+                                ? "bg-green-50 text-green-700 border-green-200"
+                                : "bg-slate-50 text-slate-600 border-slate-200"
+                            }`}>
+                            {isSaving ? (
+                                <>
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                    <span>Saving changes...</span>
+                                </>
+                            ) : lastSavedTime ? (
+                                <>
+                                    <Check className="h-4 w-4" />
+                                    <span>Saved {lastSavedTime.toLocaleTimeString()}</span>
+                                </>
+                            ) : (
+                                <span>Ready to edit</span>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    {/* Left details panel (sticky on lg screens) */}
+                    <div className="lg:col-span-4 space-y-6">
+                        <div className="lg:sticky lg:top-8 space-y-6">
+                            <Card className="border-none shadow-md bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-slate-200 dark:border-slate-800">
+                                <CardHeader className="pb-3">
+                                    <CardTitle className="text-lg flex items-center gap-2">
+                                        <Settings className="h-4 w-4 text-primary" /> Test Configuration
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="testName">Title</Label>
+                                        <Input
+                                            id="testName"
+                                            value={testName}
+                                            onChange={(e) => {
+                                                setTestName(e.target.value)
+                                                setIsTestDetailsDirty(true)
+                                            }}
+                                            className="bg-white dark:bg-slate-950"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="description">Instructions</Label>
+                                        <Textarea
+                                            id="description"
+                                            value={testDescription}
+                                            onChange={(e) => {
+                                                setTestDescription(e.target.value)
+                                                setIsTestDetailsDirty(true)
+                                            }}
+                                            rows={4}
+                                            className="resize-none bg-white dark:bg-slate-950"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="duration">Time Limit (mins)</Label>
+                                        <div className="relative">
+                                            <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                            <Input
+                                                id="duration"
+                                                type="number"
+                                                value={testDuration}
+                                                onChange={(e) => {
+                                                    setTestDuration(Number(e.target.value))
+                                                    setIsTestDetailsDirty(true)
+                                                }}
+                                                min="0"
+                                                className="pl-9 bg-white dark:bg-slate-950"
+                                            />
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            <div className="hidden lg:block">
+                                <Card className="bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-950/20 dark:to-blue-950/20 border-blue-100 dark:border-blue-900">
+                                    <CardContent className="p-6">
+                                        <div className="space-y-4">
+                                            <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300 font-semibold">
+                                                <Sparkles className="h-4 w-4" /> Pro Tips
+                                            </div>
+                                            <ul className="text-sm space-y-2 text-muted-foreground list-disc list-inside">
+                                                <li>Mix different question types for better assessment.</li>
+                                                <li>Use clear and concise language.</li>
+                                                <li>Double-check correct answers.</li>
+                                                <li>Questions autosave as you type.</li>
+                                            </ul>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Right questions panel */}
+                    <div className="lg:col-span-8 space-y-6">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-xl font-bold tracking-tight flex items-center gap-2">
+                                <FileText className="h-5 w-5 text-primary" /> Questions ({questions.length})
+                            </h2>
+                            <Button onClick={addQuestion} className="shadow-sm">
+                                <Plus className="h-4 w-4 mr-2" />
+                                Add Question
+                            </Button>
+                        </div>
+
+                        {questions.length === 0 ? (
+                            <div className="text-center py-16 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50/50 dark:bg-slate-900/30">
+                                <div className="h-12 w-12 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm">
+                                    <Plus className="h-6 w-6 text-primary" />
+                                </div>
+                                <h3 className="font-medium text-lg mb-1">Start building your test</h3>
+                                <p className="text-muted-foreground mb-4">Add your first question to get started.</p>
+                                <Button onClick={addQuestion} variant="outline">
+                                    Add Question
+                                </Button>
+                            </div>
                         ) : (
-                            <span>All changes saved locally</span>
+                            <div className="space-y-6">
+                                {questions.map((q, index) => (
+                                    <div key={q.id || q.tempId} className="relative group">
+                                        <div className="absolute -left-3 top-6 bottom-6 w-1 bg-slate-200 dark:bg-slate-800 rounded-full group-hover:bg-primary/50 transition-colors"></div>
+                                        <QuestionEditor
+                                            question={{ ...q, questionNumber: (index + 1).toString() }}
+                                            onUpdate={updateQuestion}
+                                            onDelete={handleDeleteQuestion}
+                                            onSave={() => saveAll()}
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {questions.length > 0 && (
+                            <div className="pt-4 flex justify-center">
+                                <Button onClick={addQuestion} variant="outline" className="w-full md:w-auto border-dashed">
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    Add Another Question
+                                </Button>
+                            </div>
                         )}
                     </div>
                 </div>
 
-                {/* Test Details Editor */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Test Details</CardTitle>
-                        <CardDescription>Update the basic information for your test. Changes are autosaved.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="testName">Test Name</Label>
-                            <Input
-                                id="testName"
-                                type="text"
-                                value={testName}
-                                onChange={(e) => {
-                                    setTestName(e.target.value)
-                                    setIsTestDetailsDirty(true)
-                                }}
-                                placeholder="Enter test name"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="description">Description</Label>
-                            <Textarea
-                                id="description"
-                                value={testDescription}
-                                onChange={(e) => {
-                                    setTestDescription(e.target.value)
-                                    setIsTestDetailsDirty(true)
-                                }}
-                                rows={3}
-                                className="resize-none"
-                                placeholder="Enter test description"
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="duration">Duration (minutes)</Label>
-                            <Input
-                                id="duration"
-                                type="number"
-                                value={testDuration}
-                                onChange={(e) => {
-                                    setTestDuration(Number(e.target.value))
-                                    setIsTestDetailsDirty(true)
-                                }}
-                                min="0"
-                            />
-                            <p className="text-xs text-muted-foreground">Set to 0 for no time limit</p>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <div className="space-y-6">
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-xl font-semibold tracking-tight">Questions</h2>
-                        <Button onClick={addQuestion} size="sm">
-                            <Plus className="h-4 w-4 mr-2" />
-                            Add Question
-                        </Button>
-                    </div>
-
-                    {questions.length === 0 ? (
-                        <div className="text-center py-12 border-2 border-dashed rounded-lg bg-slate-50">
-                            <p className="text-muted-foreground">No questions added yet.</p>
-                            <Button variant="link" onClick={addQuestion} className="mt-2">
-                                Add your first question
+                {/* Bottom Action Bar */}
+                <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 z-50">
+                    <div className="max-w-7xl mx-auto flex justify-between items-center">
+                        <p className="text-sm text-muted-foreground hidden md:block">
+                            {isDirty || isTestDetailsDirty ? "Unsaved changes..." : "All changes saved."}
+                        </p>
+                        <div className="flex gap-4 w-full md:w-auto">
+                            <Link to="/header" className="hidden" /> {/* Dummy link for router ensuring */}
+                            <Button
+                                variant="outline"
+                                onClick={addQuestion}
+                                className="flex-1 md:flex-none"
+                            >
+                                <Plus className="h-4 w-4 mr-2" /> <span className="hidden sm:inline">Add Question</span><span className="sm:hidden">Add</span>
                             </Button>
-                        </div>
-                    ) : (
-                        <div className="space-y-4">
-                            {questions.map((q, index) => (
-                                <QuestionEditor
-                                    key={q.id || q.tempId}
-                                    question={{ ...q, questionNumber: (index + 1).toString() }}
-                                    onUpdate={updateQuestion}
-                                    onDelete={handleDeleteQuestion}
-                                    onSave={() => saveAll()}
-                                />
-                            ))}
-                        </div>
-                    )}
-                </div>
+                            <Link to="/dashboard" onClick={() => saveAll()} className="flex-1 md:flex-none">
+                                <Button className="w-full shadow-lg shadow-primary/20">
+                                    <Save className="h-4 w-4 mr-2" />
+                                    Done & Finish
+                                </Button>
+                            </Link>
 
-                <div className="sticky bottom-6 z-10 bg-white/80 backdrop-blur-sm p-4 rounded-lg border shadow-lg flex gap-4">
-                    <Link to="/header" className="hidden" /> {/* Dummy link for router ensuring */}
-                    <Button
-                        variant="secondary"
-                        className="w-full"
-                        onClick={addQuestion}
-                    >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Question
-                    </Button>
-                    <Link to="/dashboard" onClick={() => saveAll()} className="w-full">
-                        <Button className="w-full">
-                            <Save className="h-4 w-4 mr-2" />
-                            Done & Return to Dashboard
-                        </Button>
-                    </Link>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

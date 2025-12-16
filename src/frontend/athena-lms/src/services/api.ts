@@ -26,7 +26,7 @@ export const updateUser = async (user: User): Promise<void> => {
     await axios.post(`${API_BASE_URL}/admin/users`, user);
 };
 
-export interface Teacher extends User { }
+export type Teacher = User
 
 export interface Student extends User {
     lrn: number;
