@@ -51,6 +51,9 @@ public class TestManagementServiceTest {
     private SectionRepository sectionRepository;
 
     @Mock
+    private com.athena.lms.athena_lms.repository.TeacherAssignmentRepository teacherAssignmentRepository;
+
+    @Mock
     private TestMapper testMapper;
 
     @Mock
@@ -82,6 +85,8 @@ public class TestManagementServiceTest {
     @org.junit.jupiter.api.Test
     void createTest_Success() {
         when(userRepository.findByUsername("teacher1")).thenReturn(teacher);
+        when(teacherAssignmentRepository.existsByTeacherIdAndSubjectIdAndSectionId(any(), any(), any()))
+                .thenReturn(true);
         when(testMapper.toEntity(any(TestDto.class))).thenReturn(testEntity);
         when(testRepository.save(any(Test.class))).thenReturn(testEntity);
         when(testMapper.toDto(any(Test.class))).thenReturn(testDto);
@@ -107,6 +112,8 @@ public class TestManagementServiceTest {
     @org.junit.jupiter.api.Test
     void createTest_WithNewSubjectAndSection() {
         when(userRepository.findByUsername("teacher1")).thenReturn(teacher);
+        when(teacherAssignmentRepository.existsByTeacherIdAndSubjectIdAndSectionId(any(), any(), any()))
+                .thenReturn(true);
         when(testMapper.toEntity(any(TestDto.class))).thenReturn(testEntity);
         when(testRepository.save(any(Test.class))).thenReturn(testEntity);
         when(testMapper.toDto(any(Test.class))).thenReturn(testDto);

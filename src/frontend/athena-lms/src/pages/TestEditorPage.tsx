@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useParams, Link } from "react-router-dom"
 import {
     getTestById,
@@ -10,15 +10,18 @@ import {
     createOrUpdateQuestions,
     deleteQuestion as deleteQuestionApi,
     autosaveTest,
+    getSectionsTeacher,
+    getSubjectsTeacher,
+    type Section,
+    type Subject,
 } from "../services/api"
 import QuestionEditor from "../components/QuestionEditor"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Loader2, Save, Check, Plus, ArrowLeft, Clock, FileText, Settings, Sparkles } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
 
 const TestEditorPage: React.FC = () => {
     const { testId } = useParams<{ testId: string }>()
@@ -32,13 +35,48 @@ const TestEditorPage: React.FC = () => {
     const [testName, setTestName] = useState("")
     const [testDescription, setTestDescription] = useState("")
     const [testDuration, setTestDuration] = useState<number>(0)
+    const [testIssueDate, setTestIssueDate] = useState("")
+    const [testDueDate, setTestDueDate] = useState("")
+    const [hasInfiniteTime, setHasInfiniteTime] = useState(false)
+    const [selectedSectionId, setSelectedSectionId] = useState<string>("")
+    const [selectedSubjectId, setSelectedSubjectId] = useState<string>("")
+
+    const [sections, setSections] = useState<Section[]>([])
+    const [subjects, setSubjects] = useState<Subject[]>([])
+
     const [isTestDetailsDirty, setIsTestDetailsDirty] = useState(false)
+    const questionsEndRef = useRef<HTMLDivElement>(null)
+
+    useEffect(() => {
+        const loadData = async () => {
+            try {
+                const [sectionsData, subjectsData] = await Promise.all([
+                    getSectionsTeacher(),
+                    getSubjectsTeacher()
+                ])
+                setSections(sectionsData)
+                setSubjects(subjectsData)
+            } catch (error) {
+                console.error("Failed to load sections/subjects", error)
+            }
+        }
+        loadData()
+    }, [])
 
     useEffect(() => {
         if (testId) {
             fetchTest(Number(testId))
         }
     }, [testId])
+
+    const toLocalISO = (dateStr?: string) => {
+        if (!dateStr) return ""
+        const date = new Date(dateStr)
+        // Adjust for timezone to display correct local time in input
+        const offset = date.getTimezoneOffset() * 60000
+        const localDate = new Date(date.getTime() - offset)
+        return localDate.toISOString().slice(0, 16)
+    }
 
     const fetchTest = async (id: number) => {
         try {
@@ -47,6 +85,12 @@ const TestEditorPage: React.FC = () => {
             setTestName(fetchedTest.testName)
             setTestDescription(fetchedTest.testDescription)
             setTestDuration(fetchedTest.testDuration / 60) // Convert seconds to minutes for display
+            setTestIssueDate(toLocalISO(fetchedTest.testIssueDate))
+            setTestDueDate(toLocalISO(fetchedTest.testDueDate))
+            setHasInfiniteTime(fetchedTest.hasInfiniteTime || false)
+            setSelectedSectionId(fetchedTest.section?.id?.toString() || "")
+            setSelectedSubjectId(fetchedTest.subject?.id?.toString() || "")
+
             if (fetchedTest.questions) {
                 setQuestions(fetchedTest.questions.map((q) => ({ ...q, isDirty: false })))
             }
@@ -73,7 +117,7 @@ const TestEditorPage: React.FC = () => {
             }, 2000)
             return () => clearTimeout(timer)
         }
-    }, [testName, testDescription, testDuration, testId, isTestDetailsDirty])
+    }, [testName, testDescription, testDuration, testIssueDate, testDueDate, hasInfiniteTime, selectedSectionId, selectedSubjectId, testId, isTestDetailsDirty])
 
     const handleAutosaveQuestions = async () => {
         if (!testId || !isDirty) return
@@ -187,7 +231,12 @@ const TestEditorPage: React.FC = () => {
             await autosaveTest(Number(testId), {
                 testName,
                 testDescription,
-                testDuration: testDuration * 60 // Convert minutes back to seconds
+                testDuration: testDuration * 60, // Convert minutes back to seconds
+                testIssueDate: testIssueDate ? new Date(testIssueDate).toISOString() : undefined,
+                testDueDate: testDueDate ? new Date(testDueDate).toISOString() : undefined,
+                hasInfiniteTime,
+                section: sections.find(s => s.id.toString() === selectedSectionId),
+                subject: subjects.find(s => s.id.toString() === selectedSubjectId)
             })
             setLastSavedTime(new Date())
             setIsTestDetailsDirty(false)
@@ -220,6 +269,9 @@ const TestEditorPage: React.FC = () => {
         }
         setQuestions([...questions, newQuestion])
         setIsDirty(true)
+        setTimeout(() => {
+            questionsEndRef.current?.scrollIntoView({ behavior: "smooth" })
+        }, 100)
     }
 
     const updateQuestion = (updatedQuestion: Question) => {
@@ -327,20 +379,96 @@ const TestEditorPage: React.FC = () => {
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="duration">Time Limit (mins)</Label>
-                                        <div className="relative">
-                                            <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                        <div className="space-y-2">
+                                            <Label htmlFor="issueDate">Issue Date</Label>
                                             <Input
-                                                id="duration"
-                                                type="number"
-                                                value={testDuration}
+                                                id="issueDate"
+                                                type="datetime-local"
+                                                value={testIssueDate}
                                                 onChange={(e) => {
-                                                    setTestDuration(Number(e.target.value))
+                                                    setTestIssueDate(e.target.value)
                                                     setIsTestDetailsDirty(true)
                                                 }}
-                                                min="0"
-                                                className="pl-9 bg-white dark:bg-slate-950"
+                                                className="bg-white dark:bg-slate-950"
                                             />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="dueDate">Due Date</Label>
+                                            <Input
+                                                id="dueDate"
+                                                type="datetime-local"
+                                                value={testDueDate}
+                                                onChange={(e) => {
+                                                    setTestDueDate(e.target.value)
+                                                    setIsTestDetailsDirty(true)
+                                                }}
+                                                className="bg-white dark:bg-slate-950"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="duration">Time Limit (mins)</Label>
+                                            <div className="relative">
+                                                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                                <Input
+                                                    id="duration"
+                                                    type="number"
+                                                    value={testDuration}
+                                                    onChange={(e) => {
+                                                        setTestDuration(Number(e.target.value))
+                                                        setIsTestDetailsDirty(true)
+                                                    }}
+                                                    disabled={hasInfiniteTime}
+                                                    min="0"
+                                                    className="pl-9 bg-white dark:bg-slate-950"
+                                                />
+                                            </div>
+                                            <div className="flex items-center gap-2 mt-2">
+                                                <input
+                                                    type="checkbox"
+                                                    id="infiniteTime"
+                                                    checked={hasInfiniteTime}
+                                                    onChange={(e) => {
+                                                        setHasInfiniteTime(e.target.checked)
+                                                        setIsTestDetailsDirty(true)
+                                                    }}
+                                                    className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary"
+                                                />
+                                                <Label htmlFor="infiniteTime" className="text-sm font-normal cursor-pointer">Infinite Time</Label>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="section">Section</Label>
+                                            <select
+                                                id="section"
+                                                value={selectedSectionId}
+                                                onChange={(e) => {
+                                                    setSelectedSectionId(e.target.value)
+                                                    setIsTestDetailsDirty(true)
+                                                }}
+                                                className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800 dark:bg-slate-950 dark:ring-offset-slate-950 dark:placeholder:text-slate-400 dark:focus:ring-slate-300"
+                                            >
+                                                <option value="">Select a section</option>
+                                                {sections.map(s => (
+                                                    <option key={s.id} value={s.id}>{s.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="subject">Subject</Label>
+                                            <select
+                                                id="subject"
+                                                value={selectedSubjectId}
+                                                onChange={(e) => {
+                                                    setSelectedSubjectId(e.target.value)
+                                                    setIsTestDetailsDirty(true)
+                                                }}
+                                                className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800 dark:bg-slate-950 dark:ring-offset-slate-950 dark:placeholder:text-slate-400 dark:focus:ring-slate-300"
+                                            >
+                                                <option value="">Select a subject</option>
+                                                {subjects.map(s => (
+                                                    <option key={s.id} value={s.name}>{s.name}</option>
+                                                ))}
+                                            </select>
                                         </div>
                                     </div>
                                 </CardContent>
@@ -360,6 +488,7 @@ const TestEditorPage: React.FC = () => {
                                                 <li>Questions autosave as you type.</li>
                                             </ul>
                                         </div>
+
                                     </CardContent>
                                 </Card>
                             </div>
@@ -402,6 +531,7 @@ const TestEditorPage: React.FC = () => {
                                         />
                                     </div>
                                 ))}
+                                <div ref={questionsEndRef} />
                             </div>
                         )}
 

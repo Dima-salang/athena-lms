@@ -128,6 +128,7 @@ const TakeTestPage: React.FC = () => {
                     await updateAnswers(answersToSave)
                     dirtyAnswerIds.current.clear()
                     setLastSaved(new Date())
+                    console.log(answersToSave)
                 }
             } catch (err) {
                 console.error("Autosave failed", err)
@@ -183,6 +184,7 @@ const TakeTestPage: React.FC = () => {
         try {
             setSubmitting(true)
             const answerList = Object.values(answers)
+            console.log("Answer list: ", answerList)
             await submitTest(submission.id, answerList)
             if (timeLeft !== 0) alert("Test submitted successfully!")
             navigate("/student-dashboard")
@@ -232,7 +234,7 @@ const TakeTestPage: React.FC = () => {
     return (
         <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950 relative pb-20">
             {/* Sticky Header */}
-            <div className={`sticky top-0 z-40 backdrop-blur-md transition-all duration-300 border-b shadow-sm ${isLowTime
+            <div className={`fixed top-0 left-0 right-0 z-40 backdrop-blur-md transition-all duration-300 border-b shadow-sm ${isLowTime
                 ? 'bg-red-50/90 dark:bg-red-950/50 border-red-200 dark:border-red-900'
                 : 'bg-white/90 dark:bg-slate-900/90 border-slate-200 dark:border-slate-800'
                 }`}>
@@ -278,7 +280,7 @@ const TakeTestPage: React.FC = () => {
                 </div>
             </div>
 
-            <div className="max-w-4xl mx-auto mt-8 px-4 sm:px-6 lg:px-8 space-y-6">
+            <div className="max-w-4xl mx-auto pt-24 px-4 sm:px-6 lg:px-8 space-y-6">
 
                 {/* Instructions Card */}
                 <Card className="border-none shadow-sm bg-indigo-50/50 dark:bg-indigo-950/10 border-indigo-100 dark:border-indigo-900">

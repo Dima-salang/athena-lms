@@ -8,6 +8,9 @@ DECEMBER 16, 2025
 - implement manual override of score for a student answer - DONE
 - implement manual override of score for a submission - DONE 
 - implement scheduling of the tests for the teacher - DONE
+- bug in the autograding where the calculation of the score is not correct
+- make the timer and submit sticky
+- in the editing of the test, include all of the fields
 
 
 

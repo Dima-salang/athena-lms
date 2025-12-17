@@ -3,6 +3,8 @@ package com.athena.lms.athena_lms.controller;
 import com.athena.lms.athena_lms.dto.TestDto;
 import com.athena.lms.athena_lms.dto.QuestionDto;
 import com.athena.lms.athena_lms.model.Teacher;
+import com.athena.lms.athena_lms.model.Section;
+import com.athena.lms.athena_lms.model.Subject;
 import com.athena.lms.athena_lms.repository.TestRepository;
 import com.athena.lms.athena_lms.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -48,6 +50,48 @@ public class TestControllerTest {
         teacher.setLastName("Doe");
         teacher.setRole("TEACHER");
         userRepository.save(teacher);
+
+        // Create subject and section and assign to teacher
+        com.athena.lms.athena_lms.model.Section section = new com.athena.lms.athena_lms.model.Section();
+        section.setName("Section A");
+        // We'll rely on cascading or separate repository if needed, but this is an
+        // integration test.
+        // Let's assume repositories are autowired or we need to wire them.
+    }
+
+    @Autowired
+    private com.athena.lms.athena_lms.repository.TeacherAssignmentRepository teacherAssignmentRepository;
+    @Autowired
+    private com.athena.lms.athena_lms.repository.SectionRepository sectionRepository;
+    @Autowired
+    private com.athena.lms.athena_lms.repository.SubjectRepository subjectRepository;
+
+    @BeforeEach
+    public void setupAssignment() {
+        com.athena.lms.athena_lms.model.Teacher teacher = (com.athena.lms.athena_lms.model.Teacher) userRepository
+                .findByUsername("teacher_test");
+        if (teacher == null)
+            return; // Should be created in setup() if @Transactional rolls back per test, but
+                    // setup() runs before each.
+
+        // Ensure section exists (or create it for the test dto payload matching)
+        com.athena.lms.athena_lms.model.Section section = sectionRepository.findByName("Section A");
+        if (section == null) {
+            section = new com.athena.lms.athena_lms.model.Section();
+            section.setName("Section A");
+            section = sectionRepository.save(section);
+        }
+
+        com.athena.lms.athena_lms.model.TeacherAssignment assignment = new com.athena.lms.athena_lms.model.TeacherAssignment();
+        Subject subject = new Subject();
+        subject.setName("Math");
+        subject = subjectRepository.save(subject);
+
+        assignment.setTeacher(teacher);
+        assignment.setSection(section);
+        assignment.setSubject(subject); // Assuming null subject is allowed for "Adviser" or similar, or just match the
+                                        // test case.
+        teacherAssignmentRepository.save(assignment);
     }
 
     @Test
@@ -68,10 +112,39 @@ public class TestControllerTest {
         // but TestDto currently has IDs and embedded Section.
 
         // Let's use embedded section for the test case as per service logic
-        com.athena.lms.athena_lms.dto.SectionDto section = new com.athena.lms.athena_lms.dto.SectionDto();
-        section.setName("Section A");
-        testDto.setSection(section);
+        // Fetch the section created in setupAssignment or create it if not found
+        // (transaction isolation might affect visibility)
+        com.athena.lms.athena_lms.model.Section savedSection = sectionRepository.findByName("Section A");
+        if (savedSection == null) {
+            savedSection = new com.athena.lms.athena_lms.model.Section();
+            savedSection.setName("Section A");
+            savedSection = sectionRepository.save(savedSection);
+        }
+
+        com.athena.lms.athena_lms.model.Subject savedSubject = subjectRepository.findByName("Math");
+        if (savedSubject == null) {
+            savedSubject = new com.athena.lms.athena_lms.model.Subject();
+            savedSubject.setName("Math");
+            savedSubject = subjectRepository.save(savedSubject);
+        }
+
+        // Ensure the teacher is assigned to this subject and section
+        boolean assigned = teacherAssignmentRepository.existsByTeacherIdAndSubjectIdAndSectionId(teacher.getId(),
+                savedSubject.getId(), savedSection.getId());
+        if (!assigned) {
+            com.athena.lms.athena_lms.model.TeacherAssignment assignment = new com.athena.lms.athena_lms.model.TeacherAssignment();
+            assignment.setTeacher(teacher);
+            assignment.setSection(savedSection);
+            assignment.setSubject(savedSubject);
+            teacherAssignmentRepository.save(assignment);
+        }
+
+        com.athena.lms.athena_lms.dto.SectionDto sectionDto = new com.athena.lms.athena_lms.dto.SectionDto();
+        sectionDto.setId(savedSection.getId());
+        sectionDto.setName("Section A");
+        testDto.setSection(sectionDto);
         testDto.setTeacherId(teacher.getId());
+        testDto.setSubjectId(savedSubject.getId()); // Set non-null subject ID
 
         mockMvc.perform(post("/api/teacher/tests")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -97,6 +170,12 @@ public class TestControllerTest {
         test.setTestName("Question Test");
         test.setTestDescription("Test for Questions");
         test.setTestDuration(java.time.Duration.ofHours(1));
+
+        // Retrieve subject and section from setupAssignment
+        Subject subject = subjectRepository.findByName("Math");
+        Section section = sectionRepository.findByName("Section A");
+        test.setSubject(subject);
+        test.setSection(section);
 
         Teacher teacher = (Teacher) userRepository.findByUsername("teacher_test");
         test.setTeacher(teacher);

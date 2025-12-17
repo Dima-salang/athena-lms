@@ -55,8 +55,24 @@ public class SubmissionService {
 
     public SubmissionDto createOrUpdateSubmission(SubmissionDto submissionDto) {
         Submission submission = submissionRepository.findById(submissionDto.getId()).orElse(null);
+
+        // if there is no existing submission, create a new one
         if (submission == null) {
-            submission = submissionMapper.toEntity(submissionDto);
+            Test submissionTest = testRepository.findById(submissionDto.getTest().getId()).orElse(null);
+            User user = userRepository.findById(submissionDto.getStudent().getId()).orElse(null);
+            if (user instanceof Student) {
+                Student submissionStudent = (Student) user;
+                submission = new Submission();
+                submission.setTest(submissionTest);
+                submission.setStudent(submissionStudent);
+                submission.setSubmittedAt(submissionDto.getSubmittedAt());
+                submission.setAttempts(submissionDto.getAttempts());
+                submission.setTotalScore(submissionDto.getTotalScore());
+                submission.setStartTime(submissionDto.getStartTime());
+                submission.setEndTime(submissionDto.getEndTime());
+            } else {
+                throw new AccessDeniedException("User is not a student");
+            }
         }
         Submission savedSubmission = submissionRepository.save(submission);
         return submissionMapper.toDto(savedSubmission);
@@ -116,19 +132,30 @@ public class SubmissionService {
 
         // update the entity from the db or create it
         for (StudentAnswerDto studentAnswerDto : studentAnswerDtos) {
-            StudentAnswer studentAnswer;
-            if (studentAnswerDto.getId() == null) {
+            StudentAnswer studentAnswer = null;
+            if (studentAnswerDto.getId() != null) {
+                studentAnswer = studentAnswerRepository.findById(studentAnswerDto.getId()).orElse(null);
+            }
+
+            // If not found by ID, try finding by submission and question
+            if (studentAnswer == null && studentAnswerDto.getSubmission() != null
+                    && studentAnswerDto.getSubmission().getId() != null
+                    && studentAnswerDto.getQuestion() != null && studentAnswerDto.getQuestion().getId() != null) {
+                studentAnswer = studentAnswerRepository.findBySubmissionIdAndQuestionId(
+                        studentAnswerDto.getSubmission().getId(),
+                        studentAnswerDto.getQuestion().getId());
+                System.out.println("Found student answer by submission and question: " + studentAnswerDto.getId());
+            }
+
+            if (studentAnswer == null) {
                 // Create new answer - don't use mapper to avoid transient entities
                 studentAnswer = new StudentAnswer();
-                studentAnswer.setTextAnswer(studentAnswerDto.getTextAnswer());
-                studentAnswer.setPoints(studentAnswerDto.getPoints());
-            } else {
-                // Update existing answer
-                studentAnswer = studentAnswerRepository.findById(studentAnswerDto.getId())
-                        .orElseThrow(() -> new NotFoundException("Student answer not found"));
-                studentAnswer.setTextAnswer(studentAnswerDto.getTextAnswer());
-                studentAnswer.setPoints(studentAnswerDto.getPoints());
+                studentAnswer.setId(null);
+                System.out.println("Creating new student answer: " + studentAnswer.getId());
             }
+
+            studentAnswer.setTextAnswer(studentAnswerDto.getTextAnswer());
+            studentAnswer.setPoints(studentAnswerDto.getPoints());
 
             // Fetch and set managed entities from database
             if (studentAnswerDto.getSubmission() != null && studentAnswerDto.getSubmission().getId() != null) {
@@ -155,6 +182,15 @@ public class SubmissionService {
             studentAnswers.add(studentAnswer);
         }
         List<StudentAnswer> savedStudentAnswers = studentAnswerRepository.saveAll(studentAnswers);
+        // log saved student answers
+        System.out.println("Saved student answers: ");
+        for (StudentAnswer studentAnswer : savedStudentAnswers) {
+            System.out.println("Student Answer ID: " + studentAnswer.getId());
+            System.out.println("Student Answer Text: " + studentAnswer.getTextAnswer());
+            System.out.println("Student Answer Points: " + studentAnswer.getPoints());
+            System.out.println("Student Answer Question: " + studentAnswer.getQuestion().getId());
+            System.out.println("Student Answer Submission: " + studentAnswer.getSubmission().getId());
+        }
         return studentAnswerMapper.toDtoList(savedStudentAnswers);
     }
 
@@ -240,35 +276,6 @@ public class SubmissionService {
         submission.setUpdatedAt(now);
         submission.setSubmittedAt(now);
 
-        // Save answers
-        List<StudentAnswer> studentAnswers = new ArrayList<>();
-        for (StudentAnswerDto dto : studentAnswerDtos) {
-            // Create new answer - don't use mapper to avoid transient entities
-            StudentAnswer answer = new StudentAnswer();
-            answer.setTextAnswer(dto.getTextAnswer());
-            answer.setPoints(dto.getPoints());
-
-            // Set the submission (already managed)
-            answer.setSubmission(submission);
-
-            // Fetch and set managed Question entity
-            if (dto.getQuestion() != null && dto.getQuestion().getId() != null) {
-                Question question = questionRepository.findById(dto.getQuestion().getId())
-                        .orElseThrow(() -> new NotFoundException("Question not found"));
-                answer.setQuestion(question);
-            }
-
-            // Only fetch option if optionId is not null (for MCQ/TrueFalse with options)
-            if (dto.getOptionId() != null) {
-                Option option = optionRepository.findById(dto.getOptionId())
-                        .orElseThrow(() -> new NotFoundException("Option not found"));
-                answer.setOption(option);
-            }
-
-            studentAnswers.add(answer);
-        }
-        studentAnswerRepository.saveAll(studentAnswers);
-
         calculateScore(submission);
 
         return submissionMapper.toDto(submissionRepository.save(submission));
@@ -329,18 +336,27 @@ public class SubmissionService {
         submissionRepository.save(submission);
     }
 
+    /*
+     * Calculates the score of a submission based on the answers and questions.
+     */
     private void calculateScore(Submission submission) {
         double totalScore = 0;
-        List<StudentAnswer> studentAnswers = studentAnswerRepository.findBySubmissionId(submission.getId());
+        List<StudentAnswer> studentAnswers = studentAnswerRepository
+                .findBySubmissionIdAndSubmissionSubmittedAtIsNotNull(submission.getId());
+        System.out.println("studentAnswers: " + studentAnswers.size());
+
         for (StudentAnswer answer : studentAnswers) {
             Question question = answer.getQuestion();
+            System.out.println("question type:" + question.getQuestionType());
             if (question.getQuestionType() == QuestionType.MULTIPLE_CHOICE) {
-                Option option = answer.getOption();
-                if (option == null) {
+                Option userSelectedOption = answer.getOption();
+                if (userSelectedOption == null) {
                     answer.setPoints(0.0);
                 } else {
-                    // Use equals for Long comparison
-                    if (option.getId() != null && option.getId().equals(question.getCorrectOptionId())) {
+                    // check if the student selected option is the same as the correct option id
+                    // else no points
+                    if (userSelectedOption.getId() != null
+                            && userSelectedOption.getId().equals(question.getCorrectOptionId())) {
                         double fullPoints = question.getFullPoints();
                         totalScore += fullPoints;
                         answer.setPoints(fullPoints);
@@ -349,8 +365,10 @@ public class SubmissionService {
                     }
                 }
             } else if (question.getQuestionType() == QuestionType.IDENTIFICATION) {
-                String textAnswer = answer.getTextAnswer();
-                if (textAnswer != null && textAnswer.equals(question.getCorrectAnswer())) {
+                String studentTextAnswer = answer.getTextAnswer();
+                System.out.println("studentTextAnswer: " + studentTextAnswer);
+                System.out.println("question.getCorrectAnswer(): " + question.getCorrectAnswer());
+                if (studentTextAnswer != null && studentTextAnswer.equals(question.getCorrectAnswer())) {
                     double fullPoints = question.getFullPoints();
                     totalScore += fullPoints;
                     answer.setPoints(fullPoints);
@@ -358,7 +376,8 @@ public class SubmissionService {
                     answer.setPoints(0.0);
                 }
             } else if (question.getQuestionType() == QuestionType.TRUE_FALSE) {
-                if (answer.getTextAnswer() != null && answer.getTextAnswer().equals(question.getCorrectAnswer())) {
+                String studentTextAnswer = answer.getTextAnswer();
+                if (studentTextAnswer != null && studentTextAnswer.equals(question.getCorrectAnswer())) {
                     double fullPoints = question.getFullPoints();
                     totalScore += fullPoints;
                     answer.setPoints(fullPoints);
@@ -367,7 +386,8 @@ public class SubmissionService {
                 }
             }
             // For Essay/Manual, typically 0 initially unless graded.
-            else if (answer.getPoints() != null) {
+            else if (question.getQuestionType() == QuestionType.ESSAY) {
+                answer.setPoints(0.0);
                 totalScore += answer.getPoints();
             }
         }
