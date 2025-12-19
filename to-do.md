@@ -1,6 +1,6 @@
 DECEMBER 16, 2025
 - implement not being able to take the test if the test has already been submitted - DONE
-- implement submissions and grades for the student dashboard
+- implement submissions and grades for the student dashboard - DONE
 - implement being able to set the grade for the submission view for the teacher - DONE
 - implement being able to set the grade for the essay in the submission view for the teacher - DONE
 - implement being able to set the grade for every question for the teacher - DONE
@@ -11,7 +11,7 @@ DECEMBER 16, 2025
 - bug in the autograding where the calculation of the score is not correct - DONE
 - make the timer and submit sticky - DONE
 - in the editing of the test, include all of the fields - DONE
-
+- implement logging for the auth service - DONE
 
 
 DECEMBER 12, 2025
