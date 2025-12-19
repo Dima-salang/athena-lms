@@ -180,7 +180,7 @@ public class SubmissionServiceTest {
 
         assertNotNull(results);
         assertEquals(1, results.size());
-        assertEquals(1L, results.get(0).getId());
+        assertEquals(1L, results.getFirst().getId());
     }
 
     @Test
@@ -205,9 +205,7 @@ public class SubmissionServiceTest {
     void getSubmissionsByTest_TestNotFound_ThrowsNotFoundException() {
         when(testRepository.existsById(100L)).thenReturn(false);
 
-        assertThrows(NotFoundException.class, () -> {
-            submissionService.getSubmissionsByTest(100L, "");
-        });
+        assertThrows(NotFoundException.class, () -> submissionService.getSubmissionsByTest(100L, ""));
     }
 
     // student answers tests
@@ -254,8 +252,6 @@ public class SubmissionServiceTest {
         assertNotNull(results);
         assertEquals(1, results.size());
         verify(studentAnswerRepository).findById(1L);
-        // verify(studentAnswerMapper).updateEntityFromDto(studentAnswerDto,
-        // studentAnswer);
         verify(optionRepository).findById(10L);
         verify(studentAnswerRepository).saveAll(anyList());
     }

@@ -4,6 +4,8 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import com.athena.lms.athena_lms.repository.*;
 
@@ -22,9 +24,12 @@ import com.athena.lms.athena_lms.model.tests.Test;
 import jakarta.persistence.EntityManager;
 import com.blazebit.persistence.CriteriaBuilder;
 import com.blazebit.persistence.CriteriaBuilderFactory;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class SubmissionService {
+    private static final Logger logger = LoggerFactory.getLogger(SubmissionService.class);
+
     private final SubmissionRepository submissionRepository;
     private final StudentAnswerRepository studentAnswerRepository;
     private final SubmissionMapper submissionMapper;
@@ -61,6 +66,8 @@ public class SubmissionService {
             Test submissionTest = testRepository.findById(submissionDto.getTest().getId()).orElse(null);
             User user = userRepository.findById(submissionDto.getStudent().getId()).orElse(null);
             if (user instanceof Student submissionStudent) {
+                logger.info("Creating new submission for student {} on test {}", submissionStudent.getUsername(),
+                        submissionTest != null ? submissionTest.getId() : "null");
                 submission = new Submission();
                 submission.setTest(submissionTest);
                 submission.setStudent(submissionStudent);
@@ -78,6 +85,7 @@ public class SubmissionService {
     }
 
     public void deleteSubmission(Long submissionId) {
+        logger.info("Deleting submission ID: {}", submissionId);
         submissionRepository.deleteById(submissionId);
     }
 
@@ -124,7 +132,7 @@ public class SubmissionService {
         return result;
     }
 
-    @org.springframework.transaction.annotation.Transactional
+    @Transactional
     public List<StudentAnswerDto> createOrUpdateStudentAnswers(List<StudentAnswerDto> studentAnswerDtos) {
         List<StudentAnswer> studentAnswers = new ArrayList<>();
 
@@ -184,6 +192,7 @@ public class SubmissionService {
     // manual override of score for a student answer
     @org.springframework.transaction.annotation.Transactional
     public void manualSetStudentAnswerScore(Long studentAnswerId, Double score) {
+        logger.info("Manual score override: Answer ID {} set to {}", studentAnswerId, score);
         StudentAnswer studentAnswer = studentAnswerRepository.findById(studentAnswerId)
                 .orElseThrow(() -> new NotFoundException("Student answer not found"));
 
@@ -201,6 +210,7 @@ public class SubmissionService {
 
     @org.springframework.transaction.annotation.Transactional
     public SubmissionDto startTest(Long testId, String username) {
+        logger.info("Starting test ID: {} by user: {}", testId, username);
         User user = userRepository.findByUsername(username);
         if (!(user instanceof Student student)) {
             throw new AccessDeniedException("User not found or not a student");
@@ -212,6 +222,7 @@ public class SubmissionService {
         Submission existingSubmission = submissionRepository.findFirstByTestIdAndStudentIdAndSubmittedAtIsNull(testId,
                 student.getId());
         if (existingSubmission != null) {
+            logger.info("Resuming existing submission ID: {}", existingSubmission.getId());
             return submissionMapper.toDto(existingSubmission);
         }
 
@@ -222,7 +233,6 @@ public class SubmissionService {
         if (submittedSubmission != null) {
             throw new AccessDeniedException("You have already submitted this test");
         }
-
 
         Submission submission = new Submission();
         submission.setTest(test);
@@ -238,7 +248,9 @@ public class SubmissionService {
         submission.setUpdatedAt(Instant.now());
         submission.setSubmittedAt(null);
 
-        return submissionMapper.toDto(submissionRepository.save(submission));
+        Submission saved = submissionRepository.save(submission);
+        logger.info("New submission created. ID: {}", saved.getId());
+        return submissionMapper.toDto(saved);
     }
 
     public List<StudentAnswerDto> getStudentAnswers(Long submissionId) {
@@ -248,6 +260,7 @@ public class SubmissionService {
 
     @org.springframework.transaction.annotation.Transactional
     public SubmissionDto submitTest(Long submissionId, List<StudentAnswerDto> studentAnswerDtos) {
+        logger.info("Submitting submission ID: {}", submissionId);
         Submission submission = submissionRepository.findById(submissionId)
                 .orElseThrow(() -> new NotFoundException("Submission not found"));
 
@@ -257,7 +270,7 @@ public class SubmissionService {
         Instant now = Instant.now();
         // check end time
         if (test.getTestDueDate() != null && now.isAfter(test.getTestDueDate())) {
-            throw new RuntimeException("Test has already ended");
+            throw new AccessDeniedException("Test has already ended");
         }
 
         submission.setUpdatedAt(now);
@@ -265,13 +278,16 @@ public class SubmissionService {
 
         calculateScore(submission);
 
-        return submissionMapper.toDto(submissionRepository.save(submission));
+        Submission saved = submissionRepository.save(submission);
+        logger.info("Submission submitted successfully. ID: {}, Score: {}", saved.getId(), saved.getTotalScore());
+        return submissionMapper.toDto(saved);
     }
 
     /*
      * Recalculates the score of a specific submission or all submissions of a test
      */
     public void recalculateSubmissionTotal(Long submissionId) {
+        logger.info("Recalculating total (sum) for submission ID: {}", submissionId);
         recalculateSubmission(submissionRepository.findById(submissionId)
                 .orElseThrow(() -> new NotFoundException("Submission not found")));
     }
@@ -280,6 +296,7 @@ public class SubmissionService {
      * Re-runs auto-grading logic for a specific submission
      */
     public void autoGradeSubmission(Long submissionId) {
+        logger.info("Auto-grading submission ID: {}", submissionId);
         Submission submission = submissionRepository.findById(submissionId)
                 .orElseThrow(() -> new NotFoundException("Submission not found"));
         calculateScore(submission); // This is the auto-grading logic (re-evaluates answers)
@@ -290,6 +307,7 @@ public class SubmissionService {
      * Re-runs auto-grading logic for ALL submissions of a test
      */
     public void autoGradeTestSubmissions(Long testId) {
+        logger.info("Auto-grading all submissions for test ID: {}", testId);
         List<Submission> submissions = submissionRepository.findByTestId(testId);
         for (Submission submission : submissions) {
             autoGradeSubmission(submission.getId());
@@ -298,24 +316,6 @@ public class SubmissionService {
 
     public void recalculateSubmission(Submission submission) {
         // We recalculate by summing up current points of answers.
-        // If we use calculateScore(submission), it might reset points based on
-        // auto-grading logic.
-        // The user asked for "recalculating the score for a specific submission or
-        // calculating".
-        // If "calculating", it implies auto-grading.
-        // If "recalculating" after manual override, it should just sum them up?
-        // But calculateScore implementation currently does auto-grading logic (checking
-        // correct answers).
-        // This would OVERWRITE manual scores.
-
-        // Wait, if manual override is done, we don't want to loose it on recalculation
-        // UNLESS explicitly requested to "Auto-grade".
-        // BUT, the prompt says "recalculating the score...". Usually this implies
-        // summing up.
-        // However, calculateScore() as written DOES auto-grading.
-
-        // Let's separate "SUMMING" from "AUTO-GRADING".
-
         double totalScore = studentAnswerRepository.findBySubmissionId(submission.getId()).stream()
                 .mapToDouble(a -> a.getPoints() != null ? a.getPoints() : 0.0)
                 .sum();
@@ -330,11 +330,11 @@ public class SubmissionService {
         double totalScore = 0;
         List<StudentAnswer> studentAnswers = studentAnswerRepository
                 .findBySubmissionIdAndSubmissionSubmittedAtIsNotNull(submission.getId());
-        System.out.println("studentAnswers: " + studentAnswers.size());
+        logger.debug("Calculating score for submission {}. Found {} answers.", submission.getId(),
+                studentAnswers.size());
 
         for (StudentAnswer answer : studentAnswers) {
             Question question = answer.getQuestion();
-            System.out.println("question type:" + question.getQuestionType());
             if (question.getQuestionType() == QuestionType.MULTIPLE_CHOICE) {
                 Option userSelectedOption = answer.getOption();
                 if (userSelectedOption == null) {
@@ -353,8 +353,6 @@ public class SubmissionService {
                 }
             } else if (question.getQuestionType() == QuestionType.IDENTIFICATION) {
                 String studentTextAnswer = answer.getTextAnswer();
-                System.out.println("studentTextAnswer: " + studentTextAnswer);
-                System.out.println("question.getCorrectAnswer(): " + question.getCorrectAnswer());
                 if (studentTextAnswer != null && studentTextAnswer.equals(question.getCorrectAnswer())) {
                     double fullPoints = question.getFullPoints();
                     totalScore += fullPoints;
@@ -374,7 +372,11 @@ public class SubmissionService {
             }
             // For Essay/Manual, typically 0 initially unless graded.
             else if (question.getQuestionType() == QuestionType.ESSAY) {
-                answer.setPoints(0.0);
+                answer.setPoints(0.0); // Reset for autograding? Or keep logic to not touch?
+                // The prompt says "calculateScore". If we are re-running for auto-grading, we
+                // probably reset essay to 0
+                // unless we have specific logic.
+                // Assuming it defaults to 0.
                 totalScore += answer.getPoints();
             }
         }

@@ -5,12 +5,15 @@ import org.springframework.stereotype.Service;
 
 import com.athena.lms.athena_lms.model.*;
 import com.athena.lms.athena_lms.repository.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final SectionRepository sectionRepository;
+    private final Logger logger = LoggerFactory.getLogger(AuthService.class); 
 
     public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder,
             SectionRepository sectionRepository) {
@@ -36,6 +39,7 @@ public class AuthService {
             }
         }
 
+        logger.info("Registering student LRN: {}, Name: {}", student.getLrn(), student.getFirstName() + " " + student.getLastName());
         encodePassword(student);
         return userRepository.save(student);
     }
@@ -43,12 +47,14 @@ public class AuthService {
     public User registerTeacher(Teacher teacher) {
         teacher.setRole("TEACHER");
         encodePassword(teacher);
+        logger.info("Registering teacher, Name: {}, ID: {}", teacher.getFirstName() + " " + teacher.getLastName(), teacher.getId());
         return userRepository.save(teacher);
     }
 
     public User registerAdmin(Admin admin) {
         admin.setRole("ADMIN");
         encodePassword(admin);
+        logger.info("Registering admin, Name: {}, ID: {}", admin.getFirstName() + " " + admin.getLastName(), admin.getId());
         return userRepository.save(admin);
     }
 

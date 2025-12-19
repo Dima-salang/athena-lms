@@ -83,9 +83,6 @@ public class AdminService {
         PagedList<User> pagedList = cb.page(pageable.getPageNumber() * pageable.getPageSize(), pageable.getPageSize())
                 .getResultList();
 
-        // print users
-        pagedList.forEach(user -> System.out.println(user));
-
         return new PageImpl<>(pagedList, pageable, pagedList.getTotalSize());
     }
 
@@ -101,8 +98,7 @@ public class AdminService {
     }
 
     public Page<User> getTeachers(Pageable pageable) {
-        Page<User> teachers = userRepository.findAllByRole("TEACHER", pageable);
-        return teachers;
+        return userRepository.findAllByRole("TEACHER", pageable);
     }
 
     // TESTS

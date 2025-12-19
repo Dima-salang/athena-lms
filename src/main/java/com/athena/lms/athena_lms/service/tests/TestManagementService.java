@@ -3,10 +3,12 @@ package com.athena.lms.athena_lms.service.tests;
 import java.util.ArrayList;
 import java.util.List;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import com.athena.exceptions.AccessDeniedException;
 import com.athena.lms.athena_lms.dto.QuestionDto;
 import com.athena.lms.athena_lms.dto.TestDto;
 import com.athena.lms.athena_lms.mapper.QuestionMapper;
@@ -42,6 +44,8 @@ import org.springframework.data.domain.Pageable;
 
 @Service
 public class TestManagementService {
+    private static final Logger logger = LoggerFactory.getLogger(TestManagementService.class);
+
     private final UserRepository userRepository;
     private final TestRepository testRepository;
     private final QuestionRepository questionRepository;
@@ -83,6 +87,7 @@ public class TestManagementService {
     }
 
     public TestDto createTest(TestDto testDto, String username) {
+        logger.info("Creating test '{}' by user '{}'", testDto.getTestName(), username);
         if (testDto.getId() != null && testRepository.existsById(testDto.getId())) {
             return updateTest(testDto.getId(), testDto);
         }
@@ -91,8 +96,8 @@ public class TestManagementService {
 
         // Handle Teacher
         User user = userRepository.findByUsername(username);
-        if (user == null || !(user instanceof Teacher)) {
-            throw new RuntimeException("Current user is not a teacher");
+        if (!(user instanceof Teacher)) {
+            throw new AccessDeniedException("Current user is not a teacher");
         }
         test.setTeacher((Teacher) user);
 
@@ -110,7 +115,7 @@ public class TestManagementService {
         boolean teacherAssignmentExists = teacherAssignmentRepository.existsByTeacherIdAndSubjectIdAndSectionId(
                 user.getId(), subjectId, sectionId);
         if (!teacherAssignmentExists) {
-            throw new RuntimeException("You are not assigned to this subject and section");
+            throw new AccessDeniedException("You are not assigned to this subject and section");
         }
 
         // Handle Subject
@@ -195,13 +200,14 @@ public class TestManagementService {
         test.setUpdatedAt(Instant.now());
 
         Test savedTest = testRepository.save(test);
+        logger.info("Test created successfully. ID: {}", savedTest.getId());
         return testMapper.toDto(savedTest);
     }
 
     // update test
-
     public TestDto autosaveTest(Long id, TestDto testDto) {
-        Test existingTest = testRepository.findById(id).orElseThrow(() -> new RuntimeException("Test not found"));
+        logger.debug("Autosaving test ID: {}", id);
+        Test existingTest = testRepository.findById(id).orElseThrow(() -> new AccessDeniedException("Test not found"));
 
         // Update fields
         if (testDto.getTestName() != null)
@@ -236,6 +242,7 @@ public class TestManagementService {
     }
 
     public TestDto updateTest(Long id, TestDto testDto) {
+        logger.info("Updating test ID: {}", id);
         Test existingTest = testRepository.findById(id).orElseThrow(() -> new RuntimeException("Test not found"));
 
         // Update fields
@@ -322,12 +329,10 @@ public class TestManagementService {
                 question.setTest(existingTest);
 
                 // Ensure options have relationships set for new questions too
-                if (question.getQuestionType() == QuestionType.MULTIPLE_CHOICE) {
-                    if (question.getOptions() != null) {
-                        for (Option option : question.getOptions()) {
-                            option.setQuestion(question);
-                            option.setTest(existingTest);
-                        }
+                if (question.getQuestionType() == QuestionType.MULTIPLE_CHOICE && question.getOptions() != null) {
+                    for (Option option : question.getOptions()) {
+                        option.setQuestion(question);
+                        option.setTest(existingTest);
                     }
                 }
                 updatedQuestions.add(question);
@@ -357,8 +362,8 @@ public class TestManagementService {
     public Page<TestDto> getTeacherTests(Long teacherId, Pageable pageable, String search) {
         // validate the id
         User user = userRepository.findById(teacherId).orElse(null);
-        if (user == null) {
-            throw new RuntimeException("User not found");
+        if (!(user instanceof Teacher)) {
+            throw new AccessDeniedException("User not found");
         }
 
         CriteriaBuilder<Test> cb = cbf.create(em, Test.class).where("teacher.id").eq(teacherId);
@@ -385,6 +390,7 @@ public class TestManagementService {
     }
 
     public void deleteTest(Long id) {
+        logger.info("Deleting test ID: {}", id);
         testRepository.deleteById(id);
     }
 
@@ -433,6 +439,7 @@ public class TestManagementService {
     }
 
     public List<QuestionDto> createQuestions(List<QuestionDto> questionDtos, Long testId) {
+        logger.info("Adding questions to test ID: {}", testId);
         // save the questions on the test list
         Test test = testRepository.findById(testId).orElseThrow(() -> new RuntimeException("Test not found"));
 
@@ -447,15 +454,13 @@ public class TestManagementService {
                 question.setId(null);
             }
 
-            if (question.getQuestionType() == QuestionType.MULTIPLE_CHOICE) {
-                if (question.getOptions() != null) {
-                    for (Option option : question.getOptions()) {
-                        option.setQuestion(question);
-                        option.setTest(test);
-                        // Handle negative Option IDs
-                        if (option.getId() != null && option.getId() < 0) {
-                            option.setId(null);
-                        }
+            if (question.getQuestionType() == QuestionType.MULTIPLE_CHOICE && question.getOptions() != null) {
+                for (Option option : question.getOptions()) {
+                    option.setQuestion(question);
+                    option.setTest(test);
+                    // Handle negative Option IDs
+                    if (option.getId() != null && option.getId() < 0) {
+                        option.setId(null);
                     }
                 }
             }
@@ -478,9 +483,10 @@ public class TestManagementService {
     // creates or updates the delta of the questions instead of the whole test in
     // autosaving
     public List<QuestionDto> createOrUpdateQuestions(List<QuestionDto> questionDtos, Long testId) {
+        logger.debug("Autosaving questions for test ID: {}", testId);
         Test test = testRepository.findById(testId).orElse(null);
         if (test == null) {
-            throw new RuntimeException("Test not found");
+            throw new AccessDeniedException("Test not found");
         }
 
         List<Question> toSaveQuestions = new ArrayList<>();
@@ -609,8 +615,8 @@ public class TestManagementService {
 
     public List<TeacherAssignment> getTeacherAssignments(String username) {
         User user = userRepository.findByUsername(username);
-        if (user == null || !(user instanceof Teacher)) {
-            throw new RuntimeException("Current user is not a teacher");
+        if (!(user instanceof Teacher)) {
+            throw new AccessDeniedException("Current user is not a teacher");
         }
         return teacherAssignmentRepository.findByTeacher((Teacher) user);
     }

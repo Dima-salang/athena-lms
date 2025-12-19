@@ -2,14 +2,14 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { getTestsBySection, getMySubmissions, type Test, type Student, type Submission } from "../services/api"
+import { getTestsBySection, getMySubmissions, type Test, type Student } from "../services/api"
 import { getCurrentUser, logout } from "../services/authApi"
 import { useNavigate } from "react-router-dom"
 
 const StudentDashboardPage: React.FC = () => {
   const [tests, setTests] = useState<Test[]>([])
   const [student, setStudent] = useState<Student | null>(null)
-  const [submittedTestIds, setSubmittedTestIds] = useState<Set<number>>(new Set())
+  const [submittedTestMap, setSubmittedTestMap] = useState<Map<number, number>>(new Map()) // testId -> submissionId
   const [error, setError] = useState<string | null>(null)
   const navigate = useNavigate()
 
@@ -33,12 +33,13 @@ const StudentDashboardPage: React.FC = () => {
             getMySubmissions()
           ])
 
-          const submittedIds = new Set(
-            submissions
-              .filter(s => s.submittedAt !== null && s.submittedAt !== undefined) // Only count completed submissions
-              .map(s => s.test.id)
-          )
-          setSubmittedTestIds(submittedIds)
+          const resultMap = new Map<number, number>();
+          submissions
+            .filter(s => s.submittedAt !== null && s.submittedAt !== undefined)
+            .forEach(s => {
+              resultMap.set(s.test.id, s.id);
+            });
+          setSubmittedTestMap(resultMap)
 
           const response = testsResponse
           // console.log(response)
@@ -185,12 +186,12 @@ const StudentDashboardPage: React.FC = () => {
                       >
                         Past Due
                       </button>
-                    ) : submittedTestIds.has(test.id) ? (
+                    ) : submittedTestMap.has(test.id) ? (
                       <button
-                        disabled
-                        className="w-full py-2 bg-green-100 text-green-700 font-medium rounded-lg cursor-not-allowed border border-green-200"
+                        onClick={() => navigate(`/student/submission/${submittedTestMap.get(test.id)}`)}
+                        className="w-full py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition duration-200"
                       >
-                        Completed
+                        View Result
                       </button>
                     ) : (
                       <button

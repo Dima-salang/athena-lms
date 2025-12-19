@@ -3,6 +3,7 @@ import LoginPage from './pages/LoginPage';
 import RegistrationPage from './pages/RegistrationPage';
 import DashboardPage from './pages/DashboardPage';
 import StudentDashboardPage from './pages/StudentDashboardPage';
+import StudentSubmissionDetailPage from './pages/StudentSubmissionDetailPage';
 
 import App from './App';
 import CreateTestPage from './pages/CreateTestPage';
@@ -17,8 +18,6 @@ import ProtectedRoute from './components/ProtectedRoute';
 import TakeTestPage from './pages/TakeTestPage';
 import TestSubmissionsPage from './pages/TestSubmissionsPage';
 import SubmissionDetailPage from './pages/SubmissionDetailPage';
-
-
 
 const router = createBrowserRouter([
     {
@@ -58,6 +57,14 @@ const router = createBrowserRouter([
                 element: (
                     <ProtectedRoute allowedRoles={['ROLE_STUDENT']}>
                         <TakeTestPage />
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: 'student/submission/:submissionId',
+                element: (
+                    <ProtectedRoute allowedRoles={['ROLE_STUDENT']}>
+                        <StudentSubmissionDetailPage />
                     </ProtectedRoute>
                 ),
             },

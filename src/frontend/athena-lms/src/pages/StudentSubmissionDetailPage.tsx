@@ -2,16 +2,13 @@
 
 import React, { useState, useEffect } from "react"
 import { useParams, useNavigate } from "react-router-dom"
-import { getSubmission, getStudentAnswers, manualSetStudentAnswerScore, recalculateSubmission, type Submission, type StudentAnswer } from "../services/api"
+import { getSubmission, getStudentAnswers, type Submission, type StudentAnswer } from "../services/api"
 import { format } from "date-fns"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
 import {
     ArrowLeft,
-    RotateCw,
-    PlayCircle,
     User,
     FileText,
     CheckCircle2,
@@ -22,14 +19,13 @@ import {
     Award
 } from "lucide-react"
 
-const SubmissionDetailPage: React.FC = () => {
+const StudentSubmissionDetailPage: React.FC = () => {
     const { submissionId } = useParams<{ submissionId: string }>()
     const navigate = useNavigate()
     const [submission, setSubmission] = useState<Submission | null>(null)
     const [answers, setAnswers] = useState<StudentAnswer[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
-    const [actionLoading, setActionLoading] = useState(false)
 
     useEffect(() => {
         const fetchData = async () => {
@@ -53,35 +49,6 @@ const SubmissionDetailPage: React.FC = () => {
         fetchData()
     }, [submissionId])
 
-    const handleRecalculate = async () => {
-        if (!submissionId) return;
-        try {
-            setActionLoading(true);
-            await recalculateSubmission(Number(submissionId));
-            globalThis.location.reload();
-        } catch (e) {
-            console.error(e);
-            alert("Failed to recalculate");
-        } finally {
-            setActionLoading(false);
-        }
-    }
-
-    const handleAutoGrade = async () => {
-        if (!submissionId) return;
-        if (!confirm("Are you sure? This will overwrite manual scores with auto-graded values.")) return;
-        try {
-            setActionLoading(true);
-            await recalculateSubmission(Number(submissionId), true);
-            globalThis.location.reload();
-        } catch (e) {
-            console.error(e);
-            alert("Failed to auto-grade");
-        } finally {
-            setActionLoading(false);
-        }
-    }
-
     if (loading) {
         return (
             <div className="flex justify-center items-center min-h-screen bg-slate-50/50 dark:bg-slate-950">
@@ -96,7 +63,7 @@ const SubmissionDetailPage: React.FC = () => {
                 <div className="bg-destructive/10 text-destructive p-6 rounded-lg flex flex-col items-center gap-3 max-w-md text-center border border-destructive/20">
                     <AlertTriangle className="h-8 w-8" />
                     <p className="font-semibold text-lg">{error || "Submission not found"}</p>
-                    <Button variant="outline" onClick={() => navigate("/dashboard")} className="mt-2 border-destructive/30 hover:bg-destructive/20 text-destructive">
+                    <Button variant="outline" onClick={() => navigate("/student-dashboard")} className="mt-2 border-destructive/30 hover:bg-destructive/20 text-destructive">
                         Back to Dashboard
                     </Button>
                 </div>
@@ -118,27 +85,7 @@ const SubmissionDetailPage: React.FC = () => {
                             <ArrowLeft className="h-4 w-4 mr-2" /> Back
                         </Button>
                         <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Submission Details</h1>
-                        <p className="text-muted-foreground">Review and grade student answers.</p>
-                    </div>
-
-                    <div className="flex gap-3">
-                        <Button
-                            variant="outline"
-                            onClick={handleRecalculate}
-                            disabled={actionLoading}
-                            className="border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800 dark:bg-blue-950/30 dark:border-blue-900/50 dark:text-blue-300"
-                        >
-                            {actionLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <RotateCw className="h-4 w-4 mr-2" />}
-                            Recalculate
-                        </Button>
-                        <Button
-                            onClick={handleAutoGrade}
-                            disabled={actionLoading}
-                            className="bg-primary hover:bg-primary/90 text-white shadow-md shadow-primary/20"
-                        >
-                            {actionLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <PlayCircle className="h-4 w-4 mr-2" />}
-                            Auto-Grade
-                        </Button>
+                        <p className="text-muted-foreground">View your test results.</p>
                     </div>
                 </div>
 
@@ -239,24 +186,7 @@ const SubmissionDetailPage: React.FC = () => {
                                             <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-900 p-1.5 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm relative group">
                                                 <span className="text-xs font-semibold text-muted-foreground uppercase px-2">Score</span>
                                                 <div className="flex items-center">
-                                                    <Input
-                                                        type="number"
-                                                        min="0"
-                                                        max={question.fullPoints}
-                                                        defaultValue={score}
-                                                        onBlur={async (e) => {
-                                                            const val = Number(e.target.value);
-                                                            if (studentAnswer?.id && !isNaN(val)) {
-                                                                try {
-                                                                    await manualSetStudentAnswerScore(studentAnswer.id, val);
-                                                                } catch (err) {
-                                                                    console.error(err);
-                                                                    alert("Failed to update score");
-                                                                }
-                                                            }
-                                                        }}
-                                                        className="w-16 h-8 text-right font-medium text-slate-900 border-none bg-white focus-visible:ring-1 focus-visible:ring-primary shadow-inner"
-                                                    />
+                                                    <span className="text-xl font-bold px-2">{score}</span>
                                                     <span className="text-sm text-muted-foreground ml-2 px-2 border-l border-slate-200 dark:border-slate-700">
                                                         / {question.fullPoints}
                                                     </span>
@@ -396,4 +326,4 @@ const SubmissionDetailPage: React.FC = () => {
     )
 }
 
-export default SubmissionDetailPage
+export default StudentSubmissionDetailPage

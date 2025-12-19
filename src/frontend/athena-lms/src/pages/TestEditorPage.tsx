@@ -466,7 +466,7 @@ const TestEditorPage: React.FC = () => {
                                             >
                                                 <option value="">Select a subject</option>
                                                 {subjects.map(s => (
-                                                    <option key={s.id} value={s.name}>{s.name}</option>
+                                                    <option key={s.id} value={s.id}>{s.name}</option>
                                                 ))}
                                             </select>
                                         </div>
