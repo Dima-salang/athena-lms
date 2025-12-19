@@ -60,8 +60,7 @@ public class SubmissionService {
         if (submission == null) {
             Test submissionTest = testRepository.findById(submissionDto.getTest().getId()).orElse(null);
             User user = userRepository.findById(submissionDto.getStudent().getId()).orElse(null);
-            if (user instanceof Student) {
-                Student submissionStudent = (Student) user;
+            if (user instanceof Student submissionStudent) {
                 submission = new Submission();
                 submission.setTest(submissionTest);
                 submission.setStudent(submissionStudent);
@@ -114,7 +113,7 @@ public class SubmissionService {
 
     public List<SubmissionDto> getStudentSubmissions(String username) {
         User user = userRepository.findByUsername(username);
-        if (user == null || !(user instanceof Student)) {
+        if (!(user instanceof Student)) {
             throw new AccessDeniedException("User not found or not a student");
         }
         List<Submission> submissions = submissionRepository.findByStudentId(user.getId());
@@ -203,10 +202,9 @@ public class SubmissionService {
     @org.springframework.transaction.annotation.Transactional
     public SubmissionDto startTest(Long testId, String username) {
         User user = userRepository.findByUsername(username);
-        if (user == null || !(user instanceof Student)) {
+        if (!(user instanceof Student student)) {
             throw new AccessDeniedException("User not found or not a student");
         }
-        Student student = (Student) user;
 
         Test test = testRepository.findById(testId).orElseThrow(() -> new AccessDeniedException("Test not found"));
 
