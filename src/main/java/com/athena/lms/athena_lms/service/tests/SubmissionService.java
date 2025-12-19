@@ -87,7 +87,6 @@ public class SubmissionService {
         if (!testRepository.existsById(testId)) {
             throw new NotFoundException("Test not found");
         }
-
         CriteriaBuilder<Submission> cb = cbf.create(em, Submission.class);
 
         cb.where("test.id").eq(testId).where("submittedAt").isNotNull();
@@ -144,14 +143,12 @@ public class SubmissionService {
                 studentAnswer = studentAnswerRepository.findBySubmissionIdAndQuestionId(
                         studentAnswerDto.getSubmission().getId(),
                         studentAnswerDto.getQuestion().getId());
-                System.out.println("Found student answer by submission and question: " + studentAnswerDto.getId());
             }
 
             if (studentAnswer == null) {
                 // Create new answer - don't use mapper to avoid transient entities
                 studentAnswer = new StudentAnswer();
                 studentAnswer.setId(null);
-                System.out.println("Creating new student answer: " + studentAnswer.getId());
             }
 
             studentAnswer.setTextAnswer(studentAnswerDto.getTextAnswer());
@@ -182,15 +179,6 @@ public class SubmissionService {
             studentAnswers.add(studentAnswer);
         }
         List<StudentAnswer> savedStudentAnswers = studentAnswerRepository.saveAll(studentAnswers);
-        // log saved student answers
-        System.out.println("Saved student answers: ");
-        for (StudentAnswer studentAnswer : savedStudentAnswers) {
-            System.out.println("Student Answer ID: " + studentAnswer.getId());
-            System.out.println("Student Answer Text: " + studentAnswer.getTextAnswer());
-            System.out.println("Student Answer Points: " + studentAnswer.getPoints());
-            System.out.println("Student Answer Question: " + studentAnswer.getQuestion().getId());
-            System.out.println("Student Answer Submission: " + studentAnswer.getSubmission().getId());
-        }
         return studentAnswerMapper.toDtoList(savedStudentAnswers);
     }
 
@@ -236,6 +224,7 @@ public class SubmissionService {
         if (submittedSubmission != null) {
             throw new AccessDeniedException("You have already submitted this test");
         }
+
 
         Submission submission = new Submission();
         submission.setTest(test);
