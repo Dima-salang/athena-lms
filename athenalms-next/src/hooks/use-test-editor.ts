@@ -61,6 +61,7 @@ function toEditorQuestion(q: QuestionDTO): EditorQuestion {
     rubric: q.rubric,
     orderIndex: q.orderIndex,
     options: q.options || [],
+    answeredByStudents: q.answeredByStudents,
   };
 }
 
@@ -383,6 +384,16 @@ export function useTestEditor(testId: string) {
 
   const deleteQuestion = useCallback(
     (index: number) => {
+      // Leave answered questions alone: the save would be refused and the editor
+      // would be showing a question the database still has.
+      const target = questionsRef.current[index];
+      if (target?.answeredByStudents) {
+        toast.error("You can't delete this question", {
+          description: `A student has already answered Question ${target.questionNumber}.`,
+        });
+        return;
+      }
+
       setQuestions((prev) => {
         if (prev.length <= 1) return prev;
         return prev
@@ -403,6 +414,7 @@ export function useTestEditor(testId: string) {
         const clone: EditorQuestion = {
           ...source,
           id: undefined,
+          answeredByStudents: false, // the copy is new, so nothing answers it yet
           questionNumber: nextNumber,
           orderIndex: nextNumber - 1,
           options: source.options.map((option, i) => ({

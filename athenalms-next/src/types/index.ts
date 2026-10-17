@@ -125,6 +125,8 @@ export interface QuestionDTO {
   imageUrl?: string | null;
   orderIndex: number;
   options: OptionDTO[];
+  /** A student answered this question, so it can't be removed. */
+  answeredByStudents?: boolean;
 }
 
 export interface TransmutationConfigDTO {
