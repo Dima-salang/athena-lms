@@ -15,8 +15,8 @@ test.describe("Authentication & RBAC Route Guard", () => {
   test("displays error message on invalid credentials", async ({ page }) => {
     await page.goto("/login");
 
-    await page.fill('input[placeholder="Enter your username or email"]', "wronguser");
-    await page.fill('input[type="password"]', "WrongPassword123!");
+    await page.getByLabel(/Username or email/i).fill("wronguser");
+    await page.getByLabel(/^Password$/i).fill("WrongPassword123!");
     await page.click('button[type="submit"]');
 
     // Expect error message to appear
@@ -27,12 +27,13 @@ test.describe("Authentication & RBAC Route Guard", () => {
   test("admin user logs in successfully and is redirected to /admin dashboard", async ({ page }) => {
     await page.goto("/login");
 
-    await page.fill('input[placeholder="Enter your username or email"]', "admin");
-    await page.fill('input[type="password"]', "admin");
+    await page.getByLabel(/Username or email/i).fill("admin");
+    await page.getByLabel(/^Password$/i).fill("admin");
     await page.click('button[type="submit"]');
 
     // Should navigate to admin dashboard
     await expect(page).toHaveURL(/\/admin/);
-    await expect(page.locator("h1")).toContainText(/Admin/i);
+    await expect(page.locator("h1")).toContainText(/Admin dashboard/i);
+    await expect(page.getByText(/Needs attention/i)).toBeVisible();
   });
 });
