@@ -29,7 +29,7 @@ export function BulkActionsBar({
 
   return (
     <div className="flex flex-wrap items-center gap-2 border-2 border-border bg-secondary p-3 text-secondary-foreground">
-      <span className="text-xs label-mono font-bold">
+      <span className="text-xs font-mono font-bold uppercase tracking-[0.14em]">
         {count} selected
       </span>
 

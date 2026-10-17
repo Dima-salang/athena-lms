@@ -105,7 +105,7 @@ export default async function AdminDashboardPage() {
       </div>
 
       <section className="space-y-3">
-        <h2 className="text-xs label-mono font-bold text-muted-foreground">
+        <h2 className="text-xs font-mono font-bold uppercase tracking-[0.14em] text-muted-foreground">
           Needs attention
         </h2>
 
