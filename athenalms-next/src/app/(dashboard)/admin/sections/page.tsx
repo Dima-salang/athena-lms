@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -142,7 +143,14 @@ export default function SectionsPage() {
               ) : (
                 sections.map((sec) => (
                   <TableRow key={sec.id}>
-                    <TableCell className="font-semibold">{sec.name}</TableCell>
+                    <TableCell className="font-semibold">
+                      <Link
+                        href={`/admin/sections/${sec.id}`}
+                        className="underline-offset-4 hover:underline"
+                      >
+                        {sec.name}
+                      </Link>
+                    </TableCell>
                     <TableCell>{sec.gradeLevel || "—"}</TableCell>
                     <TableCell>{sec.adviserName || "Unassigned"}</TableCell>
                     <TableCell>{sec.schoolYear || "—"}</TableCell>
