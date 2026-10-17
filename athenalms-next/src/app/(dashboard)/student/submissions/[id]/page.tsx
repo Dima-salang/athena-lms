@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { useApiResource } from "@/hooks/use-api-resource";
-import { formatDate, formatExamType } from "@/lib/utils";
+import { elapsedSeconds, formatDate, formatExamType } from "@/lib/utils";
 import type { QuestionDTO, SubmissionDTO } from "@/types";
 
 interface StudentSubmissionReviewPageProps {
@@ -80,11 +80,10 @@ export default function StudentSubmissionReviewPage({
   const transmutedGrade = submission.transmutedGrade;
   const isPassing = (transmutedGrade ?? 0) >= 75;
 
-  const startTime = new Date(submission.startTime).getTime();
-  const endTime = submission.endTime
-    ? new Date(submission.endTime).getTime()
-    : Date.now();
-  const durationSeconds = Math.max(0, Math.round((endTime - startTime) / 1000));
+  const durationSeconds = elapsedSeconds(
+    submission.startTime,
+    submission.submittedAt
+  );
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 pb-20">
