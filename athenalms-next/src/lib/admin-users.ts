@@ -74,6 +74,8 @@ export function buildAdminUsersWhere(query: AdminUsersQuery): Record<string, unk
         { firstName: { contains: search } },
         { lastName: { contains: search } },
         { email: { contains: search } },
+        // Students are just as often looked up by LRN.
+        { studentProfile: { is: { lrn: { contains: search } } } },
       ],
     });
   }

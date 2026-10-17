@@ -72,11 +72,14 @@ describe("buildAdminUsersWhere", () => {
     });
   });
 
-  it("searches username, name and email", () => {
+  it("searches username, name, email and LRN", () => {
     const where = buildAdminUsersWhere({ ...base, search: "juan" });
     const and = where.AND as Array<{ OR: Array<Record<string, unknown>> }>;
     expect(and).toHaveLength(1);
-    expect(and[0].OR).toHaveLength(4);
+    expect(and[0].OR).toHaveLength(5);
+    expect(and[0].OR).toContainEqual({
+      studentProfile: { is: { lrn: { contains: "juan" } } },
+    });
   });
 
   it("treats 'unassigned' as students with no section or no profile", () => {

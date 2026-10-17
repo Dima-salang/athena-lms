@@ -4,6 +4,7 @@ import {
   parseRosterFile,
   generateGradebookExcel,
   generateCredentialsSummaryExcel,
+  generateRosterTemplateExcel,
   type GradebookRow,
 } from "../excel";
 
@@ -131,5 +132,25 @@ describe("Excel Export Generation", () => {
 
     const wb = XLSX.read(buffer, { type: "buffer" });
     expect(wb.SheetNames).toContain("Credentials");
+  });
+});
+
+describe("Roster Template", () => {
+  it("is a workbook the importer can read back", () => {
+    const buffer = generateRosterTemplateExcel();
+
+    const workbook = XLSX.read(buffer, { type: "buffer" });
+    expect(workbook.SheetNames).toEqual([ "Class list", "Instructions" ]);
+
+    // The example rows use the exact headers the parser requires.
+    const parsed = parseRosterFile(buffer);
+    expect(parsed.errors).toHaveLength(0);
+    expect(parsed.validCount).toBe(2);
+    expect(parsed.records[0]).toMatchObject({
+      lrn: "123456789012",
+      firstName: "Juan",
+      lastName: "Dela Cruz",
+      section: "Grade 10 - Aristotle",
+    });
   });
 });
