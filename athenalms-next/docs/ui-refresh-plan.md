@@ -329,11 +329,14 @@ Test editor split, create/edit, submissions list + detail, special access, resul
 
 **Phase 4 — Admin**
 Users, sections, subjects, teacher classes, roster import, admin dashboard.
-→ build + test (+ e2e where a DB is available). *In progress* — this phase is the refresh **plus**
-new capabilities (edit / activate-deactivate / bulk actions / CSV export, section detail page with
-student moves, password reset, roster template + credentials export). Built on
-`feat/ui-neobrutalist` as several small commits, then cherry-picked to `feat/ui-refresh`.
-Full spec: `docs/ui-refresh-phase4-changelog.md`.
+→ build + test (+ e2e where a DB is available). **Implemented** (9 commits on
+`feat/ui-neobrutalist`, cherry-picked to `feat/ui-refresh`): the refresh **plus**
+new capabilities — edit / activate-deactivate / bulk actions / CSV export, section detail page with
+student moves, deterministic password reset, roster template + password sheet. 159 unit tests and
+the production build are green; the API was smoke-tested end to end. **e2e was not run to green** —
+the spec files were updated and a new one written, but the local runner hung on login (see the
+changelog §8.11 before trusting them).
+Full spec, verification evidence and deviations: `docs/ui-refresh-phase4-changelog.md`.
 
 Each phase: one commit, message `ui(phase-N): …`. e2e specs (`e2e/*.spec.ts`) re-run at the end;
 they may need selector updates if labels change — treated as expected churn.
