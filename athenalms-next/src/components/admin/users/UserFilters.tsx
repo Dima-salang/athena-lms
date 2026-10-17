@@ -72,7 +72,7 @@ export function UserFilters({
           aria-hidden
         />
         <Input
-          placeholder="Search by name, username or email…"
+          placeholder="Search by name, username, LRN or email…"
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
           className="pl-9"

@@ -254,6 +254,51 @@ export function generateGradebookExcel(
 }
 
 /**
+ * Generate a blank roster template for admins to fill in.
+ *
+ * The header row uses exactly the columns `parseRosterFile` requires, so a
+ * filled-in template always imports. Two example rows are included and a notes
+ * sheet carries the rules (they are ignored on import because parsing reads the
+ * first sheet only).
+ */
+export function generateRosterTemplateExcel(): Buffer {
+  const worksheetData = [
+    ["LRN", "FirstName", "LastName", "Section", "Email"],
+    ["123456789012", "Juan", "Dela Cruz", "Grade 10 - Aristotle", ""],
+    ["123456789013", "Ana", "Reyes", "Grade 10 - Aristotle", "ana.reyes@example.com"],
+  ];
+
+  const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+  worksheet["!cols"] = [
+    { wch: 15 },
+    { wch: 18 },
+    { wch: 18 },
+    { wch: 26 },
+    { wch: 28 },
+  ];
+
+  const notes = XLSX.utils.aoa_to_sheet([
+    ["How to fill in this class list"],
+    [],
+    ["LRN", "Exactly 12 digits. This is also the student's first password."],
+    ["FirstName", "Given name."],
+    ["LastName", "Family name."],
+    ["Section", "The section name. It is created automatically if it does not exist."],
+    ["Email", "Optional. Leave blank if the student has no email."],
+    [],
+    ["Delete the example rows before importing."],
+    ["Keep the header row exactly as it is."],
+  ]);
+  notes["!cols"] = [{ wch: 14 }, { wch: 70 }];
+
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Class list");
+  XLSX.utils.book_append_sheet(workbook, notes, "Instructions");
+
+  return Buffer.from(XLSX.write(workbook, { type: "buffer", bookType: "xlsx" }));
+}
+
+/**
  * Generate a credentials summary Excel file for newly provisioned students.
  * Designed to be printed/distributed by the admin/adviser.
  */
