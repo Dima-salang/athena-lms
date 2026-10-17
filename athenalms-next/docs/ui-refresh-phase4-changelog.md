@@ -174,8 +174,11 @@ now.", "Place students", "Only needed if the school contacts them by email."
 - [x] e2e specs updated + new spec written: `admin-roster.spec.ts` + `auth-guard.spec.ts`
       rewritten for the new copy, new `e2e/admin-users.spec.ts`
 - [ ] e2e **run to green** — could not be done in this environment, see §8
-- [x] `npm run db:seed` re-run to restore the dev DB after API smoke tests
-- [ ] Cherry-pick the admin commits onto `feat/ui-refresh`
+- [x] `npm run db:seed` re-run to restore the dev DB after API smoke tests (the seed uses
+      `update: {}`, so the two fields the smoke tests edited were also set back by hand)
+- [x] Cherry-picked onto `feat/ui-refresh` — 11 commits, `0195eaa`…`694797b`. Verified there
+      too: tsc, lint, 159 unit tests and a production build with all 13 admin API routes and 6
+      admin pages emitted (see §8.13 for the one thing the cherry-pick needed)
 
 ### What was actually verified
 
@@ -260,3 +263,9 @@ Recorded as they happened, rather than retrofitted:
 12. **Dev-DB mutations were undone.** API smoke testing edited a section's adviser and a
     subject's description, and the seed uses `update: {}` so it does not restore them; both were
     set back to their seed values by hand, and `npm run db:seed` was re-run.
+13. **Two new spots deliberately avoid the reskin's custom utilities.** The cherry-pick lands the
+    admin work on `feat/ui-refresh`, which does not carry the neobrutalist skin, so the
+    bulk-selection label and the dashboard's "Needs attention" heading spell out
+    `font-mono uppercase tracking-[0.14em]` instead of calling `label-mono` — that utility only
+    exists on `feat/ui-neobrutalist`, and the class would have silently done nothing on the
+    other branch. Both branches were then verified independently (tsc, lint, 159 tests, build).
