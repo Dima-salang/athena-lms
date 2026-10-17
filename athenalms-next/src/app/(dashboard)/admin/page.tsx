@@ -56,9 +56,9 @@ export default async function AdminDashboardPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Institutional Administration</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Administration</h1>
         <p className="text-sm text-muted-foreground">
-          Manage system rosters, academic taxonomy, teacher assignments, and institutional access.
+          Manage class rosters, teacher assignments, and account access.
         </p>
       </div>
 
