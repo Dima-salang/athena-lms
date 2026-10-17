@@ -3,7 +3,20 @@ import type { NextRequest } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { hashPassword } from "@/lib/password";
-import { createUserSchema } from "@/lib/validations";
+import { createUserSchema, fieldErrors } from "@/lib/validations";
+import {
+  buildAdminUsersOrderBy,
+  buildAdminUsersWhere,
+  parseAdminUsersQuery,
+  toAdminUserDTO,
+} from "@/lib/admin-users";
+import { LAST_ADMIN_REASON, deleteBlockReason } from "@/lib/admin-guards";
+
+/** The relations every admin user read needs (role, section, teacher profile). */
+const USER_INCLUDE = {
+  studentProfile: { include: { section: true } },
+  teacherProfile: true,
+} as const;
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,58 +25,26 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Forbidden: Admin access required" }, { status: 403 });
     }
 
-    const { searchParams } = new URL(request.url);
-    const role = searchParams.get("role");
-    const search = searchParams.get("search")?.toLowerCase();
-    const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
-    const pageSize = Math.min(100, Math.max(1, parseInt(searchParams.get("pageSize") || "20", 10)));
-
-    const where: Record<string, unknown> = {};
-    if (role && ["ADMIN", "TEACHER", "STUDENT"].includes(role)) {
-      where.role = role;
-    }
-    if (search) {
-      where.OR = [
-        { username: { contains: search } },
-        { firstName: { contains: search } },
-        { lastName: { contains: search } },
-        { email: { contains: search } },
-      ];
-    }
+    const query = parseAdminUsersQuery(new URL(request.url).searchParams);
+    const where = buildAdminUsersWhere(query);
 
     const [total, users] = await Promise.all([
       db.user.count({ where }),
       db.user.findMany({
         where,
-        skip: (page - 1) * pageSize,
-        take: pageSize,
-        orderBy: { createdAt: "desc" },
-        include: {
-          studentProfile: { include: { section: true } },
-          teacherProfile: true,
-        },
+        skip: (query.page - 1) * query.pageSize,
+        take: query.pageSize,
+        orderBy: buildAdminUsersOrderBy(query.sort),
+        include: USER_INCLUDE,
       }),
     ]);
 
     return NextResponse.json({
-      data: users.map((u) => ({
-        id: u.id,
-        username: u.username,
-        email: u.email,
-        firstName: u.firstName,
-        lastName: u.lastName,
-        role: u.role,
-        isActive: u.isActive,
-        mustChangePassword: u.mustChangePassword,
-        createdAt: u.createdAt.toISOString(),
-        lrn: u.studentProfile?.lrn,
-        sectionName: u.studentProfile?.section?.name,
-        teacherProfileId: u.teacherProfile?.id,
-      })),
-      page,
-      pageSize,
+      data: users.map(toAdminUserDTO),
+      page: query.page,
+      pageSize: query.pageSize,
       total,
-      totalPages: Math.ceil(total / pageSize),
+      totalPages: Math.max(1, Math.ceil(total / query.pageSize)),
     });
   } catch (error) {
     console.error("GET /api/admin/users error:", error);
@@ -82,7 +63,11 @@ export async function POST(request: NextRequest) {
     const parsed = createUserSchema.safeParse(body);
     if (!parsed.success) {
       return NextResponse.json(
-        { error: "Validation failed", details: parsed.error.flatten() },
+        {
+          error: "Validation failed",
+          fields: fieldErrors(parsed.error),
+          details: parsed.error.flatten(),
+        },
         { status: 400 }
       );
     }
@@ -170,6 +155,40 @@ export async function DELETE(request: NextRequest) {
 
     if (id === session.user.id) {
       return NextResponse.json({ error: "Cannot delete your own admin account" }, { status: 400 });
+    }
+
+    const target = await db.user.findUnique({
+      where: { id },
+      select: {
+        role: true,
+        isActive: true,
+        _count: {
+          select: { authoredTests: true, submissions: true },
+        },
+      },
+    });
+
+    if (!target) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    if (target.role === "ADMIN" && target.isActive) {
+      const activeAdmins = await db.user.count({ where: { role: "ADMIN", isActive: true } });
+      if (activeAdmins <= 1) {
+        return NextResponse.json({ error: LAST_ADMIN_REASON }, { status: 409 });
+      }
+    }
+
+    // Tests and submissions reference the user directly.
+    const blockedBy = deleteBlockReason({
+      authoredTestCount: target._count.authoredTests,
+      submissionCount: target._count.submissions,
+    });
+    if (blockedBy) {
+      return NextResponse.json(
+        { error: `This account cannot be deleted. ${blockedBy} Deactivate it instead.` },
+        { status: 409 }
+      );
     }
 
     await db.user.delete({ where: { id } });

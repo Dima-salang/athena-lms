@@ -54,6 +54,15 @@ export const firstLoginChangePasswordSchema = z
 // Admin Schemas
 // ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Learner Reference Number. Roster import has always enforced this; the admin
+ * create/edit forms now share the same rule so a typo can't become a student's
+ * first password.
+ */
+const lrnValue = z
+  .string()
+  .regex(/^\d{12}$/, "LRN must be exactly 12 digits");
+
 export const createSectionSchema = z.object({
   name: z.string().min(1, "Section name is required").max(100),
   adviserName: z.string().optional(),
@@ -81,8 +90,57 @@ export const createUserSchema = z.object({
   email: z.string().email("Invalid email").optional().or(z.literal("")),
   role: z.enum(["ADMIN", "TEACHER", "STUDENT"]),
   sectionId: z.string().optional(), // Required if role = STUDENT
-  lrn: z.string().optional(), // Required if role = STUDENT
+  lrn: lrnValue.optional().or(z.literal("")), // Required if role = STUDENT
 });
+
+/** Editing an existing account. Every field is optional (partial update). */
+export const updateUserSchema = z.object({
+  firstName: z.string().min(1, "First name is required").optional(),
+  lastName: z.string().min(1, "Last name is required").optional(),
+  email: z.string().email("Invalid email").optional().or(z.literal("")),
+  role: z.enum(["ADMIN", "TEACHER", "STUDENT"]).optional(),
+  sectionId: z.string().nullable().optional(),
+  lrn: lrnValue.optional().or(z.literal("")),
+  isActive: z.boolean().optional(),
+});
+
+export const updateSectionSchema = z.object({
+  name: z.string().min(1, "Section name is required").max(100).optional(),
+  adviserName: z.string().optional(),
+  gradeLevel: z.string().optional(),
+  schoolYear: z.string().optional(),
+  isActive: z.boolean().optional(),
+});
+
+export const updateSubjectSchema = z.object({
+  name: z.string().min(1, "Subject name is required").max(100).optional(),
+  code: z.string().optional(),
+  description: z.string().optional(),
+  isActive: z.boolean().optional(),
+});
+
+export const updateTeacherAssignmentSchema = z.object({
+  teacherProfileId: z.string().min(1, "Teacher is required").optional(),
+  sectionId: z.string().min(1, "Section is required").optional(),
+  subjectId: z.string().min(1, "Subject is required").optional(),
+  schoolYear: z.string().optional(),
+});
+
+/** Admin bulk action over a set of accounts. */
+export const bulkUserActionSchema = z.object({
+  ids: z.array(z.string().min(1)).min(1, "Select at least one account"),
+  action: z.enum(["activate", "deactivate", "delete"]),
+});
+
+/** First message per field, so the UI can show it under the right input. */
+export function fieldErrors(error: z.ZodError): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const issue of error.issues) {
+    const key = issue.path.join(".") || "_";
+    if (!out[key]) out[key] = issue.message;
+  }
+  return out;
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Test Schemas
