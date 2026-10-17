@@ -4,7 +4,10 @@ import { z } from "zod";
 
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { persistQuestions } from "@/lib/questions-persistence";
+import {
+  AnsweredItemsError,
+  persistQuestions,
+} from "@/lib/questions-persistence";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -136,6 +139,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       savedAt: new Date().toISOString(),
     });
   } catch (error) {
+    if (error instanceof AnsweredItemsError) {
+      return NextResponse.json({ error: error.message }, { status: 409 });
+    }
     console.error("PUT /api/teacher/tests/[id]/draft error:", error);
     return NextResponse.json(
       { error: "Failed to autosave draft" },

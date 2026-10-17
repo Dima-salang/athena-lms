@@ -38,6 +38,38 @@ export interface PersistableQuestion {
 }
 
 /**
+ * Raised when a save would remove a question or a choice a student has already
+ * answered. The routes turn this into a 409 with the message as-is.
+ */
+export class AnsweredItemsError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "AnsweredItemsError";
+  }
+}
+
+/** "Question 3", "Questions 3 and 5", "Questions 3, 5 and 9 (and 2 more)". */
+function questionList(numbers: number[]): string {
+  const shown = numbers.slice(0, 3);
+  const rest = numbers.length - shown.length;
+  const list =
+    shown.length === 1
+      ? `Question ${shown[0]}`
+      : `Questions ${shown.slice(0, -1).join(", ")} and ${shown[shown.length - 1]}`;
+  return rest > 0 ? `${list} (and ${rest} more)` : list;
+}
+
+export function answeredQuestionMessage(numbers: number[]): string {
+  return numbers.length === 1
+    ? `You can't delete Question ${numbers[0]} — a student has already answered it.`
+    : `You can't delete ${questionList(numbers)} — students have already answered them.`;
+}
+
+export function answeredChoiceMessage(questionNumber: number): string {
+  return `You can't remove a choice in Question ${questionNumber} — a student has already picked it.`;
+}
+
+/**
  * Upsert questions and their options for a test, delete removed ones, and
  * recompute the test's total points. Returns the new total.
  */
@@ -50,8 +82,21 @@ export async function persistQuestions(
     .map((q) => q.id)
     .filter((id): id is string => Boolean(id));
 
-  // Delete questions the teacher removed.
+  // Delete questions the teacher removed — but never one a student has answered.
+  // `StudentAnswer.questionId` is a Restrict foreign key, so that delete would
+  // fail with P2003 and roll back the whole save.
   if (incomingIds.length > 0) {
+    const answered = await tx.question.findMany({
+      where: { testId, id: { notIn: incomingIds }, studentAnswers: { some: {} } },
+      select: { questionNumber: true },
+      orderBy: { questionNumber: "asc" },
+    });
+    if (answered.length > 0) {
+      throw new AnsweredItemsError(
+        answeredQuestionMessage(answered.map((q) => q.questionNumber))
+      );
+    }
+
     await tx.question.deleteMany({ where: { testId, id: { notIn: incomingIds } } });
   }
 
@@ -92,6 +137,21 @@ export async function persistQuestions(
       .filter((id): id is string => Boolean(id));
 
     if (incomingOptionIds.length > 0) {
+      // Same rule for choices: `StudentAnswer.optionId` is also Restrict.
+      const answeredChoice = await tx.option.findFirst({
+        where: {
+          questionId,
+          id: { notIn: incomingOptionIds },
+          studentAnswers: { some: {} },
+        },
+        select: { id: true },
+      });
+      if (answeredChoice) {
+        throw new AnsweredItemsError(
+          answeredChoiceMessage(q.questionNumber ?? qIndex + 1)
+        );
+      }
+
       await tx.option.deleteMany({
         where: { questionId, id: { notIn: incomingOptionIds } },
       });

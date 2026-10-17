@@ -2,7 +2,10 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { persistQuestions } from "@/lib/questions-persistence";
+import {
+  AnsweredItemsError,
+  persistQuestions,
+} from "@/lib/questions-persistence";
 import { questionSchema } from "@/lib/validations";
 import { z } from "zod";
 
@@ -56,6 +59,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json(updatedQuestions);
   } catch (error) {
+    if (error instanceof AnsweredItemsError) {
+      return NextResponse.json({ error: error.message }, { status: 409 });
+    }
     console.error("POST /api/teacher/tests/[id]/questions error:", error);
     return NextResponse.json(
       { error: "Failed to save questions" },
