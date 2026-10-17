@@ -5,8 +5,8 @@ test.describe("Student Authentication & Exam Portal", () => {
     await page.goto("/login");
 
     // Login with seeded initial credentials
-    await page.fill('input[placeholder="Enter your username or email"]', "student.001");
-    await page.fill('input[type="password"]', "100000000001");
+    await page.getByLabel(/Username or email/i).fill("student.001");
+    await page.getByLabel(/^Password$/i).fill("100000000001");
     await page.click('button[type="submit"]');
 
     // Should redirect to /change-password
@@ -30,14 +30,14 @@ test.describe("Student Authentication & Exam Portal", () => {
   test("student dashboard renders Available, Upcoming, and Completed test tabs", async ({ page }) => {
     // If student.001 already changed password or using changed password
     await page.goto("/login");
-    await page.fill('input[placeholder="Enter your username or email"]', "student.001");
-    await page.fill('input[type="password"]', "Student@NewPass123");
+    await page.getByLabel(/Username or email/i).fill("student.001");
+    await page.getByLabel(/^Password$/i).fill("Student@NewPass123");
     await page.click('button[type="submit"]');
 
     if (page.url().includes("/login")) {
       // Fallback if not yet changed
-      await page.fill('input[placeholder="Enter your username or email"]', "student.001");
-      await page.fill('input[type="password"]', "100000000001");
+      await page.getByLabel(/Username or email/i).fill("student.001");
+      await page.getByLabel(/^Password$/i).fill("100000000001");
       await page.click('button[type="submit"]');
     }
 

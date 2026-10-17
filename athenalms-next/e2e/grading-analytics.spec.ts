@@ -4,8 +4,8 @@ test.describe("Grading & Analytics Suite", () => {
   test.beforeEach(async ({ page }) => {
     // Log in as Demo Teacher
     await page.goto("/login");
-    await page.fill('input[placeholder="Enter your username or email"]', "teacher.demo");
-    await page.fill('input[type="password"]', "Teacher@123");
+    await page.getByLabel(/Username or email/i).fill("teacher.demo");
+    await page.getByLabel(/^Password$/i).fill("Teacher@123");
     await page.click('button[type="submit"]');
     await expect(page).toHaveURL(/\/teacher/);
   });

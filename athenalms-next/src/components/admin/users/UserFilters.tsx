@@ -82,9 +82,11 @@ export function UserFilters({
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         <div className="space-y-1.5">
-          <Label className="text-xs text-muted-foreground">Role</Label>
+          <Label className="text-xs text-muted-foreground" htmlFor="role-filter">
+            Role
+          </Label>
           <Select value={role} onValueChange={(v) => onRoleChange(v as RoleFilter)}>
-            <SelectTrigger className="h-9 text-sm">
+            <SelectTrigger id="role-filter" className="h-9 text-sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -98,9 +100,11 @@ export function UserFilters({
         </div>
 
         <div className="space-y-1.5">
-          <Label className="text-xs text-muted-foreground">Password status</Label>
+          <Label className="text-xs text-muted-foreground" htmlFor="status-filter">
+            Password status
+          </Label>
           <Select value={status} onValueChange={(v) => onStatusChange(v as StatusFilter)}>
-            <SelectTrigger className="h-9 text-sm">
+            <SelectTrigger id="status-filter" className="h-9 text-sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -114,9 +118,11 @@ export function UserFilters({
         </div>
 
         <div className="space-y-1.5">
-          <Label className="text-xs text-muted-foreground">Section</Label>
+          <Label className="text-xs text-muted-foreground" htmlFor="section-filter">
+            Section
+          </Label>
           <Select value={section} onValueChange={onSectionChange}>
-            <SelectTrigger className="h-9 text-sm">
+            <SelectTrigger id="section-filter" className="h-9 text-sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -132,9 +138,11 @@ export function UserFilters({
         </div>
 
         <div className="space-y-1.5">
-          <Label className="text-xs text-muted-foreground">Sort by</Label>
+          <Label className="text-xs text-muted-foreground" htmlFor="sort-filter">
+            Sort by
+          </Label>
           <Select value={sort} onValueChange={(v) => onSortChange(v as UserSort)}>
-            <SelectTrigger className="h-9 text-sm">
+            <SelectTrigger id="sort-filter" className="h-9 text-sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -148,12 +156,14 @@ export function UserFilters({
         </div>
 
         <div className="space-y-1.5">
-          <Label className="text-xs text-muted-foreground">Rows per page</Label>
+          <Label className="text-xs text-muted-foreground" htmlFor="page-size-filter">
+            Rows per page
+          </Label>
           <Select
             value={String(pageSize)}
             onValueChange={(v) => onPageSizeChange(Number(v))}
           >
-            <SelectTrigger className="h-9 text-sm">
+            <SelectTrigger id="page-size-filter" className="h-9 text-sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
