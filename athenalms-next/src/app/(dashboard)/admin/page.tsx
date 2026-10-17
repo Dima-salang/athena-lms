@@ -1,9 +1,13 @@
 import React from "react";
 import Link from "next/link";
-import { db } from "@/lib/db";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { ArrowRight, BookOpen, Layers, UserCheck, Users } from "lucide-react";
+
+import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Users, Layers, BookOpen, UserCheck, Upload, ArrowRight } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/components/ui/page-header";
+import { StatCard } from "@/components/ui/stat-card";
+import { db } from "@/lib/db";
 
 export default async function AdminDashboardPage() {
   const [
@@ -11,97 +15,144 @@ export default async function AdminDashboardPage() {
     teacherCount,
     sectionCount,
     subjectCount,
+    assignmentCount,
+    onTemporaryPassword,
+    noSectionCount,
+    inactiveCount,
   ] = await Promise.all([
     db.user.count({ where: { role: "STUDENT" } }),
     db.user.count({ where: { role: "TEACHER" } }),
     db.section.count({ where: { isActive: true } }),
     db.subject.count({ where: { isActive: true } }),
+    db.teacherAssignment.count(),
+    db.user.count({ where: { role: "STUDENT", mustChangePassword: true } }),
+    db.user.count({
+      where: {
+        role: "STUDENT",
+        isActive: true,
+        OR: [ { studentProfile: { is: null } }, { studentProfile: { is: { sectionId: null } } } ],
+      },
+    }),
+    db.user.count({ where: { isActive: false, role: { in: [ "STUDENT", "TEACHER" ] } } }),
   ]);
 
-  const cards = [
+  const attention = [
     {
-      title: "Students Enrolled",
-      value: studentCount,
-      description: "Active student accounts",
-      icon: Users,
-      color: "bg-primary text-primary-foreground",
-      href: "/admin/users?role=STUDENT",
+      count: noSectionCount,
+      title: `${noSectionCount} student${noSectionCount === 1 ? "" : "s"} not in a section`,
+      description: "They are enrolled but will not see any class tests until you place them.",
+      href: "/admin/users?role=STUDENT&section=unassigned",
+      action: "Place students",
     },
     {
-      title: "Faculty Members",
-      value: teacherCount,
-      description: "Teaching staff registered",
-      icon: UserCheck,
-      color: "bg-lime text-lime-foreground",
-      href: "/admin/users?role=TEACHER",
+      count: onTemporaryPassword,
+      title: `${onTemporaryPassword} student${
+        onTemporaryPassword === 1 ? "" : "s"
+      } still on a temporary password`,
+      description: "They have not signed in yet, or have not changed their password.",
+      href: "/admin/users?role=STUDENT&status=must-change-password",
+      action: "Review accounts",
     },
     {
-      title: "Class Sections",
-      value: sectionCount,
-      description: "Active class cohorts",
-      icon: Layers,
-      color: "bg-success text-success-foreground",
-      href: "/admin/sections",
+      count: inactiveCount,
+      title: `${inactiveCount} deactivated account${inactiveCount === 1 ? "" : "s"}`,
+      description: "Students and teachers who cannot sign in until you activate them.",
+      href: "/admin/users",
+      action: "Review accounts",
     },
-    {
-      title: "Academic Subjects",
-      value: subjectCount,
-      description: "Course catalogue items",
-      icon: BookOpen,
-      color: "bg-warning text-warning-foreground",
-      href: "/admin/subjects",
-    },
-  ];
+  ].filter((item) => item.count > 0);
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Administration</h1>
-        <p className="text-sm text-muted-foreground">
-          Manage class rosters, teacher assignments, and account access.
-        </p>
+      <PageHeader
+        title="Admin dashboard"
+        description="Manage student accounts, sections, subjects, and which teachers handle what."
+      />
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          label="Students"
+          value={studentCount}
+          hint="All student accounts"
+          icon={Users}
+          tone="primary"
+          href="/admin/users?role=STUDENT"
+        />
+        <StatCard
+          label="Teachers"
+          value={teacherCount}
+          hint={`${assignmentCount} class assignment${assignmentCount === 1 ? "" : "s"}`}
+          icon={UserCheck}
+          tone="success"
+          href="/admin/users?role=TEACHER"
+        />
+        <StatCard
+          label="Sections"
+          value={sectionCount}
+          hint="Active sections"
+          icon={Layers}
+          tone="gold"
+          href="/admin/sections"
+        />
+        <StatCard
+          label="Subjects"
+          value={subjectCount}
+          hint="Subjects you offer"
+          icon={BookOpen}
+          tone="warning"
+          href="/admin/subjects"
+        />
       </div>
 
-      {/* Metrics Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {cards.map((c) => {
-          const Icon = c.icon;
-          return (
-            <Link key={c.title} href={c.href}>
-              <Card className="hover:border-primary/50 transition-all hover:shadow-md cursor-pointer">
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium">{c.title}</CardTitle>
-                  <div className={`flex h-9 w-9 items-center justify-center border-2 border-border ${c.color}`}>
-                    <Icon className="h-4 w-4" />
-                  </div>
+      <section className="space-y-3">
+        <h2 className="text-xs label-mono font-bold text-muted-foreground">
+          Needs attention
+        </h2>
+
+        {attention.length === 0 ? (
+          <Alert variant="success">
+            Nothing needs attention right now. Every student is in a section, and every account
+            has a password of its own.
+          </Alert>
+        ) : (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {attention.map((item) => (
+              <Card key={item.title} className="border-warning">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-semibold">{item.title}</CardTitle>
+                  <CardDescription className="text-xs">{item.description}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{c.value}</div>
-                  <p className="text-xs text-muted-foreground mt-1">{c.description}</p>
+                  <Button asChild variant="outline" size="sm" className="gap-2">
+                    <Link href={item.href}>
+                      {item.action}
+                      <ArrowRight className="h-4 w-4" aria-hidden />
+                    </Link>
+                  </Button>
                 </CardContent>
               </Card>
-            </Link>
-          );
-        })}
-      </div>
+            ))}
+          </div>
+        )}
+      </section>
 
-      {/* Quick Actions Panel */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base font-semibold flex items-center gap-2">
-              <Upload className="h-4 w-4 text-primary" />
-              Batch Roster Provisioning
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-4 w-4 text-primary" aria-hidden />
+              Import students
             </CardTitle>
             <CardDescription>
-              Upload class lists via Excel (.xlsx) or CSV files. Automatically provision student accounts with pregenerated credentials and mandatory first-login password changes.
+              Add a whole class at once from an Excel or CSV list. Each new student signs in with
+              their LRN and changes it at first sign-in.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Button asChild className="gap-2">
               <Link href="/admin/roster-upload">
-                Upload Class Roster
-                <ArrowRight className="h-4 w-4" />
+                Import students
+                <ArrowRight className="h-4 w-4" aria-hidden />
               </Link>
             </Button>
           </CardContent>
@@ -109,19 +160,20 @@ export default async function AdminDashboardPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base font-semibold flex items-center gap-2">
-              <UserCheck className="h-4 w-4 text-primary" />
-              Teacher Subject Assignments
+            <CardTitle className="flex items-center gap-2">
+              <UserCheck className="h-4 w-4 text-primary" aria-hidden />
+              Teacher assignments
             </CardTitle>
             <CardDescription>
-              Assign teachers to specific sections and academic courses. Authorizes instructors to create tests and grade students within their jurisdiction.
+              Choose which teacher handles which class and subject. This is what lets them create
+              tests and grade students.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Button asChild variant="outline" className="gap-2">
               <Link href="/admin/teacher-assignments">
-                Manage Faculty Assignments
-                <ArrowRight className="h-4 w-4" />
+                Manage assignments
+                <ArrowRight className="h-4 w-4" aria-hidden />
               </Link>
             </Button>
           </CardContent>

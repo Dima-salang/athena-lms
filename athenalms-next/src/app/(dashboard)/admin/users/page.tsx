@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { Download, Plus } from "lucide-react";
+import { Suspense, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Download, Loader2, Plus } from "lucide-react";
 
 import { BulkActionsBar } from "@/components/admin/users/BulkActionsBar";
 import { ResetPasswordDialog } from "@/components/admin/users/ResetPasswordDialog";
@@ -11,6 +12,7 @@ import { UsersTable } from "@/components/admin/users/UsersTable";
 import { useAdminUsers } from "@/components/admin/users/use-admin-users";
 import { useUserActions } from "@/components/admin/users/use-user-actions";
 import {
+  filtersFromParams,
   hasActiveFilters,
   type AdminUserItem,
   type SectionOption,
@@ -21,7 +23,26 @@ import { PageHeader } from "@/components/ui/page-header";
 import { useApiResource } from "@/hooks/use-api-resource";
 
 export default function UsersPage() {
-  const list = useAdminUsers();
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center py-24">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          <span className="sr-only">Loading user accounts</span>
+        </div>
+      }
+    >
+      <UsersPageContent />
+    </Suspense>
+  );
+}
+
+function UsersPageContent() {
+  const searchParams = useSearchParams();
+  // Dashboard links land here with role / status / section already chosen.
+  const initialFilters = useMemo(() => filtersFromParams(searchParams), [searchParams]);
+
+  const list = useAdminUsers(initialFilters);
   const { data: sectionsData } = useApiResource<SectionOption[]>("/api/admin/sections");
   const { data: me } = useApiResource<{ id: string }>("/api/auth/me");
 

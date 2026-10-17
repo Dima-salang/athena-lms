@@ -91,6 +91,23 @@ export function hasActiveFilters(filters: UserFilters): boolean {
   );
 }
 
+/** Read list filters out of a URL's query params (dashboard drill-down links). */
+export function filtersFromParams(params: {
+  get: (key: string) => string | null;
+}): Partial<UserFilters> {
+  const role = params.get("role");
+  const status = params.get("status");
+  const section = params.get("section");
+  const search = params.get("search");
+
+  const filters: Partial<UserFilters> = {};
+  if (role === "ADMIN" || role === "TEACHER" || role === "STUDENT") filters.role = role;
+  if (status === "active" || status === "must-change-password") filters.status = status;
+  if (section) filters.section = section;
+  if (search) filters.search = search;
+  return filters;
+}
+
 /** Build the query string the list and the CSV export both use. */
 export function buildUserQuery(filters: UserFilters): string {
   const params = new URLSearchParams();

@@ -18,8 +18,12 @@ const SEARCH_DEBOUNCE_MS = 350;
  * Server-side state for the admin user list: filters, paging, loading and the
  * current page's selection. Selection never survives a filter or page change,
  * so a bulk action can only ever touch rows the admin can still see.
+ *
+ * `initial` carries filters handed over by the dashboard links (role, status,
+ * section). The caller should memoise it, so this reapplies only when the URL
+ * actually changes.
  */
-export function useAdminUsers() {
+export function useAdminUsers(initial: Partial<UserFilters> = {}) {
   const [filters, setFilters] = useState<UserFilters>(DEFAULT_FILTERS);
   const [searchInput, setSearchInput] = useState("");
   const [ready, setReady] = useState(false);
@@ -29,25 +33,11 @@ export function useAdminUsers() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [version, setVersion] = useState(0);
 
-  // Filters handed over by the dashboard links (role, status, section).
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const role = params.get("role");
-    const status = params.get("status");
-    const section = params.get("section");
-    const search = params.get("search") ?? "";
-
-    setFilters((current) => ({
-      ...current,
-      role: role === "ADMIN" || role === "TEACHER" || role === "STUDENT" ? role : current.role,
-      status:
-        status === "active" || status === "must-change-password" ? status : current.status,
-      section: section ?? current.section,
-      search,
-    }));
-    setSearchInput(search);
+    setFilters((current) => ({ ...current, ...initial, page: 1 }));
+    setSearchInput(initial.search ?? "");
     setReady(true);
-  }, []);
+  }, [initial]);
 
   // Debounce typing so a search only costs one request once it settles.
   useEffect(() => {
