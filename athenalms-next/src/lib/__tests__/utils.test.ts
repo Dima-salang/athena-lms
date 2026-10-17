@@ -6,6 +6,7 @@ import {
   formatDate,
   formatDateTime,
   formatDuration,
+  elapsedSeconds,
   formatMinutes,
   formatScore,
   formatPercent,
@@ -37,6 +38,37 @@ describe("Utils Library", () => {
     expect(formatDuration(0)).toBe("0:00");
     expect(formatDuration(65)).toBe("1:05");
     expect(formatDuration(3665)).toBe("1:01:05");
+  });
+
+  it("measures time spent from start to submit, not to the deadline", () => {
+    const start = new Date("2026-10-17T10:00:00Z");
+    // Timed test: the deadline is an hour out, but the student finished in 18 min.
+    expect(
+      elapsedSeconds(start, new Date("2026-10-17T10:18:17Z"))
+    ).toBe(1097);
+    // Dates passed as ISO strings (what the API sends) behave the same.
+    expect(
+      elapsedSeconds("2026-10-17T10:00:00Z", "2026-10-17T10:18:17Z")
+    ).toBe(1097);
+  });
+
+  it("returns no elapsed time while a submission is unfinished", () => {
+    const start = new Date("2026-10-17T10:00:00Z");
+    // Untimed test: no deadline, nothing submitted yet — no ticking clock.
+    expect(elapsedSeconds(start, null)).toBeNull();
+    expect(elapsedSeconds(start, undefined)).toBeNull();
+    expect(elapsedSeconds(null, new Date())).toBeNull();
+    expect(elapsedSeconds(start, "not-a-date")).toBeNull();
+  });
+
+  it("never reports negative time spent", () => {
+    // Clock skew between the server that stamped startTime and the client.
+    expect(
+      elapsedSeconds(
+        new Date("2026-10-17T10:00:00Z"),
+        new Date("2026-10-17T09:59:30Z")
+      )
+    ).toBe(0);
   });
 
   it("formats minutes into readable strings", () => {

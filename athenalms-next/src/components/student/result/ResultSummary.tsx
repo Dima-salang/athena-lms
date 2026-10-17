@@ -10,7 +10,7 @@ interface ResultSummaryProps {
   rawPercentage: number;
   transmutedGrade: number | null | undefined;
   isPassing: boolean;
-  durationSeconds: number;
+  durationSeconds: number | null;
   status: string;
   descriptor: string;
   teacherNotes?: string | null;
@@ -58,7 +58,11 @@ export function ResultSummary({
         />
         <StatCard
           label="Time spent"
-          value={<span className="font-mono">{formatDuration(durationSeconds)}</span>}
+          value={
+            <span className="font-mono">
+              {durationSeconds === null ? "—" : formatDuration(durationSeconds)}
+            </span>
+          }
           hint={`Status: ${status}`}
           tone="muted"
         />

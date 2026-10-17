@@ -18,7 +18,7 @@ import { ArrowLeft, Save, Loader2 } from "lucide-react";
 import { Alert } from "@/components/ui/alert";
 import { AnswerReview } from "@/components/exam/AnswerReview";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { formatDate, formatDuration, formatQuestionType } from "@/lib/utils";
+import { elapsedSeconds, formatDate, formatDuration, formatQuestionType } from "@/lib/utils";
 import type { SubmissionDTO, QuestionDTO, StudentAnswerDTO } from "@/types";
 
 interface SubmissionGradingPageProps {
@@ -146,10 +146,12 @@ export default function SubmissionGradingPage({ params }: SubmissionGradingPageP
   );
   const maxScore = test?.maxScore || questions.reduce((s: number, q: QuestionDTO) => s + q.fullPoints, 0);
 
-  // Compute duration
-  const startTime = new Date(submission.startTime).getTime();
-  const endTime = submission.endTime ? new Date(submission.endTime).getTime() : Date.now();
-  const durationSeconds = Math.max(0, Math.round((endTime - startTime) / 1000));
+  // Time actually spent: submittedAt − startTime. (endTime is the deadline, not
+  // the finish time, and is absent entirely for untimed tests.)
+  const durationSeconds = elapsedSeconds(
+    submission.startTime,
+    submission.submittedAt
+  );
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-20">
@@ -224,7 +226,7 @@ export default function SubmissionGradingPage({ params }: SubmissionGradingPageP
           <CardHeader className="p-4 pb-2">
             <CardDescription className="text-xs">Time Elapsed</CardDescription>
             <CardTitle className="text-2xl font-bold font-mono">
-              {formatDuration(durationSeconds)}
+              {durationSeconds === null ? "—" : formatDuration(durationSeconds)}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-0 text-xs text-muted-foreground">

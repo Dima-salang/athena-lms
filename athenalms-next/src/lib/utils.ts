@@ -85,6 +85,31 @@ export function formatDuration(seconds: number): string {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
+/**
+ * Seconds a student actually spent on a submission.
+ *
+ * `Submission.endTime` is the *deadline* (start + the allowed duration), not the
+ * moment the student finished — that is `submittedAt`. Measuring up to `endTime`
+ * reported the full time limit rather than the time used, and for untimed tests
+ * (which have no `endTime`) the old fallback to `Date.now()` made the figure grow
+ * every time the page rendered, so a finished test looked like it was still running.
+ *
+ * Returns `null` while the submission is unfinished, so callers can show "—"
+ * instead of a clock that never stops.
+ */
+export function elapsedSeconds(
+  startedAt: Date | string | null | undefined,
+  submittedAt: Date | string | null | undefined
+): number | null {
+  if (!startedAt || !submittedAt) return null;
+
+  const start = startedAt instanceof Date ? startedAt : new Date(startedAt);
+  const end = submittedAt instanceof Date ? submittedAt : new Date(submittedAt);
+  if (!isValid(start) || !isValid(end)) return null;
+
+  return Math.max(0, Math.round((end.getTime() - start.getTime()) / 1000));
+}
+
 /** Format minutes into "X hour(s) Y min" or "Y min" display. */
 export function formatMinutes(minutes: number): string {
   if (minutes < 60) return `${minutes} min`;
