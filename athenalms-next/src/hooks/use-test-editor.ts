@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 
 import type {
   EditorOption,
@@ -308,13 +309,22 @@ export function useTestEditor(testId: string) {
         }),
       });
 
-      if (!res.ok) throw new Error("Autosave failed");
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.error || "Autosave failed");
+      }
       const data = await res.json();
       setQuestions((prev) => mergeServerIds(prev, data.questions || []));
       setLastSavedAt(new Date());
       setSaveStatus("saved");
-    } catch {
+    } catch (error) {
       setSaveStatus("error");
+      // Stable id: a retry replaces the same toast instead of stacking up.
+      toast.error("Couldn't save your changes", {
+        id: "test-editor-save-error",
+        description:
+          error instanceof Error ? error.message : "Please try again.",
+      });
     }
   }, [testId]);
 
