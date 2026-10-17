@@ -1,370 +1,162 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Card, CardContent } from "@/components/ui/card";
-import { Plus, Search, Trash2, Loader2, KeyRound } from "lucide-react";
-import { formatRole } from "@/lib/utils";
+import { useState } from "react";
+import { Download, Plus } from "lucide-react";
 
-interface UserItem {
-  id: string;
-  username: string;
-  email?: string | null;
-  firstName: string;
-  lastName: string;
-  role: string;
-  mustChangePassword: boolean;
-  lrn?: string | null;
-  sectionName?: string | null;
-}
+import { BulkActionsBar } from "@/components/admin/users/BulkActionsBar";
+import { ResetPasswordDialog } from "@/components/admin/users/ResetPasswordDialog";
+import { UserFilters } from "@/components/admin/users/UserFilters";
+import { UserFormDialog } from "@/components/admin/users/UserFormDialog";
+import { UsersTable } from "@/components/admin/users/UsersTable";
+import { useAdminUsers } from "@/components/admin/users/use-admin-users";
+import { useUserActions } from "@/components/admin/users/use-user-actions";
+import {
+  hasActiveFilters,
+  type AdminUserItem,
+  type SectionOption,
+} from "@/components/admin/users/types";
+import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/ui/page-header";
+import { useApiResource } from "@/hooks/use-api-resource";
 
 export default function UsersPage() {
-  const [users, setUsers] = useState<UserItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [appliedSearch, setAppliedSearch] = useState("");
-  const [roleFilter, setRoleFilter] = useState<string>("ALL");
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    username: "",
-    firstName: "",
-    lastName: "",
-    email: "",
-    role: "STUDENT",
-    lrn: "",
+  const list = useAdminUsers();
+  const { data: sectionsData } = useApiResource<SectionOption[]>("/api/admin/sections");
+  const { data: me } = useApiResource<{ id: string }>("/api/auth/me");
+
+  const [formOpen, setFormOpen] = useState(false);
+  const [editing, setEditing] = useState<AdminUserItem | null>(null);
+  const [resetTarget, setResetTarget] = useState<AdminUserItem | null>(null);
+
+  const sections = sectionsData ?? [];
+  const currentUserId = me?.id ?? null;
+  const selectedIds = Array.from(list.selected);
+
+  const actions = useUserActions({
+    filters: list.filters,
+    selectedIds,
+    onChanged: list.refresh,
+    onSelectionCleared: list.clearSelection,
   });
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  const loadUsers = useCallback(async () => {
-    try {
-      setLoading(true);
-      const params = new URLSearchParams();
-      if (appliedSearch) params.set("search", appliedSearch);
-      if (roleFilter !== "ALL") params.set("role", roleFilter);
-
-      const res = await fetch(`/api/admin/users?${params.toString()}`);
-      if (res.ok) {
-        const data = await res.json();
-        setUsers(data.data);
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, [appliedSearch, roleFilter]);
-
-  useEffect(() => {
-    loadUsers();
-  }, [loadUsers]);
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setAppliedSearch(search);
+  const openCreate = () => {
+    setEditing(null);
+    setFormOpen(true);
   };
 
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    try {
-      setSaving(true);
-      const res = await fetch("/api/admin/users", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || "Failed to create user");
-        setSaving(false);
-        return;
-      }
-
-      setDialogOpen(false);
-      setFormData({ username: "", firstName: "", lastName: "", email: "", role: "STUDENT", lrn: "" });
-      loadUsers();
-    } catch {
-      setError("An unexpected error occurred");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this user?")) return;
-    try {
-      await fetch(`/api/admin/users?id=${id}`, { method: "DELETE" });
-      loadUsers();
-    } catch (err) {
-      console.error(err);
-    }
+  const openEdit = (user: AdminUserItem) => {
+    setEditing(user);
+    setFormOpen(true);
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">User Accounts</h1>
-          <p className="text-sm text-muted-foreground">
-            Manage system administrators, teachers, and enrolled students.
-          </p>
-        </div>
-        <Button onClick={() => setDialogOpen(true)} className="gap-2">
-          <Plus className="h-4 w-4" />
-          Add User
-        </Button>
-      </div>
+      <PageHeader
+        title="User accounts"
+        description="Add students and teachers, fix their details, and control who can sign in."
+        actions={
+          <>
+            <Button variant="outline" onClick={actions.exportCsv} className="gap-2">
+              <Download className="h-4 w-4" aria-hidden />
+              Export CSV
+            </Button>
+            <Button onClick={openCreate} className="gap-2">
+              <Plus className="h-4 w-4" aria-hidden />
+              Add account
+            </Button>
+          </>
+        }
+      />
 
-      {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <form onSubmit={handleSearchSubmit} className="flex-1 flex gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search by name, username, or email..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 text-sm"
-            />
+      <UserFilters
+        search={list.searchInput}
+        onSearchChange={list.setSearchInput}
+        role={list.filters.role}
+        onRoleChange={list.setRole}
+        status={list.filters.status}
+        onStatusChange={list.setStatus}
+        section={list.filters.section}
+        onSectionChange={list.setSection}
+        sort={list.filters.sort}
+        onSortChange={list.setSort}
+        pageSize={list.filters.pageSize}
+        onPageSizeChange={list.setPageSize}
+        sections={sections}
+        shown={list.users.length}
+        total={list.data?.total ?? 0}
+        hasActiveFilters={hasActiveFilters(list.filters)}
+        onReset={list.resetFilters}
+      />
+
+      {list.error ? <Alert variant="error">{list.error}</Alert> : null}
+
+      <BulkActionsBar
+        count={selectedIds.length}
+        busy={actions.bulkBusy}
+        onRun={actions.runBulk}
+        onExport={actions.exportCsv}
+        onClear={list.clearSelection}
+      />
+
+      <UsersTable
+        users={list.users}
+        loading={list.loading}
+        currentUserId={currentUserId}
+        selected={list.selected}
+        onToggleOne={list.toggleOne}
+        onTogglePage={list.togglePage}
+        onEdit={openEdit}
+        onResetPassword={setResetTarget}
+        onToggleActive={actions.toggleActive}
+        onDelete={actions.deleteUser}
+      />
+
+      {list.data && list.data.totalPages > 1 ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 border-2 bg-card p-3">
+          <span className="text-xs text-muted-foreground">
+            Page {list.data.page} of {list.data.totalPages}
+          </span>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => list.setPage(list.filters.page - 1)}
+              disabled={list.data.page <= 1 || list.loading}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => list.setPage(list.filters.page + 1)}
+              disabled={list.data.page >= list.data.totalPages || list.loading}
+            >
+              Next
+            </Button>
           </div>
-          <Button type="submit" variant="secondary" size="sm">
-            Search
-          </Button>
-        </form>
+        </div>
+      ) : null}
 
-        <Select value={roleFilter} onValueChange={(val) => setRoleFilter(val)}>
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="All Roles" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">All Roles</SelectItem>
-            <SelectItem value="STUDENT">Students</SelectItem>
-            <SelectItem value="TEACHER">Teachers</SelectItem>
-            <SelectItem value="ADMIN">Administrators</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      <UserFormDialog
+        open={formOpen}
+        onOpenChange={setFormOpen}
+        user={editing}
+        sections={sections}
+        isSelf={editing?.id === currentUserId}
+        onSaved={list.refresh}
+      />
 
-      <Card>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>User</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>LRN / Section</TableHead>
-                <TableHead>Password Status</TableHead>
-                <TableHead className="w-16 text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8">
-                    <Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
-                  </TableCell>
-                </TableRow>
-              ) : users.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                    No users matching the criteria.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                users.map((u) => (
-                  <TableRow key={u.id}>
-                    <TableCell>
-                      <div className="font-semibold text-sm">{u.firstName} {u.lastName}</div>
-                      <div className="text-xs text-muted-foreground">@{u.username} {u.email ? `• ${u.email}` : ""}</div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          u.role === "ADMIN"
-                            ? "destructive"
-                            : u.role === "TEACHER"
-                            ? "athena"
-                            : "secondary"
-                        }
-                      >
-                        {formatRole(u.role)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-xs">
-                      {u.lrn ? (
-                        <div>
-                          <span className="font-mono font-medium">{u.lrn}</span>
-                          <span className="text-muted-foreground"> ({u.sectionName || "No Section"})</span>
-                        </div>
-                      ) : (
-                        "—"
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {u.mustChangePassword ? (
-                        <Badge variant="warning" className="text-[10px] gap-1">
-                          <KeyRound className="h-3 w-3" />
-                          Must Change PW
-                        </Badge>
-                      ) : (
-                        <span className="text-xs text-muted-foreground">Standard</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDelete(u.id)}
-                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+      <ResetPasswordDialog
+        open={resetTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setResetTarget(null);
+        }}
+        user={resetTarget}
+        onDone={list.refresh}
+      />
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add User Account</DialogTitle>
-            <DialogDescription>
-              Create a single user. Newly created accounts will be required to change their password on first login.
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleCreate} className="space-y-4">
-            {error && (
-              <p className="text-xs text-destructive bg-destructive/10 p-2 rounded">
-                {error}
-              </p>
-            )}
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="firstName">First Name</Label>
-                <Input
-                  id="firstName"
-                  value={formData.firstName}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, firstName: e.target.value }))
-                  }
-                  required
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="lastName">Last Name</Label>
-                <Input
-                  id="lastName"
-                  value={formData.lastName}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, lastName: e.target.value }))
-                  }
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="username">Username</Label>
-                <Input
-                  id="username"
-                  value={formData.username}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, username: e.target.value }))
-                  }
-                  required
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="role">Role</Label>
-                <Select
-                  value={formData.role}
-                  onValueChange={(val) =>
-                    setFormData((prev) => ({ ...prev, role: val }))
-                  }
-                >
-                  <SelectTrigger id="role">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="STUDENT">Student</SelectItem>
-                    <SelectItem value="TEACHER">Teacher</SelectItem>
-                    <SelectItem value="ADMIN">Administrator</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {formData.role === "STUDENT" && (
-              <div className="space-y-1.5">
-                <Label htmlFor="lrn">LRN (12 Digits)</Label>
-                <Input
-                  id="lrn"
-                  placeholder="12-digit Learner Reference Number"
-                  value={formData.lrn}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, lrn: e.target.value }))
-                  }
-                  required
-                />
-              </div>
-            )}
-
-            <div className="space-y-1.5">
-              <Label htmlFor="email">Email (Optional)</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, email: e.target.value }))
-                }
-              />
-            </div>
-
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={saving}>
-                {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Create User
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      {actions.dialog}
     </div>
   );
 }
