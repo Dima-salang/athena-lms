@@ -36,6 +36,8 @@ export interface EditorQuestion {
   rubric?: string | null;
   orderIndex: number;
   options: EditorOption[];
+  /** A student answered this question, so it can't be removed. */
+  answeredByStudents?: boolean;
 }
 
 interface QuestionEditorProps {

@@ -25,6 +25,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
           orderBy: { orderIndex: "asc" },
           include: {
             options: { orderBy: { orderIndex: "asc" } },
+            _count: { select: { studentAnswers: true } },
           },
         },
         transmutationConfig: true,
@@ -35,7 +36,15 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Test not found" }, { status: 404 });
     }
 
-    return NextResponse.json(test);
+    // The editor uses this to leave answered questions alone, instead of
+    // deleting one locally and having the save refused.
+    return NextResponse.json({
+      ...test,
+      questions: test.questions.map((question) => ({
+        ...question,
+        answeredByStudents: question._count.studentAnswers > 0,
+      })),
+    });
   } catch (error) {
     console.error("GET /api/teacher/tests/[id] error:", error);
     return NextResponse.json({ error: "Failed to fetch test details" }, { status: 500 });
