@@ -1,4 +1,7 @@
 import type { AdminUserItem } from "@/components/admin/users/types";
+import { DEFAULT_SCHOOL_YEAR } from "@/components/admin/types";
+
+export { DEFAULT_SCHOOL_YEAR };
 
 /** A row in the sections list. */
 export interface SectionItem {
@@ -33,8 +36,6 @@ export interface SectionFormValues {
   gradeLevel: string;
   schoolYear: string;
 }
-
-export const DEFAULT_SCHOOL_YEAR = "2026-2027";
 
 export const EMPTY_SECTION_FORM: SectionFormValues = {
   name: "",
