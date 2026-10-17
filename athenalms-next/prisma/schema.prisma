@@ -1,0 +1,402 @@
+// ============================================================================
+// Athena LMS — Prisma Schema
+// Database: SQLite (dev) / PostgreSQL (prod) — swap provider & datasource URL
+// All high-traffic query paths have explicit @@index declarations
+// ============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────────────────────────────────────
+
+// SQLite does not support native enums; values are stored as strings.
+// PostgreSQL migration: replace with enum declarations.
+
+// UserRole: "ADMIN" | "TEACHER" | "STUDENT"
+// QuestionType: "MULTIPLE_CHOICE" | "TRUE_FALSE" | "IDENTIFICATION" | "ACRONYM" | "MATCHING" | "ESSAY"
+// ExamType: "QUIZ" | "LONG_TEST" | "SUMMATIVE" | "PERIODICAL"
+// SubmissionStatus: "IN_PROGRESS" | "SUBMITTED" | "TIMED_OUT" | "GRADED"
+// TransmutationFormula: "DEPED_STANDARD" | "LINEAR_50_BASE" | "CUSTOM"
+
+// ─────────────────────────────────────────────────────────────────────────────
+// USERS & PROFILES
+// ─────────────────────────────────────────────────────────────────────────────
+
+model User {
+  id                 String    @id @default(cuid())
+  name               String?
+  email              String?   @unique
+  emailVerified      Boolean   @default(false)
+  image              String?
+  username           String    @unique
+  passwordHash       String?
+  firstName          String
+  lastName           String
+  role               String    // "ADMIN" | "TEACHER" | "STUDENT"
+  mustChangePassword Boolean   @default(false)
+  isActive           Boolean   @default(true)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  // Relations
+  studentProfile   StudentProfile?
+  teacherProfile   TeacherProfile?
+  adminProfile     AdminProfile?
+  sessions         Session[]
+  accounts         Account[]
+  authoredTests    Test[]          @relation("TestAuthor")
+  submissions      Submission[]
+  specialAccesses  SpecialAccess[] @relation("StudentSpecialAccess")
+
+  @@index([role])
+  @@index([username])
+  @@index([email])
+  @@index([isActive, role])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  userId                String
+  accountId             String
+  providerId            String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Verification {
+  id         String    @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime? @default(now())
+  updatedAt  DateTime? @updatedAt
+
+  @@index([identifier])
+}
+
+model StudentProfile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  lrn       String   @unique // Learner Reference Number (12-digit)
+  sectionId String?
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  section Section? @relation(fields: [sectionId], references: [id])
+
+  @@index([lrn])
+  @@index([sectionId])
+}
+
+model TeacherProfile {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  employeeId   String?  @unique
+  specialization String?
+
+  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  teacherAssignments TeacherAssignment[]
+
+  @@index([userId])
+}
+
+model AdminProfile {
+  id     String @id @default(cuid())
+  userId String @unique
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ACADEMIC STRUCTURE
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Section {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  adviserName String?
+  gradeLevel  String?
+  schoolYear  String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  students           StudentProfile[]
+  teacherAssignments TeacherAssignment[]
+  testSections       TestSection[]
+
+  @@index([name])
+  @@index([isActive])
+}
+
+model Subject {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  code        String?  @unique
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  teacherAssignments TeacherAssignment[]
+  tests              Test[]
+
+  @@index([name])
+  @@index([isActive])
+}
+
+model TeacherAssignment {
+  id              String   @id @default(cuid())
+  teacherProfileId String
+  sectionId       String
+  subjectId       String
+  schoolYear      String?
+  createdAt       DateTime @default(now())
+
+  teacherProfile TeacherProfile @relation(fields: [teacherProfileId], references: [id], onDelete: Cascade)
+  section        Section        @relation(fields: [sectionId], references: [id])
+  subject        Subject        @relation(fields: [subjectId], references: [id])
+
+  @@unique([teacherProfileId, sectionId, subjectId])
+  @@index([teacherProfileId])
+  @@index([sectionId])
+  @@index([subjectId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// EXAMINATION MANAGEMENT
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Test {
+  id               String    @id @default(cuid())
+  title            String
+  description      String?
+  examType         String    // "QUIZ" | "LONG_TEST" | "SUMMATIVE" | "PERIODICAL"
+  authorId         String    // FK -> User (teacher)
+  subjectId        String?
+  durationSeconds  Int?      // null = infinite time
+  hasInfiniteTime  Boolean   @default(false)
+  issueDate        DateTime?
+  dueDate          DateTime?
+  isPublished      Boolean   @default(false)
+  isDraft          Boolean   @default(true)
+  isArchived       Boolean   @default(false)
+  shuffleQuestions Boolean   @default(false)
+  shuffleOptions   Boolean   @default(false)
+  maxScore         Float?    // Computed: sum of question fullPoints
+  passingScore     Float?    // Optional override
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  author       User          @relation("TestAuthor", fields: [authorId], references: [id])
+  subject      Subject?      @relation(fields: [subjectId], references: [id])
+  questions    Question[]
+  sections     TestSection[]
+  submissions  Submission[]
+  specialAccesses SpecialAccess[]
+  transmutationConfig TransmutationConfig?
+
+  @@index([authorId])
+  @@index([subjectId])
+  @@index([examType])
+  @@index([isPublished, isDraft, isArchived])
+  @@index([issueDate, dueDate])
+}
+
+// Junction: Test distributed to multiple sections
+model TestSection {
+  id        String   @id @default(cuid())
+  testId    String
+  sectionId String
+  createdAt DateTime @default(now())
+
+  test    Test    @relation(fields: [testId], references: [id], onDelete: Cascade)
+  section Section @relation(fields: [sectionId], references: [id])
+
+  @@unique([testId, sectionId])
+  @@index([testId])
+  @@index([sectionId])
+}
+
+model Question {
+  id             String   @id @default(cuid())
+  testId         String
+  questionNumber Int
+  questionText   String
+  questionType   String   // "MULTIPLE_CHOICE" | "TRUE_FALSE" | "IDENTIFICATION" | "ACRONYM" | "MATCHING" | "ESSAY"
+  fullPoints     Float    @default(1)
+  correctAnswer  String?  // For IDENTIFICATION, ACRONYM, TRUE_FALSE
+  alternativeAnswers String? // JSON array of accepted alternatives for IDENTIFICATION/ACRONYM
+  correctOptionId String? // FK -> Option.id for MCQ
+  rubric         String?  // Essay grading rubric/notes
+  imageUrl       String?
+  orderIndex     Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  test    Test     @relation(fields: [testId], references: [id], onDelete: Cascade)
+  options Option[]
+  studentAnswers StudentAnswer[]
+
+  @@index([testId])
+  @@index([testId, questionNumber])
+  @@index([questionType])
+  @@index([orderIndex])
+}
+
+// MCQ option + Matching pair (colA/colB)
+model Option {
+  id         String   @id @default(cuid())
+  questionId String
+  optionText String   // For MCQ: option label; For MATCHING: Column A premise
+  matchText  String?  // MATCHING: Column B response (null for MCQ)
+  orderIndex Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  question       Question       @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  studentAnswers StudentAnswer[]
+
+  @@index([questionId])
+  @@index([questionId, orderIndex])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SPECIAL ACCESS OVERRIDES
+// ─────────────────────────────────────────────────────────────────────────────
+
+model SpecialAccess {
+  id              String    @id @default(cuid())
+  testId          String
+  studentId       String    // FK -> User.id
+  customDueDate   DateTime?
+  extendedSeconds Int?      // Additional seconds added to timer
+  isUnlocked      Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  test    Test @relation(fields: [testId], references: [id], onDelete: Cascade)
+  student User @relation("StudentSpecialAccess", fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([testId, studentId])
+  @@index([testId])
+  @@index([studentId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUBMISSIONS & ANSWERS
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Submission {
+  id             String    @id @default(cuid())
+  testId         String
+  studentId      String    // FK -> User.id
+  status         String    @default("IN_PROGRESS") // "IN_PROGRESS" | "SUBMITTED" | "TIMED_OUT" | "GRADED"
+  startTime      DateTime  @default(now())
+  endTime        DateTime? // Calculated end (startTime + duration + any extension)
+  submittedAt    DateTime?
+  gradedAt       DateTime?
+  rawScore       Float?
+  transmutedGrade Float?
+  clientIp       String?   // IP recorded at exam start for session lock
+  integrityFlags String?   // JSON: tab-switch counts, blur events, etc.
+  teacherNotes   String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  test          Test          @relation(fields: [testId], references: [id])
+  student       User          @relation(fields: [studentId], references: [id])
+  studentAnswers StudentAnswer[]
+
+  @@unique([testId, studentId]) // One submission per student per test
+  @@index([testId])
+  @@index([studentId])
+  @@index([status])
+  @@index([submittedAt])
+  @@index([testId, status])
+  @@index([studentId, status])
+}
+
+model StudentAnswer {
+  id           String   @id @default(cuid())
+  submissionId String
+  questionId   String
+  optionId     String?  // Selected MCQ/Matching option
+  textAnswer   String?  // Identification, Acronym, Essay, True/False text
+  matchingPairs String? // JSON: [{optionId, matchedText}] for MATCHING type
+  points       Float?   // Awarded points (null = not graded yet)
+  isFlagged    Boolean  @default(false) // Student flagged for review
+  teacherComment String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  submission Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  question   Question   @relation(fields: [questionId], references: [id])
+  option     Option?    @relation(fields: [optionId], references: [id])
+
+  @@unique([submissionId, questionId]) // One answer per question per submission
+  @@index([submissionId])
+  @@index([questionId])
+  @@index([submissionId, questionId])
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CONFIGURATION
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Per-test transmutation configuration (overrides SystemConfig default)
+model TransmutationConfig {
+  id       String @id @default(cuid())
+  testId   String @unique
+  formula  String @default("DEPED_STANDARD") // "DEPED_STANDARD" | "LINEAR_50_BASE" | "CUSTOM"
+  baseScore Float @default(60)   // Minimum grade (default: 60)
+  passingRawPercent Float @default(60) // Raw % that maps to passing grade (default: 60%)
+  passingGrade Float @default(75) // Transmuted passing grade (default: 75)
+
+  test Test @relation(fields: [testId], references: [id], onDelete: Cascade)
+}
+
+// System-wide settings managed by Admin
+model SystemConfig {
+  id                String  @id @default(cuid())
+  key               String  @unique
+  value             String
+  description       String?
+  updatedAt         DateTime @updatedAt
+
+  @@index([key])
+}

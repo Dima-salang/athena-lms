@@ -1,0 +1,204 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* Dark mode is driven by a `.dark` class on <html> (next-themes). */
+@custom-variant dark (&:is(.dark *));
+
+/* ──────────────────────────────────────────────────────────────────
+   Design tokens — "Pine + warm stone + gold"
+   Raw HSL channels so tokens can be composed with opacity.
+   ────────────────────────────────────────────────────────────────── */
+@layer base {
+  :root {
+    --background: 48 33% 98%;
+    --foreground: 24 10% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 24 10% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 24 10% 10%;
+    --primary: 161 41% 25%;
+    --primary-foreground: 45 40% 98%;
+    --secondary: 40 14% 94%;
+    --secondary-foreground: 24 12% 16%;
+    --muted: 40 14% 94%;
+    --muted-foreground: 25 8% 42%;
+    --accent: 40 20% 92%;
+    --accent-foreground: 24 12% 16%;
+    --destructive: 4 62% 45%;
+    --destructive-foreground: 40 40% 98%;
+    --border: 34 14% 88%;
+    --input: 34 14% 86%;
+    --ring: 161 41% 25%;
+    --gold: 38 62% 45%;
+    --gold-foreground: 40 40% 98%;
+    --success: 152 45% 32%;
+    --success-foreground: 40 40% 98%;
+    --warning: 38 62% 45%;
+    --warning-foreground: 40 40% 98%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 24 10% 8%;
+    --foreground: 40 20% 94%;
+    --card: 24 9% 11%;
+    --card-foreground: 40 20% 94%;
+    --popover: 24 9% 11%;
+    --popover-foreground: 40 20% 94%;
+    --primary: 158 42% 52%;
+    --primary-foreground: 24 20% 8%;
+    --secondary: 24 8% 16%;
+    --secondary-foreground: 40 20% 94%;
+    --muted: 24 8% 16%;
+    --muted-foreground: 35 10% 65%;
+    --accent: 24 8% 18%;
+    --accent-foreground: 40 20% 94%;
+    --destructive: 4 58% 50%;
+    --destructive-foreground: 40 40% 98%;
+    --border: 24 8% 20%;
+    --input: 24 8% 22%;
+    --ring: 158 42% 52%;
+    --gold: 40 55% 55%;
+    --gold-foreground: 24 20% 8%;
+    --success: 152 40% 45%;
+    --success-foreground: 24 20% 8%;
+    --warning: 40 55% 55%;
+    --warning-foreground: 24 20% 8%;
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   Map tokens → Tailwind v4 utilities. `inline` keeps var() refs so
+   values resolve per-element (light/dark switching, opacity).
+   ────────────────────────────────────────────────────────────────── */
+@theme inline {
+  --font-sans: var(--font-public-sans), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", sans-serif;
+  --font-display: var(--font-fraunces), ui-serif, Georgia, "Times New Roman",
+    serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", monospace;
+
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-gold: hsl(var(--gold));
+  --color-gold-foreground: hsl(var(--gold-foreground));
+  --color-success: hsl(var(--success));
+  --color-success-foreground: hsl(var(--success-foreground));
+  --color-warning: hsl(var(--warning));
+  --color-warning-foreground: hsl(var(--warning-foreground));
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+  --animate-rise: rise 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes accordion-down {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+  }
+}
+@keyframes accordion-up {
+  from {
+    height: var(--radix-accordion-content-height);
+  }
+  to {
+    height: 0;
+  }
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   Base
+   ────────────────────────────────────────────────────────────────── */
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Headings carry the display face by default. (--font-display is inlined
+     into utilities only, so the base rule references the font var directly.) */
+  :where(h1, h2, h3) {
+    font-family: var(--font-fraunces), ui-serif, Georgia, "Times New Roman",
+      serif;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+  }
+
+  ::selection {
+    background-color: hsl(var(--primary) / 0.18);
+  }
+
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   Utilities
+   ────────────────────────────────────────────────────────────────── */
+
+/* Subtle dotted "paper" field for auth / empty surfaces. */
+@utility bg-paper {
+  background-image: radial-gradient(
+    hsl(var(--foreground) / 0.05) 1px,
+    transparent 1px
+  );
+  background-size: 22px 22px;
+}
