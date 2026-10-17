@@ -17,7 +17,7 @@ export function BrandMark({
   return (
     <span
       className={cn(
-        "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm",
+        "flex h-9 w-9 shrink-0 items-center justify-center rounded-none border-2 border-border bg-primary text-primary-foreground shadow-sm",
         className
       )}
       aria-hidden

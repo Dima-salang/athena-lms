@@ -176,7 +176,7 @@ export function TestSettingsDialog({
                         "rounded-lg border px-3 py-2 text-left text-xs font-medium transition-colors",
                         isAssigned
                           ? "border-primary bg-primary text-primary-foreground"
-                          : "border-input bg-background text-foreground hover:bg-muted"
+                          : "border-input bg-card text-foreground hover:bg-muted"
                       )}
                     >
                       {section.name}

@@ -11,7 +11,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -62,7 +61,7 @@ export function Navbar({ user }: NavbarProps) {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-40 w-full border-b-2 border-border bg-card">
       <div className="flex h-14 items-center gap-2 px-3 sm:gap-3 sm:px-6 lg:px-8">
         <MobileNav role={user.role} />
 
@@ -71,7 +70,7 @@ export function Navbar({ user }: NavbarProps) {
           className="flex items-center gap-2 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
           <BrandMark className="h-8 w-8" iconClassName="h-4 w-4" />
-          <span className="font-display text-lg font-semibold tracking-tight">
+          <span className="font-display text-lg tracking-tight">
             Athena LMS
           </span>
         </Link>
@@ -92,25 +91,25 @@ export function Navbar({ user }: NavbarProps) {
                 className="gap-2 px-2"
                 aria-label="Account menu"
               >
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-muted">
+                <span className="flex h-7 w-7 items-center justify-center rounded-none border-2 border-border bg-muted">
                   <UserIcon className="h-4 w-4 text-muted-foreground" />
                 </span>
-                <span className="hidden font-medium sm:inline-block">
+                <span className="hidden font-semibold sm:inline-block">
                   {user.firstName} {user.lastName}
                 </span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>
+              <div className="px-2 py-1.5">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">
+                  <p className="text-sm font-semibold leading-none">
                     {user.firstName} {user.lastName}
                   </p>
                   <p className="text-xs leading-none text-muted-foreground">
                     @{user.username}
                   </p>
                 </div>
-              </DropdownMenuLabel>
+              </div>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <Link href="/change-password" className="cursor-pointer">

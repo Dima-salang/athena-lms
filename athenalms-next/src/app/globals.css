@@ -1,83 +1,107 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-/* Dark mode is driven by a `.dark` class on <html> (next-themes). */
+/* Dark mode is driven by a `.dark` class on <html>. */
 @custom-variant dark (&:is(.dark *));
 
 /* ──────────────────────────────────────────────────────────────────
-   Design tokens — "Pine + warm stone + gold"
-   Raw HSL channels so tokens can be composed with opacity.
+   Design tokens — "Cobalt Kiosk"
+
+   Retro-futurist neobrutalism: a bone graph-paper base, cobalt as the
+   workhorse, electric lime for the moments that matter, and near-ink
+   borders on everything. Raw HSL channels so tokens can be composed
+   with opacity.
    ────────────────────────────────────────────────────────────────── */
 @layer base {
   :root {
-    --background: 48 33% 98%;
-    --foreground: 24 10% 10%;
-    --card: 0 0% 100%;
-    --card-foreground: 24 10% 10%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 24 10% 10%;
-    --primary: 161 41% 25%;
-    --primary-foreground: 45 40% 98%;
-    --secondary: 40 14% 94%;
-    --secondary-foreground: 24 12% 16%;
-    --muted: 40 14% 94%;
-    --muted-foreground: 25 8% 42%;
-    --accent: 40 20% 92%;
-    --accent-foreground: 24 12% 16%;
-    --destructive: 4 62% 45%;
-    --destructive-foreground: 40 40% 98%;
-    --border: 34 14% 88%;
-    --input: 34 14% 86%;
-    --ring: 161 41% 25%;
-    --gold: 38 62% 45%;
-    --gold-foreground: 40 40% 98%;
-    --success: 152 45% 32%;
-    --success-foreground: 40 40% 98%;
-    --warning: 38 62% 45%;
-    --warning-foreground: 40 40% 98%;
-    --radius: 0.5rem;
+    --background: 45 38% 93%;
+    --foreground: 240 9% 8%;
+    --card: 48 55% 98%;
+    --card-foreground: 240 9% 8%;
+    --popover: 48 55% 98%;
+    --popover-foreground: 240 9% 8%;
+    --primary: 232 88% 50%;
+    --primary-foreground: 48 55% 98%;
+    --secondary: 44 26% 85%;
+    --secondary-foreground: 240 9% 12%;
+    --muted: 45 22% 88%;
+    --muted-foreground: 240 6% 34%;
+    --accent: 232 62% 92%;
+    --accent-foreground: 232 45% 22%;
+    --destructive: 349 92% 46%;
+    --destructive-foreground: 48 55% 98%;
+    --border: 240 12% 11%;
+    --input: 240 12% 11%;
+    --ring: 232 88% 50%;
+    --gold: 36 96% 48%;
+    --gold-foreground: 240 9% 8%;
+    --success: 152 84% 30%;
+    --success-foreground: 48 55% 98%;
+    --warning: 28 100% 48%;
+    --warning-foreground: 240 9% 8%;
+    --lime: 74 96% 45%;
+    --lime-foreground: 240 9% 8%;
+
+    /* Hard-offset shadow colour + offsets: the geometry of the whole look. */
+    --shadow-ink: 240 12% 11%;
+    --elev-1: 2px 2px 0 0 hsl(var(--shadow-ink));
+    --elev-2: 4px 4px 0 0 hsl(var(--shadow-ink));
+    --elev-3: 6px 6px 0 0 hsl(var(--shadow-ink));
+    --elev-press: 1px 1px 0 0 hsl(var(--shadow-ink));
   }
 
   .dark {
-    --background: 24 10% 8%;
-    --foreground: 40 20% 94%;
-    --card: 24 9% 11%;
-    --card-foreground: 40 20% 94%;
-    --popover: 24 9% 11%;
-    --popover-foreground: 40 20% 94%;
-    --primary: 158 42% 52%;
-    --primary-foreground: 24 20% 8%;
-    --secondary: 24 8% 16%;
-    --secondary-foreground: 40 20% 94%;
-    --muted: 24 8% 16%;
-    --muted-foreground: 35 10% 65%;
-    --accent: 24 8% 18%;
-    --accent-foreground: 40 20% 94%;
-    --destructive: 4 58% 50%;
-    --destructive-foreground: 40 40% 98%;
-    --border: 24 8% 20%;
-    --input: 24 8% 22%;
-    --ring: 158 42% 52%;
-    --gold: 40 55% 55%;
-    --gold-foreground: 24 20% 8%;
-    --success: 152 40% 45%;
-    --success-foreground: 24 20% 8%;
-    --warning: 40 55% 55%;
-    --warning-foreground: 24 20% 8%;
+    --background: 240 16% 6%;
+    --foreground: 46 30% 93%;
+    --card: 240 13% 10%;
+    --card-foreground: 46 30% 93%;
+    --popover: 240 13% 10%;
+    --popover-foreground: 46 30% 93%;
+    --primary: 232 100% 73%;
+    --primary-foreground: 240 16% 6%;
+    --secondary: 240 11% 17%;
+    --secondary-foreground: 46 30% 93%;
+    --muted: 240 11% 16%;
+    --muted-foreground: 240 9% 70%;
+    --accent: 232 34% 22%;
+    --accent-foreground: 46 30% 95%;
+    --destructive: 349 95% 63%;
+    --destructive-foreground: 240 16% 6%;
+    --border: 46 22% 76%;
+    --input: 46 22% 76%;
+    --ring: 74 92% 55%;
+    --gold: 40 100% 60%;
+    --gold-foreground: 240 16% 6%;
+    --success: 152 62% 48%;
+    --success-foreground: 240 16% 6%;
+    --warning: 28 100% 60%;
+    --warning-foreground: 240 16% 6%;
+    --lime: 74 92% 55%;
+    --lime-foreground: 240 16% 6%;
+
+    /* On near-black, shadows glow instead of darken. */
+    --shadow-ink: 232 92% 58%;
+    --elev-1: 2px 2px 0 0 hsl(var(--shadow-ink));
+    --elev-2: 4px 4px 0 0 hsl(var(--shadow-ink));
+    --elev-3: 6px 6px 0 0 hsl(var(--shadow-ink));
+    --elev-press: 1px 1px 0 0 hsl(var(--shadow-ink));
   }
 }
 
 /* ──────────────────────────────────────────────────────────────────
    Map tokens → Tailwind v4 utilities. `inline` keeps var() refs so
    values resolve per-element (light/dark switching, opacity).
+
+   Radius collapses to 0 and every shadow becomes a hard offset, which
+   restyles the whole app from one place.
    ────────────────────────────────────────────────────────────────── */
 @theme inline {
-  --font-sans: var(--font-public-sans), ui-sans-serif, system-ui, -apple-system,
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, -apple-system,
     "Segoe UI", sans-serif;
-  --font-display: var(--font-fraunces), ui-serif, Georgia, "Times New Roman",
-    serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    "Liberation Mono", monospace;
+  --font-display: var(--font-archivo-black), "Archivo Black", ui-sans-serif,
+    system-ui, sans-serif;
+  --font-mono: var(--font-space-mono), ui-monospace, SFMono-Regular, Menlo,
+    monospace;
 
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
@@ -104,15 +128,26 @@
   --color-success-foreground: hsl(var(--success-foreground));
   --color-warning: hsl(var(--warning));
   --color-warning-foreground: hsl(var(--warning-foreground));
+  --color-lime: hsl(var(--lime));
+  --color-lime-foreground: hsl(var(--lime-foreground));
 
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+
+  --shadow-2xs: var(--elev-1);
+  --shadow-xs: var(--elev-1);
+  --shadow-sm: var(--elev-1);
+  --shadow: var(--elev-2);
+  --shadow-md: var(--elev-2);
+  --shadow-lg: var(--elev-2);
+  --shadow-xl: var(--elev-3);
+  --shadow-2xl: var(--elev-3);
 
   --animate-accordion-down: accordion-down 0.2s ease-out;
   --animate-accordion-up: accordion-up 0.2s ease-out;
-  --animate-rise: rise 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-rise: rise 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @keyframes accordion-down {
@@ -134,7 +169,7 @@
 @keyframes rise {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(8px) scale(0.985);
   }
   to {
     opacity: 1;
@@ -152,10 +187,25 @@
 
   html {
     -webkit-text-size-adjust: 100%;
+    /* Display face ships one weight; stop the browser smearing faux-bold
+       onto it while keeping real weights for the body/mono faces. */
+    font-synthesis-weight: none;
   }
 
   body {
     background-color: hsl(var(--background));
+    /* App-wide graph paper, the cheapest way to make the page feel built. */
+    background-image: linear-gradient(
+        to right,
+        hsl(var(--foreground) / 0.045) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        to bottom,
+        hsl(var(--foreground) / 0.045) 1px,
+        transparent 1px
+      );
+    background-size: 28px 28px;
     color: hsl(var(--foreground));
     text-rendering: optimizeLegibility;
   }
@@ -163,18 +213,19 @@
   /* Headings carry the display face by default. (--font-display is inlined
      into utilities only, so the base rule references the font var directly.) */
   :where(h1, h2, h3) {
-    font-family: var(--font-fraunces), ui-serif, Georgia, "Times New Roman",
-      serif;
-    font-weight: 600;
-    letter-spacing: -0.015em;
+    font-family: var(--font-archivo-black), "Archivo Black", ui-sans-serif,
+      system-ui, sans-serif;
+    font-weight: 400;
+    letter-spacing: -0.02em;
   }
 
   ::selection {
-    background-color: hsl(var(--primary) / 0.18);
+    background-color: hsl(var(--lime));
+    color: hsl(var(--lime-foreground));
   }
 
   :focus-visible {
-    outline: 2px solid hsl(var(--ring));
+    outline: 3px solid hsl(var(--ring));
     outline-offset: 2px;
   }
 
@@ -194,11 +245,78 @@
    Utilities
    ────────────────────────────────────────────────────────────────── */
 
-/* Subtle dotted "paper" field for auth / empty surfaces. */
+/* Dotted "blueprint paper" field for auth / empty surfaces. */
 @utility bg-paper {
   background-image: radial-gradient(
-    hsl(var(--foreground) / 0.05) 1px,
+    hsl(var(--foreground) / 0.09) 1px,
     transparent 1px
   );
-  background-size: 22px 22px;
+  background-size: 20px 20px;
+}
+
+/* Louder graph paper, for hero-ish surfaces. */
+@utility bg-grid {
+  background-image: linear-gradient(
+      to right,
+      hsl(var(--foreground) / 0.1) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      to bottom,
+      hsl(var(--foreground) / 0.1) 1px,
+      transparent 1px
+    );
+  background-size: 16px 16px;
+}
+
+/* CRT scanlines — sparse enough to stay readable behind content. */
+@utility bg-scanlines {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    hsl(var(--foreground) / 0.08) 0 1px,
+    transparent 1px 5px
+  );
+}
+
+/* Diagonal hazard stripes. Reserved for "this is destructive" surfaces. */
+@utility bg-hazard {
+  background-image: repeating-linear-gradient(
+    45deg,
+    hsl(var(--foreground)) 0 6px,
+    transparent 6px 12px
+  );
+}
+
+/* The signature mark: 2px ink edge + hard offset. */
+@utility nb {
+  border-width: 2px;
+  border-color: hsl(var(--border));
+  box-shadow: var(--elev-2);
+}
+
+/* Machine label: mono, uppercase, tracked out. Section nibs + eyebrows. */
+@utility label-mono {
+  font-family: var(--font-space-mono), ui-monospace, SFMono-Regular, Menlo,
+    monospace;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* Press: the shadow snaps to the surface, the element moves down-right. */
+@utility nb-press {
+  transition:
+    transform 120ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 120ms cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 120ms ease,
+    color 120ms ease;
+
+  &:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: var(--elev-3);
+  }
+
+  &:active {
+    transform: translate(2px, 2px);
+    box-shadow: var(--elev-press);
+  }
 }

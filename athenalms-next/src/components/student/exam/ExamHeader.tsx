@@ -31,7 +31,7 @@ export function ExamHeader({
   const saving = saveStatus === "saving";
 
   return (
-    <div className="sticky top-0 z-30 -mx-4 flex items-center justify-between gap-3 border-b bg-background/95 px-4 py-3 shadow-sm backdrop-blur sm:-mx-6 sm:gap-4 sm:px-6">
+    <div className="sticky top-0 z-30 -mx-4 flex items-center justify-between gap-3 border-b-2 border-border bg-card px-4 py-3 shadow-sm sm:-mx-6 sm:gap-4 sm:px-6">
       <div className="min-w-0">
         <h1 className="truncate text-sm font-semibold tracking-tight sm:text-base">
           {title || "Test"}

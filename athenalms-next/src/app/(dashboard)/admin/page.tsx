@@ -24,7 +24,7 @@ export default async function AdminDashboardPage() {
       value: studentCount,
       description: "Active student accounts",
       icon: Users,
-      color: "text-blue-600 bg-blue-50 dark:bg-blue-950/50",
+      color: "bg-primary text-primary-foreground",
       href: "/admin/users?role=STUDENT",
     },
     {
@@ -32,7 +32,7 @@ export default async function AdminDashboardPage() {
       value: teacherCount,
       description: "Teaching staff registered",
       icon: UserCheck,
-      color: "text-indigo-600 bg-indigo-50 dark:bg-indigo-950/50",
+      color: "bg-lime text-lime-foreground",
       href: "/admin/users?role=TEACHER",
     },
     {
@@ -40,7 +40,7 @@ export default async function AdminDashboardPage() {
       value: sectionCount,
       description: "Active class cohorts",
       icon: Layers,
-      color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/50",
+      color: "bg-success text-success-foreground",
       href: "/admin/sections",
     },
     {
@@ -48,7 +48,7 @@ export default async function AdminDashboardPage() {
       value: subjectCount,
       description: "Course catalogue items",
       icon: BookOpen,
-      color: "text-amber-600 bg-amber-50 dark:bg-amber-950/50",
+      color: "bg-warning text-warning-foreground",
       href: "/admin/subjects",
     },
   ];
@@ -71,7 +71,7 @@ export default async function AdminDashboardPage() {
               <Card className="hover:border-primary/50 transition-all hover:shadow-md cursor-pointer">
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
                   <CardTitle className="text-sm font-medium">{c.title}</CardTitle>
-                  <div className={`p-2 rounded-lg ${c.color}`}>
+                  <div className={`flex h-9 w-9 items-center justify-center border-2 border-border ${c.color}`}>
                     <Icon className="h-4 w-4" />
                   </div>
                 </CardHeader>

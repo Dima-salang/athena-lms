@@ -140,7 +140,7 @@ export function TestsTable({
 }: TestsTableProps) {
   if (loading) {
     return (
-      <div className="flex items-center justify-center rounded-xl border bg-card py-16">
+      <div className="flex items-center justify-center border-2 bg-card py-16">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" aria-hidden />
       </div>
     );

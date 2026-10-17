@@ -18,12 +18,18 @@ export function FormSection({
   actions?: ReactNode;
 }) {
   return (
-    <section className={cn("space-y-4 border-t pt-6 first:border-t-0 first:pt-0", className)}>
+    <section
+      className={cn(
+        "space-y-4 border-t-2 border-dashed border-border pt-6 first:border-t-0 first:pt-0",
+        className
+      )}
+    >
       {title || description || actions ? (
         <div className="flex flex-wrap items-start justify-between gap-2">
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             {title ? (
-              <h3 className="font-display text-sm font-semibold tracking-tight text-foreground">
+              <h3 className="flex items-center gap-2 text-xs label-mono font-bold text-foreground">
+                <span className="h-2 w-2 bg-primary" aria-hidden />
                 {title}
               </h3>
             ) : null}
@@ -36,7 +42,7 @@ export function FormSection({
           {actions ? <div className="flex items-center gap-2">{actions}</div> : null}
         </div>
       ) : null}
-      <div className="space-y-4">{children}</div>
+      <div className="space-y-5">{children}</div>
     </section>
   );
 }
@@ -62,7 +68,7 @@ export function FormField({
       {label ? <Label htmlFor={htmlFor}>{label}</Label> : null}
       {children}
       {error ? (
-        <p className="text-xs font-medium text-destructive">{error}</p>
+        <p className="text-xs font-semibold text-destructive">{error}</p>
       ) : hint ? (
         <p className="text-xs leading-relaxed text-muted-foreground">{hint}</p>
       ) : null}
@@ -90,8 +96,10 @@ export function CheckboxField({
     <label
       htmlFor={id}
       className={cn(
-        "flex items-start gap-3 rounded-lg border bg-card p-3 transition-colors",
-        disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer hover:bg-muted/50"
+        "flex items-start gap-3 rounded-none border-2 border-border bg-card p-3 transition-colors",
+        disabled
+          ? "cursor-not-allowed opacity-60"
+          : "cursor-pointer hover:bg-accent/60"
       )}
     >
       <input
@@ -100,10 +108,10 @@ export function CheckboxField({
         checked={checked}
         disabled={disabled}
         onChange={(e) => onChange(e.target.checked)}
-        className="mt-0.5 h-4 w-4 shrink-0 rounded border-input accent-[hsl(var(--primary))]"
+        className="mt-0.5 h-4 w-4 shrink-0 accent-[hsl(var(--primary))]"
       />
       <span className="space-y-0.5">
-        <span className="block text-sm font-medium leading-none">{label}</span>
+        <span className="block text-sm font-semibold leading-none">{label}</span>
         {description ? (
           <span className="block text-xs leading-relaxed text-muted-foreground">
             {description}

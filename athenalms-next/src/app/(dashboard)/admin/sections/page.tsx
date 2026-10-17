@@ -170,7 +170,7 @@ export default function SectionsPage() {
           </DialogHeader>
           <form onSubmit={handleCreate} className="space-y-4">
             {error && (
-              <p className="text-xs text-destructive bg-destructive/10 p-2 rounded">
+              <p className="border-2 border-destructive bg-destructive/10 p-2 text-xs font-medium text-destructive">
                 {error}
               </p>
             )}

@@ -135,7 +135,7 @@ export function TestEditorBar({
   onRetrySave,
 }: TestEditorBarProps) {
   return (
-    <div className="sticky top-14 z-30 -mx-4 border-b bg-background/95 px-4 py-3 shadow-sm backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+    <div className="sticky top-14 z-30 -mx-4 border-b-2 border-border bg-card px-4 py-3 shadow-md sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
       <div className="mx-auto flex max-w-5xl flex-col gap-3">
         {/* Row 1: identity + actions */}
         <div className="flex flex-wrap items-start justify-between gap-3">

@@ -22,17 +22,19 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed bg-card px-6 py-12 text-center",
+        "flex flex-col items-center justify-center gap-3 rounded-none border-2 border-dashed border-border bg-card/70 px-6 py-12 text-center",
         className
       )}
     >
       {Icon ? (
-        <span className="flex h-11 w-11 items-center justify-center rounded-full bg-muted text-muted-foreground">
+        <span className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-border bg-muted text-muted-foreground">
           <Icon className="h-5 w-5" aria-hidden />
         </span>
       ) : null}
       <div className="space-y-1">
-        <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+        <h3 className="font-display text-base tracking-tight text-foreground">
+          {title}
+        </h3>
         {description ? (
           <p className="mx-auto max-w-sm text-sm text-muted-foreground">
             {description}

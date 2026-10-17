@@ -32,28 +32,26 @@ export function AuthShell({
   return (
     <div className="relative flex min-h-screen items-center justify-center p-4 sm:p-6">
       <div
-        className="pointer-events-none absolute inset-0 bg-muted/40"
+        className="pointer-events-none absolute inset-0 bg-muted/50"
         aria-hidden
       />
       <div
-        className="pointer-events-none absolute inset-0 bg-paper opacity-60"
+        className="pointer-events-none absolute inset-0 bg-paper opacity-70"
         aria-hidden
       />
       <div className={cn("relative w-full", maxWidth)}>
-        <Card className="animate-rise rounded-xl shadow-lg">
+        <Card className="animate-rise border-2 shadow-xl">
           <CardHeader className="items-center space-y-4 text-center">
             <BrandMark
               icon={icon}
               className={cn(
-                "h-12 w-12 rounded-xl",
+                "h-12 w-12 shadow-md",
                 tone === "warning" && "bg-warning text-warning-foreground"
               )}
               iconClassName="h-6 w-6"
             />
-            <div className="space-y-1.5">
-              <CardTitle className="font-display text-2xl font-semibold tracking-tight">
-                {title}
-              </CardTitle>
+            <div className="space-y-2">
+              <CardTitle className="text-2xl">{title}</CardTitle>
               {description ? (
                 <CardDescription>{description}</CardDescription>
               ) : null}
@@ -61,7 +59,7 @@ export function AuthShell({
           </CardHeader>
           {children}
         </Card>
-        <p className="mt-6 text-center text-xs text-muted-foreground">
+        <p className="mt-6 text-center text-xs label-mono font-bold text-muted-foreground">
           Athena LMS
         </p>
       </div>

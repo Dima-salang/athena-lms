@@ -346,3 +346,17 @@ they may need selector updates if labels change — treated as expected churn.
 - **Risk:** dark mode reveals contrast issues in charts (recharts) → chart colors routed through
   tokens.
 - **cmdk (command palette)** and other unused deps stay untouched.
+
+---
+
+## 12. Alternate visual direction — "Cobalt Kiosk" (branch `feat/ui-neobrutalist`)
+
+The plan above describes the **refined / institutional** direction ("Pine + warm stone + gold"),
+delivered in Phases 1–3 on `feat/ui-refresh`.
+
+A second, complete restyle exists on **`feat/ui-neobrutalist`**: a retro-futurist neobrutalist
+skin — bone graph paper, cobalt + electric lime, 2px ink borders, hard offset shadows, square
+corners, Archivo Black / Archivo / Space Mono. It changes **only the design layer**: same pages,
+same copy, same routes, same APIs, same tests.
+
+See `docs/ui-neobrutalist-changelog.md`. The two can be compared by switching branches.

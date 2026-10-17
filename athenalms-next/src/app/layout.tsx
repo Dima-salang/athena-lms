@@ -5,7 +5,7 @@ import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { ThemeScript } from "@/components/providers/ThemeScript";
 import { Toaster } from "@/components/ui/toaster";
 
-import { fraunces, publicSans } from "./fonts";
+import { archivo, archivoBlack, spaceMono } from "./fonts";
 
 export const metadata: Metadata = {
   title: "Athena LMS",
@@ -23,7 +23,7 @@ export default function RootLayout({
         <ThemeScript />
       </head>
       <body
-        className={`${publicSans.variable} ${fraunces.variable} min-h-screen bg-background font-sans antialiased`}
+        className={`${archivo.variable} ${archivoBlack.variable} ${spaceMono.variable} min-h-screen bg-background font-sans antialiased`}
       >
         <ThemeProvider>
           {children}

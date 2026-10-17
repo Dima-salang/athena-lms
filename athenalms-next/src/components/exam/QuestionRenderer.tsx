@@ -200,7 +200,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
                 value={selectedMatch}
                 onValueChange={(val) => handleMatchSelect(opt.id, val)}
               >
-                <SelectTrigger className="bg-background">
+                <SelectTrigger className="bg-card">
                   <SelectValue placeholder="Select matching item..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -240,7 +240,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
   };
 
   return (
-    <div className={cn("rounded-xl border bg-card p-6 shadow-sm space-y-6", className)}>
+    <div className={cn("border-2 bg-card p-6 shadow-md space-y-6", className)}>
       <div className="flex items-start justify-between gap-4 border-b pb-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">

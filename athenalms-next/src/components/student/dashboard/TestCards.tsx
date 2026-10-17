@@ -53,7 +53,7 @@ export function AvailableTestCard({ test }: { test: StudentTestItemDTO }) {
   const inProgress = test.submission?.status === "IN_PROGRESS";
 
   return (
-    <Card className="flex flex-col border-t-4 border-t-primary shadow-sm transition-shadow hover:shadow-md">
+    <Card className="flex flex-col border-t-8 border-t-primary transition-shadow hover:shadow-md">
       <CardHeader className="pb-3">
         <div className="mb-1.5 flex items-center justify-between gap-2">
           <Badge variant="outline">{formatExamType(test.examType)}</Badge>

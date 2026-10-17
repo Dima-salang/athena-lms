@@ -5,11 +5,23 @@ import { cn } from "@/lib/utils";
 
 type AlertVariant = "error" | "success" | "warning" | "info";
 
-const STYLES: Record<AlertVariant, string> = {
-  error: "border-destructive/20 bg-destructive/10 text-destructive",
-  success: "border-success/25 bg-success/10 text-success",
-  warning: "border-warning/25 bg-warning/10 text-warning",
-  info: "border-border bg-muted text-foreground",
+const STYLES: Record<AlertVariant, { box: string; icon: string }> = {
+  error: {
+    box: "border-destructive bg-destructive/10",
+    icon: "text-destructive",
+  },
+  success: {
+    box: "border-success bg-success/10",
+    icon: "text-success",
+  },
+  warning: {
+    box: "border-warning bg-warning/10",
+    icon: "text-warning",
+  },
+  info: {
+    box: "border-border bg-muted",
+    icon: "text-primary",
+  },
 };
 
 const ICONS: Record<AlertVariant, LucideIcon> = {
@@ -34,16 +46,21 @@ export function Alert({
   className,
 }: AlertProps) {
   const Icon = IconOverride ?? ICONS[variant];
+  const styles = STYLES[variant];
   return (
     <div
       role={variant === "error" ? "alert" : "status"}
       className={cn(
-        "flex items-start gap-2 rounded-md border p-3 text-sm font-medium",
-        STYLES[variant],
+        // The fat left edge is the status stripe — reads at a glance.
+        "flex items-start gap-3 rounded-none border-2 border-l-[10px] p-3 text-sm font-medium text-foreground",
+        styles.box,
         className
       )}
     >
-      <Icon className="mt-px h-4 w-4 shrink-0" aria-hidden />
+      <Icon
+        className={cn("mt-px h-4 w-4 shrink-0", styles.icon)}
+        aria-hidden
+      />
       <div className="min-w-0 flex-1">{children}</div>
     </div>
   );

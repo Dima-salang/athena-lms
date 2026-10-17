@@ -48,13 +48,19 @@ export function ConfirmDialog({
       }}
     >
       <DialogContent className="max-w-md">
+        {destructive ? (
+          <span
+            className="absolute inset-x-0 top-0 h-2 bg-hazard opacity-80"
+            aria-hidden
+          />
+        ) : null}
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           {description ? (
             <DialogDescription>{description}</DialogDescription>
           ) : null}
         </DialogHeader>
-        <DialogFooter className="pt-2">
+        <DialogFooter className="pt-4">
           <Button variant="outline" onClick={onCancel} disabled={loading}>
             {cancelLabel}
           </Button>

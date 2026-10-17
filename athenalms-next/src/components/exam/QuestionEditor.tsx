@@ -224,7 +224,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({
                   <div
                     key={opt.id || idx}
                     className={cn(
-                      "group relative flex items-center gap-3 rounded-xl border p-2.5 transition-all duration-200",
+                      "group relative flex items-center gap-3 border-2 p-2.5 transition-all duration-200",
                       isCorrect
                         ? "border-success/60 bg-success/10 shadow-xs ring-1 ring-success/30"
                         : "border-border/70 bg-card/50 hover:border-muted-foreground/40 hover:bg-muted/30"
@@ -257,7 +257,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({
                       tabIndex={-1}
                       onClick={handleSelectThis}
                       className={cn(
-                        "flex h-7 w-7 shrink-0 cursor-pointer select-none items-center justify-center rounded-md text-xs font-bold transition-all duration-200",
+                        "flex h-7 w-7 shrink-0 cursor-pointer select-none items-center justify-center border-2 text-xs font-bold transition-all duration-200",
                         isCorrect
                           ? "bg-success text-success-foreground shadow-xs"
                           : "bg-muted text-muted-foreground group-hover:bg-muted/80"
@@ -272,7 +272,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({
                       value={opt.optionText}
                       onChange={(e) => updateOption(idx, "optionText", e.target.value)}
                       className={cn(
-                        "h-9 flex-1 bg-background text-sm transition-colors",
+                        "h-9 flex-1 text-sm transition-colors",
                         isCorrect && "border-success/60 focus-visible:ring-success"
                       )}
                     />
@@ -368,7 +368,7 @@ export const QuestionEditor: React.FC<QuestionEditorProps> = ({
                         )}
                       >
                         {isSelected ? (
-                          <span className="h-1.5 w-1.5 rounded-full bg-background" />
+                          <span className="h-1.5 w-1.5 rounded-full bg-card" />
                         ) : null}
                       </div>
                       <span>{val}</span>

@@ -16,11 +16,15 @@ export function Toaster() {
       toastOptions={{
         classNames: {
           toast:
-            "rounded-lg border border-border bg-card text-card-foreground shadow-lg font-sans",
+            "rounded-none border-2 border-border bg-card text-card-foreground shadow-lg font-sans font-medium",
+          title: "font-semibold",
           description: "text-muted-foreground",
-          error: "border-destructive/40",
-          success: "border-success/40",
-          warning: "border-warning/40",
+          error: "border-destructive",
+          success: "border-success",
+          warning: "border-warning",
+          info: "border-primary",
+          closeButton:
+            "rounded-none border-2 border-border bg-card text-foreground",
         },
       }}
     />

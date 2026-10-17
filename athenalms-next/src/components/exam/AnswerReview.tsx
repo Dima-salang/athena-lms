@@ -90,7 +90,7 @@ function MultipleChoiceReview({
           <div
             key={opt.id}
             className={cn(
-              "flex items-start justify-between gap-3 rounded-lg border p-3 text-sm",
+              "flex items-start justify-between gap-3 border-2 p-3 text-sm",
               correct && chosen && "border-success/50 bg-success/10",
               correct && !chosen && "border-success/40 bg-success/5",
               !correct && chosen && "border-destructive/50 bg-destructive/10",
@@ -100,7 +100,7 @@ function MultipleChoiceReview({
             <div className="flex min-w-0 items-start gap-3">
               <span
                 className={cn(
-                  "mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-xs font-semibold",
+                  "mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center border-2 text-xs font-semibold",
                   correct
                     ? "bg-success text-success-foreground"
                     : chosen

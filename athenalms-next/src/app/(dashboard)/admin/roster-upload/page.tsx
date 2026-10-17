@@ -149,10 +149,10 @@ export default function RosterUploadPage() {
 
       {/* Results View */}
       {result && (
-        <Card className="border-emerald-500/30">
-          <CardHeader className="bg-emerald-50/50 dark:bg-emerald-950/20 rounded-t-xl border-b pb-4">
-            <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-200">
-              <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+        <Card className="border-success">
+          <CardHeader className="border-b-2 border-border bg-success/10 pb-4">
+            <div className="flex items-center gap-2 text-foreground">
+              <CheckCircle2 className="h-5 w-5 text-success" />
               <CardTitle className="text-base font-semibold">
                 Import Complete: {result.successfulCount} Account(s) Provisioned
               </CardTitle>

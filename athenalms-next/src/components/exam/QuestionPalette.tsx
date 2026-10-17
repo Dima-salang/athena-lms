@@ -29,7 +29,7 @@ export const QuestionPalette: React.FC<QuestionPaletteProps> = ({
   const totalCount = questions.length;
 
   return (
-    <div className={cn("rounded-xl border bg-card p-4 shadow-sm space-y-4", className)}>
+    <div className={cn("border-2 bg-card p-4 shadow-md space-y-4", className)}>
       <div className="flex items-center justify-between">
         <h3 className="font-semibold text-sm">Question Navigation</h3>
         <span className="text-xs text-muted-foreground font-medium">

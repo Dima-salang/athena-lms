@@ -125,7 +125,7 @@ export default function StudentDashboardPage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-8 pb-16">
-      <div className="rounded-xl border bg-card bg-paper p-6 shadow-sm">
+      <div className="border-2 bg-card bg-paper p-6 shadow-md">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-1">
             <h1 className="font-display text-2xl font-semibold tracking-tight">
